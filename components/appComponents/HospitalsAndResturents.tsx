@@ -81,7 +81,10 @@ const HospitalsAndRestaurants = () => {
 										</div>
 									</div>
 								</div>
-								<button type="button" className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+								<button
+									type="button"
+									className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+								>
 									<Phone className="w-5 h-5" />
 								</button>
 							</div>
@@ -112,8 +115,8 @@ const HospitalsAndRestaurants = () => {
 									<Image
 										src={rest.image}
 										alt={rest.name}
-                                        width={100}
-                                        height={100}
+										width={100}
+										height={100}
 										className="w-16 h-16 rounded-xl object-cover"
 										referrerPolicy="no-referrer"
 									/>
@@ -131,7 +134,10 @@ const HospitalsAndRestaurants = () => {
 										</div>
 									</div>
 								</div>
-								<button type="button" className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all">
+								<button
+									type="button"
+									className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all"
+								>
 									Menu
 								</button>
 							</div>
