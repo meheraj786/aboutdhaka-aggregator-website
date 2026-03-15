@@ -1,9 +1,15 @@
-
+import Categories from "@/components/appComponents/Categories";
+import Hero from "@/components/appComponents/Hero";
+import HospitalsAndRestaurants from "@/components/appComponents/HospitalsAndResturents";
+import TravelPlaces from "@/components/appComponents/TravelPlaces";
 
 export default function Home() {
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-			hello world
-		</div>
+		<>
+			<Hero />
+			<Categories />
+			<TravelPlaces />
+			<HospitalsAndRestaurants />
+		</>
 	);
 }
