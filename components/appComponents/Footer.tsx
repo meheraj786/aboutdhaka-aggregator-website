@@ -6,7 +6,7 @@ const Footer = () => {
 			id="footer"
 			className="bg-white border-t border-gray-100 pt-16 pb-8 px-6 md:px-12 lg:px-24 font-sans"
 		>
-			<div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+			<div className="max-w-7xl mx-auto text-center grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 				{/* Brand Section */}
 				<div className="space-y-6">
 					<div className="flex items-center gap-2">
@@ -17,12 +17,12 @@ const Footer = () => {
 							AboutDhaka
 						</span>
 					</div>
-					<p className="text-slate-500 leading-relaxed max-w-xs">
+					<p className="text-slate-500 text-left leading-relaxed ">
 						The ultimate directory and explorer for everything Dhaka. From
 						street food to five-star services, we help you find what you need in
 						the heart of Bangladesh.
 					</p>
-					<div className="flex gap-4">
+					<div className="flex  gap-4">
 						<a
 							href="/"
 							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
@@ -159,7 +159,7 @@ const Footer = () => {
 			{/* Bottom Bar */}
 			<div className="max-w-7xl mx-auto pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
 				<p className="text-slate-400 text-sm">
-					© 2024 AboutDhaka. All rights reserved.
+					© 2026 AboutDhaka. All rights reserved.
 				</p>
 				<div className="flex items-center gap-8 text-sm text-slate-400">
 					<div className="flex items-center gap-1">

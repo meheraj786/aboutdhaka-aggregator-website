@@ -115,8 +115,8 @@ const HospitalsAndRestaurants = () => {
 									<Image
 										src={rest.image}
 										alt={rest.name}
-										width={100}
-										height={100}
+										width={500}
+										height={500}
 										className="w-16 h-16 rounded-xl object-cover"
 										referrerPolicy="no-referrer"
 									/>
