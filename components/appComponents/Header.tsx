@@ -1,15 +1,16 @@
 "use client";
 import { Compass, Menu, Search, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { useState } from "react";
 
 const navItems = [
-	{ name: "Home", href: "#" },
-	{ name: "Places", href: "#" },
-	{ name: "Hospitals", href: "#" },
-	{ name: "Restaurants", href: "#" },
-	{ name: "Malls", href: "#" },
-	{ name: "PC Builder", href: "#" },
+	{ name: "Home", href: "/" },
+	{ name: "Places", href: "/places" },
+	{ name: "Hospitals", href: "/hospitals" },
+	{ name: "Restaurants", href: "/resturants" },
+	{ name: "Malls", href: "/malls" },
+	{ name: "PC Builder", href: "/pc-builder" },
 ];
 
 export default function Header() {
@@ -31,13 +32,13 @@ export default function Header() {
 				{/* Desktop Navigation */}
 				<nav className="hidden md:flex md:items-center md:gap-8">
 					{navItems.map((item) => (
-						<a
+						<Link
 							key={item.name}
 							href={item.href}
 							className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600"
 						>
 							{item.name}
-						</a>
+						</Link>
 					))}
 				</nav>
 
@@ -78,14 +79,14 @@ export default function Header() {
 					>
 						<div className="flex flex-col space-y-1 px-4 py-4">
 							{navItems.map((item) => (
-								<a
+								<Link
 									key={item.name}
 									href={item.href}
 									className="block rounded-lg px-3 py-2 text-base font-medium text-slate-600 hover:bg-slate-50 hover:text-blue-600"
 									onClick={() => setIsMobileMenuOpen(false)}
 								>
 									{item.name}
-								</a>
+								</Link>
 							))}
 						</div>
 					</motion.div>
