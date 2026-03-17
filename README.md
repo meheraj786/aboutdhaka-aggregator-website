@@ -1,7 +1,5 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with
 ## Getting Started
-
-
 ```bash
 npm run dev
 # or
