@@ -1,33 +1,29 @@
 "use client";
-import { Compass, Menu, Search, User, X } from "lucide-react";
+import { Menu, Search, User, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Logo from "./Logo";
 
 const navItems = [
-	{ name: "Home", href: "/" },
-	{ name: "Places", href: "/places" },
-	{ name: "Hospitals", href: "/hospitals" },
-	{ name: "Restaurants", href: "/resturants" },
-	{ name: "Malls", href: "/malls" },
-	{ name: "PC Builder", href: "/pc-builder" },
+	{ name: "HOME", href: "/" },
+	{ name: "PLACES", href: "/places" },
+	{ name: "HOSPITALS", href: "/hospitals" },
+	{ name: "RESTURANTS", href: "/resturants" },
+	{ name: "MALLS", href: "/malls" },
+	{ name: "PC BUILDER", href: "/pc-builder" },
 ];
 
 export default function Header() {
+	const path = usePathname();
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 	return (
 		<header className="fixed top-0 z-[9999] w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
 			<div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 				{/* Logo Section */}
-				<div className="flex items-center gap-2">
-					<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm">
-						<Compass size={24} />
-					</div>
-					<span className="text-xl font-bold tracking-tight text-slate-900">
-						AboutDhaka
-					</span>
-				</div>
+				<Logo />
 
 				{/* Desktop Navigation */}
 				<nav className="hidden md:flex md:items-center md:gap-8">
@@ -35,7 +31,11 @@ export default function Header() {
 						<Link
 							key={item.name}
 							href={item.href}
-							className="text-sm font-medium text-slate-600 transition-colors hover:text-blue-600"
+							className={
+								path === item.href
+									? "text-sm text-blue-600 font-bold transition-colors hover:text-blue-600"
+									: "text-sm font-medium text-slate-600 transition-colors hover:text-blue-600"
+							}
 						>
 							{item.name}
 						</Link>

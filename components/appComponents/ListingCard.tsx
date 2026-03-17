@@ -1,5 +1,6 @@
 import { MapPin, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 interface PlaceCardProps {
 	title: string;
@@ -52,13 +53,14 @@ const ListingCard: React.FC<PlaceCardProps> = ({
 				<p className="text-slate-500 text-sm line-clamp-2 mb-6 flex-grow">
 					{description}
 				</p>
-
-				<button
-					type="button"
-					className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-900 font-semibold rounded-xl transition-colors text-sm"
-				>
-					View Details
-				</button>
+				<Link href={"/"}>
+					<button
+						type="button"
+						className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-900 font-semibold rounded-xl transition-colors text-sm"
+					>
+						View Details
+					</button>
+				</Link>
 			</div>
 		</div>
 	);

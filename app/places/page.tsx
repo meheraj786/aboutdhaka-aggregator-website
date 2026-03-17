@@ -4,6 +4,7 @@ import PlaceCard from "@/components/appComponents/PlaceCard";
 
 const placesData = [
 	{
+		id: 1,
 		title: "Ahsan Manzil",
 		category: "Museum",
 		location: "Sadarghat, Dhaka",
@@ -14,6 +15,7 @@ const placesData = [
 			"https://images.unsplash.com/photo-1590053419082-936306541334?auto=format&fit=crop&q=80&w=800",
 	},
 	{
+		id: 2,
 		title: "Lalbagh Fort",
 		category: "Historical",
 		location: "Lalbagh, Old Dhaka",
@@ -24,6 +26,7 @@ const placesData = [
 			"https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/%E0%A6%B2%E0%A6%BE%E0%A6%B2_%E0%A6%95%E0%A7%87%E0%A6%B2%E0%A7%8D%E0%A6%B2%E0%A6%BE%E0%A6%B0_%E0%A6%AE%E0%A6%BE%E0%A6%AF%E0%A6%BC%E0%A6%BE.jpg/1280px-%E0%A6%B2%E0%A6%BE%E0%A6%B2_%E0%A6%95%E0%A7%87%E0%A6%B2%E0%A7%8D%E0%A6%B2%E0%A6%BE%E0%A6%B0_%E0%A6%AE%E0%A6%BE%E0%A6%AF%E0%A6%BC%E0%A6%BE.jpg",
 	},
 	{
+		id: 3,
 		title: "Hatirjheel",
 		category: "Park",
 		location: "Gulshan/Tejgaon",
@@ -34,6 +37,7 @@ const placesData = [
 			"https://images.unsplash.com/photo-1623059528907-735992983794?auto=format&fit=crop&q=80&w=800",
 	},
 	{
+		id: 4,
 		title: "National Museum",
 		category: "Cultural",
 		location: "Shahbagh, Dhaka",
@@ -44,6 +48,7 @@ const placesData = [
 			"https://images.unsplash.com/photo-1590053419082-936306541334?auto=format&fit=crop&q=80&w=800",
 	},
 	{
+		id: 5,
 		title: "Ramna Park",
 		category: "Park",
 		location: "Ramna, Dhaka",
@@ -54,6 +59,7 @@ const placesData = [
 			"https://images.unsplash.com/photo-1623059528929-417163013d33?auto=format&fit=crop&q=80&w=800",
 	},
 	{
+		id: 6,
 		title: "Jatiya Sangsad",
 		category: "Architectural",
 		location: "Sher-e-Bangla Nagar",
