@@ -3,6 +3,7 @@
 import {
 	Activity,
 	ChevronRight,
+	Info,
 	MapPin,
 	Microscope,
 	Phone,
