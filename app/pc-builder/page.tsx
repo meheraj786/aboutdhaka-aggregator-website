@@ -20,7 +20,7 @@ import {
 	Star,
 	Store as StoreIcon,
 } from "lucide-react";
-import {  motion } from "motion/react";
+import { motion } from "motion/react";
 import Image from "next/image";
 import React, { useState } from "react";
 import { twMerge } from "tailwind-merge";
