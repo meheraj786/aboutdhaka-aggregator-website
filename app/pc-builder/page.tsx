@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import {  motion } from "motion/react";
 import Image from "next/image";
-import { useState } from "react";
+import React, { useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 function cn(...inputs: ClassValue[]) {
@@ -90,12 +90,17 @@ interface Spec {
 	icon: React.ElementType;
 }
 
+interface ComponentDetail {
+	brand: string;
+	model: string;
+}
+
 interface Suggestion {
 	title: string;
-	cpu: string;
-	gpu: string;
-	ram: string;
-	ssd: string;
+	cpu: ComponentDetail;
+	gpu: ComponentDetail;
+	ram: ComponentDetail;
+	ssd: ComponentDetail;
 	cores: number;
 	threads: number;
 	vram: string;
@@ -139,10 +144,10 @@ export default function SmartPCSuggester() {
 			if (browserTabs > 50 || software.includes("Adobe Premiere")) {
 				return {
 					title: "Elite Streamer",
-					cpu: "Intel Core i9-14900K",
-					gpu: "NVIDIA RTX 4080 Super",
-					ram: "64GB DDR5",
-					ssd: "2TB Gen4 NVMe",
+					cpu: { brand: "Intel", model: "Core i9-14900K" },
+					gpu: { brand: "NVIDIA", model: "RTX 4080 Super" },
+					ram: { brand: "G.Skill", model: "64GB DDR5 6400MHz" },
+					ssd: { brand: "Samsung", model: "2TB 990 Pro Gen4" },
 					cores: 24,
 					threads: 32,
 					vram: "16GB GDDR6X",
@@ -225,10 +230,10 @@ export default function SmartPCSuggester() {
 			}
 			return {
 				title: "Hardcore Gamer",
-				cpu: "Intel Core i7-13700K",
-				gpu: "NVIDIA RTX 4070 Ti",
-				ram: "32GB DDR5",
-				ssd: "1TB Gen4 NVMe",
+				cpu: { brand: "Intel", model: "Core i7-13700K" },
+				gpu: { brand: "NVIDIA", model: "RTX 4070 Ti" },
+				ram: { brand: "Corsair", model: "32GB DDR5 6000MHz" },
+				ssd: { brand: "WD Black", model: "1TB SN850X Gen4" },
 				cores: 16,
 				threads: 24,
 				vram: "12GB GDDR6X",
@@ -306,10 +311,10 @@ export default function SmartPCSuggester() {
 		if (mainUsage === "Content Creation") {
 			return {
 				title: "Pro Creator",
-				cpu: "AMD Ryzen 9 7950X",
-				gpu: "NVIDIA RTX 4090",
-				ram: "128GB DDR5",
-				ssd: "4TB Gen4 NVMe",
+				cpu: { brand: "AMD", model: "Ryzen 9 7950X" },
+				gpu: { brand: "NVIDIA", model: "RTX 4090" },
+				ram: { brand: "Kingston", model: "128GB DDR5 5600MHz" },
+				ssd: { brand: "Samsung", model: "4TB 990 Pro Gen4" },
 				cores: 16,
 				threads: 32,
 				vram: "24GB GDDR6X",
@@ -387,10 +392,10 @@ export default function SmartPCSuggester() {
 		if (mainUsage === "Development") {
 			return {
 				title: "Code Architect",
-				cpu: "Intel Core i7-14700K",
-				gpu: "NVIDIA RTX 4060 Ti",
-				ram: "64GB DDR5",
-				ssd: "2TB Gen4 NVMe",
+				cpu: { brand: "Intel", model: "Core i7-14700K" },
+				gpu: { brand: "NVIDIA", model: "RTX 4060 Ti" },
+				ram: { brand: "TeamGroup", model: "64GB DDR5 6000MHz" },
+				ssd: { brand: "Crucial", model: "2TB T700 Gen5" },
 				cores: 20,
 				threads: 28,
 				vram: "16GB GDDR6",
@@ -460,10 +465,10 @@ export default function SmartPCSuggester() {
 
 		return {
 			title: "Daily Driver",
-			cpu: "Intel Core i5-13400",
-			gpu: "NVIDIA RTX 3060",
-			ram: "16GB DDR4",
-			ssd: "512GB NVMe",
+			cpu: { brand: "Intel", model: "Core i5-13400" },
+			gpu: { brand: "NVIDIA", model: "RTX 3060" },
+			ram: { brand: "Corsair", model: "16GB DDR4 3200MHz" },
+			ssd: { brand: "TeamGroup", model: "512GB MP33 NVMe" },
 			cores: 10,
 			threads: 16,
 			vram: "12GB GDDR6",
@@ -534,6 +539,10 @@ export default function SmartPCSuggester() {
 
 	const suggestion = getSuggestion();
 
+	const getComponentDetail = (key: keyof StorePrices): ComponentDetail => {
+		return suggestion[key];
+	};
+
 	if (state.view === "comparison") {
 		return (
 			<div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans selection:bg-blue-100">
@@ -552,10 +561,10 @@ export default function SmartPCSuggester() {
 							</button>
 							<div>
 								<h1 className="text-2xl font-bold text-slate-900">
-									Build Comparison
+									Component Comparison
 								</h1>
 								<p className="text-slate-500">
-									Comparing store prices for your {suggestion.title}
+									Detailed store-wise pricing for {suggestion.title}
 								</p>
 							</div>
 						</div>
@@ -578,101 +587,100 @@ export default function SmartPCSuggester() {
 
 				<main className="max-w-7xl mx-auto px-6 pb-20">
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-						{/* Left Column: Technical Specs Overview */}
+						{/* Left Column: Component-wise Store Comparison */}
 						<div className="lg:col-span-2 space-y-8">
-							<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-								<h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-									<Cpu className="w-5 h-5 text-blue-600" />
-									Technical Component Breakdown
-								</h2>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{suggestion.specs.map((spec) => (
-										<div
-											key={spec.id}
-											className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 flex gap-4"
-										>
-											<div className="p-3 bg-white rounded-lg shadow-sm h-fit">
-												<spec.icon className="w-5 h-5 text-blue-600" />
-											</div>
-											<div>
-												<p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-													{spec.label}
-												</p>
-												<h3 className="font-bold text-slate-900 mb-1">
-													{spec.title}
-												</h3>
-												<p className="text-sm text-slate-500 leading-relaxed">
-													{spec.desc}
-												</p>
+							{(["cpu", "gpu", "ram", "ssd"] as const).map((compKey) => {
+								const detail = getComponentDetail(compKey);
+								const icon =
+									suggestion.specs.find((s) => s.id === compKey)?.icon || Cpu;
+
+								return (
+									<section
+										key={compKey}
+										className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
+									>
+										<div className="p-6 border-b border-slate-100 bg-slate-50/30">
+											<div className="flex items-center justify-between mb-4">
+												<div className="flex items-center gap-3">
+													<div className="p-2 bg-white rounded-lg shadow-sm">
+														{React.createElement(icon, {
+															className: "w-5 h-5 text-blue-600",
+														})}
+													</div>
+													<div>
+														<span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+															{compKey}
+														</span>
+														<h2 className="text-lg font-bold text-slate-900 leading-tight">
+															{detail.brand} {detail.model}
+														</h2>
+													</div>
+												</div>
+												<div className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
+													{suggestion.stores.length} Stores Available
+												</div>
 											</div>
 										</div>
-									))}
-								</div>
-							</section>
 
-							{/* Store Comparison Table */}
-							<section className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-								<div className="p-8 border-b border-slate-100">
-									<h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-										<StoreIcon className="w-5 h-5 text-blue-600" />
-										Store Price Comparison
-									</h2>
-								</div>
-								<div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-									<table className="w-full text-left border-collapse min-w-[800px]">
-										<thead>
-											<tr className="bg-slate-50/50">
-												<th className="sticky left-0 z-20 bg-slate-50 px-8 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100">
-													Component
-												</th>
+										<div className="p-6">
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 												{suggestion.stores.map((store) => (
-													<th
+													<div
 														key={store.id}
-														className="px-8 py-4 text-sm font-bold text-slate-500 uppercase tracking-wider text-center border-r border-slate-100 last:border-r-0"
+														className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition-all group"
 													>
-														<div className="flex flex-col items-center gap-1">
-															<span>{store.name}</span>
-															<div className="flex items-center gap-1 text-[10px] text-amber-500">
-																<Star className="w-3 h-3 fill-current" />
-																<span>{store.rating}</span>
+														<div className="flex items-center gap-3">
+															<div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+																<StoreIcon className="w-5 h-5" />
+															</div>
+															<div>
+																<p className="font-bold text-slate-900 text-sm">
+																	{store.name}
+																</p>
+																<div className="flex items-center gap-1">
+																	<div className="flex items-center text-amber-500">
+																		<Star className="w-3 h-3 fill-current" />
+																		<span className="text-[10px] font-bold ml-0.5">
+																			{store.rating}
+																		</span>
+																	</div>
+																	<span className="text-[10px] text-slate-400">
+																		•
+																	</span>
+																	<span
+																		className={cn(
+																			"text-[10px] font-bold",
+																			store.availability === "In Stock"
+																				? "text-emerald-600"
+																				: "text-amber-600",
+																		)}
+																	>
+																		{store.availability}
+																	</span>
+																</div>
 															</div>
 														</div>
-													</th>
-												))}
-											</tr>
-										</thead>
-										<tbody className="divide-y divide-slate-100">
-											{(["cpu", "gpu", "ram", "ssd"] as const).map(
-												(compKey) => (
-													<tr
-														key={compKey}
-														className="hover:bg-slate-50/50 transition-colors"
-													>
-														<td className="sticky left-0 z-10 bg-white px-8 py-6 border-r border-slate-100 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.05)]">
-															<span className="font-bold text-slate-900 uppercase text-xs tracking-widest">
-																{compKey}
-															</span>
-														</td>
-														{suggestion.stores.map((store) => (
-															<td
-																key={store.id}
-																className="px-8 py-6 text-center border-r border-slate-100 last:border-r-0"
+														<div className="text-right">
+															<p className="text-lg font-black text-blue-600">
+																{store.prices[compKey]}
+															</p>
+															<button
+																type="button"
+																className="text-[10px] font-bold text-slate-400 hover:text-blue-600 uppercase tracking-wider transition-colors"
 															>
-																<span className="text-sm font-bold text-blue-600">
-																	{store.prices[compKey]}
-																</span>
-															</td>
-														))}
-													</tr>
-												),
-											)}
-										</tbody>
-									</table>
-								</div>
-							</section>
+																View Store
+															</button>
+														</div>
+													</div>
+												))}
+											</div>
+										</div>
+									</section>
+								);
+							})}
 						</div>
 
-						{/* Right Column: Summary & Help */}
+						{/* Right Column: Build Summary */}
 						<div className="space-y-6">
 							<div className="bg-slate-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
 								<div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl" />
@@ -995,7 +1003,9 @@ export default function SmartPCSuggester() {
 										<p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">
 											CPU ({suggestion.cores}C / {suggestion.threads}T)
 										</p>
-										<p className="text-sm font-bold">{suggestion.cpu}</p>
+										<p className="text-sm font-bold">
+											{suggestion.cpu.brand} {suggestion.cpu.model}
+										</p>
 									</div>
 								</div>
 								<div className="flex items-center gap-4">
@@ -1006,7 +1016,9 @@ export default function SmartPCSuggester() {
 										<p className="text-[10px] text-white/40 font-bold uppercase tracking-wider">
 											GPU ({suggestion.vram} VRAM)
 										</p>
-										<p className="text-sm font-bold">{suggestion.gpu}</p>
+										<p className="text-sm font-bold">
+											{suggestion.gpu.brand} {suggestion.gpu.model}
+										</p>
 									</div>
 								</div>
 								<div className="flex items-center gap-4">
@@ -1018,7 +1030,7 @@ export default function SmartPCSuggester() {
 											RAM / SSD
 										</p>
 										<p className="text-sm font-bold">
-											{suggestion.ram} / {suggestion.ssd}
+											{suggestion.ram.model} / {suggestion.ssd.model}
 										</p>
 									</div>
 								</div>
@@ -1096,7 +1108,7 @@ export default function SmartPCSuggester() {
 								Storage
 							</p>
 							<p className="text-xl font-black text-slate-900">
-								{suggestion.ssd} SSD
+								{suggestion.ssd.brand} {suggestion.ssd.model}
 							</p>
 						</div>
 					</div>
