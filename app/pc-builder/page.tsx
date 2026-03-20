@@ -20,7 +20,6 @@ import {
 	Star,
 	Store as StoreIcon,
 } from "lucide-react";
-import { motion } from "motion/react";
 import Image from "next/image";
 import React, { useState } from "react";
 import { twMerge } from "tailwind-merge";
@@ -755,23 +754,12 @@ export default function SmartPCSuggester() {
 							build.
 						</p>
 					</div>
-					<button
-						type="button"
-						onClick={() =>
-							setState((prev) => ({ ...prev, view: "comparison" }))
-						}
-						className="px-6 py-3 bg-white border border-slate-200 text-slate-900 font-bold rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2"
-					>
-						<LayoutGrid className="w-4 h-4 text-blue-600" />
-						Compare Builds
-					</button>
 				</div>
 			</header>
 
 			<main className="max-w-7xl mx-auto px-6 pb-20 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-start">
 				<div className="space-y-8">
-					{/* Progress Bar Section */}
-					<section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+					{/* <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
 						<div className="flex justify-between items-center mb-4">
 							<h2 className="font-semibold text-slate-900">
 								Building your profile...
@@ -787,7 +775,7 @@ export default function SmartPCSuggester() {
 								className="h-full bg-blue-500 rounded-full"
 							/>
 						</div>
-					</section>
+					</section> */}
 
 					{/* Main Usage Section */}
 					<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
@@ -966,7 +954,7 @@ export default function SmartPCSuggester() {
 					</section>
 
 					{/* Navigation */}
-					<div className="flex items-center justify-between pt-4">
+					{/* <div className="flex items-center justify-between pt-4">
 						<button
 							type="button"
 							className="px-8 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors"
@@ -980,7 +968,17 @@ export default function SmartPCSuggester() {
 							Next Step
 							<ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
 						</button>
-					</div>
+					</div> */}
+					<button
+						type="button"
+						onClick={() =>
+							setState((prev) => ({ ...prev, view: "comparison" }))
+						}
+						className="px-6 py-3 bg-white border border-slate-200 text-slate-900 font-bold rounded-xl hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2"
+					>
+						<LayoutGrid className="w-4 h-4 text-blue-600" />
+						Compare Builds
+					</button>
 				</div>
 
 				{/* Sidebar */}
