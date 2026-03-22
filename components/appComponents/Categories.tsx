@@ -59,7 +59,7 @@ export const categories = [
 		icon: Cpu,
 		label: "PC Build",
 		color: "bg-gray-100 text-gray-700",
-		link: "/pc-build",
+		link: "/pc-builder",
 	},
 	{
 		icon: Key,
