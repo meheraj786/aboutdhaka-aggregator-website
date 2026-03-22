@@ -56,9 +56,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body
-				className={`${inter.variable} ${poppins.variable} antialiased`}
-			>
+			<body className={`${inter.variable} ${poppins.variable} antialiased`}>
 				<Header />
 				<div className="pt-20">{children}</div>
 				<Footer />
