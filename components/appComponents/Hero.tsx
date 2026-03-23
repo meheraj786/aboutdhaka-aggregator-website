@@ -29,7 +29,22 @@ const Hero = () => {
 					<span className="text-blue-600">
 						<Typewriter
 							options={{
-								strings: ["Places", "Hospitals", "Restaurants", "Malls", "Rents", "PC Builder", "Services", "Events", "Doctors", "Hotels", "Shops", "Vets", "Teachers", "Freelancers"],
+								strings: [
+									"Places",
+									"Hospitals",
+									"Restaurants",
+									"Malls",
+									"Rents",
+									"PC Builder",
+									"Services",
+									"Events",
+									"Doctors",
+									"Hotels",
+									"Shops",
+									"Vets",
+									"Teachers",
+									"Freelancers",
+								],
 								autoStart: true,
 								loop: true,
 							}}
