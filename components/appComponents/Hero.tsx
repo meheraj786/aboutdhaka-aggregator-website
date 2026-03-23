@@ -23,14 +23,13 @@ const Hero = () => {
 				<div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]" />
 			</div>
 
-			<div className="relative z-10 w-full max-w-4xl">
+			<div className="relative z-10 w-full max-w-5xl">
 				<h1 className="text-5xl md:text-8xl font-black text-slate-900 mb-8 tracking-tight leading-[0.9]">
-					Discover the Best of{" "}
+					Discover Dhaka<span className="text-blue-600">&apos;</span>s Best
 					<span className="text-blue-600">
-						{" "}
 						<Typewriter
 							options={{
-								strings: ["Dhaka!"],
+								strings: ["Places", "Hospitals", "Restaurants", "Malls", "Rents", "PC Builder", "Services", "Events", "Doctors", "Hotels", "Shops", "Vets", "Teachers", "Freelancers"],
 								autoStart: true,
 								loop: true,
 							}}
