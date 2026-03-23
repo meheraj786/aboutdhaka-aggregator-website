@@ -19,13 +19,13 @@ export default function Home() {
 			<TravelPlaces />
 			<HospitalsAndRestaurants />
 			<Doctors />
-			<FreelancersSection/>
-			<ShoppingMallsSection/>
-			<PCBuilderSection/>
-			<PetCareSection/>
-			<RentalsSection/>
-			<TutorsSection/>
-			<BlogsSection/>
+			<FreelancersSection />
+			<ShoppingMallsSection />
+			<PCBuilderSection />
+			<PetCareSection />
+			<RentalsSection />
+			<TutorsSection />
+			<BlogsSection />
 		</>
 	);
 }
