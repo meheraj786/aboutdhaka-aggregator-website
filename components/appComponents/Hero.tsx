@@ -24,7 +24,7 @@ const Hero = () => {
 			</div>
 
 			<div className="relative z-10 w-full max-w-5xl">
-				<h1 className="text-5xl md:text-8xl font-black text-slate-900 mb-8 tracking-tight leading-[0.9]">
+				<h1 className="text-5xl md:text-8xl font-black text-slate-900 mb-8 tracking-tight leading-tight">
 					Discover Dhaka<span className="text-blue-600">&apos;</span>s Best
 					<span className="text-blue-600">
 						<Typewriter

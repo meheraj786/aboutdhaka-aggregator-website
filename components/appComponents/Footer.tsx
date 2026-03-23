@@ -1,6 +1,9 @@
-import { Compass, Globe, Mail } from "lucide-react";
+import {  Globe, Mail } from "lucide-react";
+import Link from "next/link";
+import Logo from "./Logo";
 
 const Footer = () => {
+	const year = new Date().getFullYear();
 	return (
 		<footer
 			id="footer"
@@ -9,32 +12,25 @@ const Footer = () => {
 			<div className="max-w-7xl mx-auto text-center grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
 				{/* Brand Section */}
 				<div className="space-y-6">
-					<div className="flex items-center gap-2">
-						<div className="bg-blue-500 p-1.5 rounded-full">
-							<Compass className="w-5 h-5 text-white" />
-						</div>
-						<span className="text-2xl font-bold text-slate-900 tracking-tight">
-							AboutDhaka
-						</span>
-					</div>
+					<Logo />
 					<p className="text-slate-500 text-left leading-relaxed ">
 						The ultimate directory and explorer for everything Dhaka. From
 						street food to five-star services, we help you find what you need in
 						the heart of Bangladesh.
 					</p>
 					<div className="flex  gap-4">
-						<a
+						<Link
 							href="/"
 							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
 						>
 							<Globe className="w-5 h-5" />
-						</a>
-						<a
+						</Link>
+						<Link
 							href="/"
 							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
 						>
 							<Mail className="w-5 h-5" />
-						</a>
+						</Link>
 					</div>
 				</div>
 
@@ -43,36 +39,36 @@ const Footer = () => {
 					<h3 className="text-lg font-bold text-slate-900 mb-6">Explore</h3>
 					<ul className="space-y-4">
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/places"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Travel Places
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/resturants"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Restaurants
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/hospitals"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Hospitals
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/bus"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Bus Routes
-							</a>
+							</Link>
 						</li>
 					</ul>
 				</div>
@@ -82,36 +78,36 @@ const Footer = () => {
 					<h3 className="text-lg font-bold text-slate-900 mb-6">Quick Links</h3>
 					<ul className="space-y-4">
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/pc-builder"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								PC Builder
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/rent"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Rent Services
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/vets"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Vet Clinics
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
-								href="/"
+							<Link
+								href="/blogs"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Blogs
-							</a>
+							</Link>
 						</li>
 					</ul>
 				</div>
@@ -121,36 +117,36 @@ const Footer = () => {
 					<h3 className="text-lg font-bold text-slate-900 mb-6">Support</h3>
 					<ul className="space-y-4">
 						<li>
-							<a
+							<Link
 								href="/"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Help Center
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
+							<Link
 								href="/"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Contact Us
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
+							<Link
 								href="/"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Privacy Policy
-							</a>
+							</Link>
 						</li>
 						<li>
-							<a
+							<Link
 								href="/"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Terms of Service
-							</a>
+							</Link>
 						</li>
 					</ul>
 				</div>
@@ -159,7 +155,7 @@ const Footer = () => {
 			{/* Bottom Bar */}
 			<div className="max-w-7xl mx-auto pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
 				<p className="text-slate-400 text-sm">
-					© 2026 AboutDhaka. All rights reserved.
+					© {year} AboutDhaka. All rights reserved.
 				</p>
 				<div className="flex items-center gap-8 text-sm text-slate-400">
 					<div className="flex items-center gap-1">

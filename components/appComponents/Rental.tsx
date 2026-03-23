@@ -39,7 +39,7 @@ export function RentalsSection() {
 				title="Premium Rentals"
 				subtitle="Handpicked residential listings for comfortable living"
 				viewAllText="See Listings"
-				viewAllHref="/rentals"
+				viewAllHref="/rent"
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 				{RENTALS.map((rental) => (

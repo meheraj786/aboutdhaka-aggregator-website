@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function PCBuilderSection() {
 	return (
 		<section className="px-4 py-12">
@@ -15,12 +17,12 @@ export function PCBuilderSection() {
 					</p>
 
 					<div className="flex flex-wrap gap-4">
-						<button
-							type="button"
-							className="bg-blue-600 text-white font-bold px-10 py-5 rounded-2xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
+						<Link
+							href="/pc-builder"
+							className="bg-blue-600 text-center text-white font-bold px-10 py-5 rounded-2xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20"
 						>
 							Start Building
-						</button>
+						</Link>
 						<button
 							type="button"
 							className="bg-slate-800 text-white font-bold px-10 py-5 rounded-2xl hover:bg-slate-700 transition-colors"

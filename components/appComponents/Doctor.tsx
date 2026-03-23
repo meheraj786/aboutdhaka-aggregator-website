@@ -1,5 +1,6 @@
 import { Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { SectionHeader } from "./SectionHeader";
 
 const SPECIALISTS = [
@@ -66,12 +67,12 @@ export function Doctors() {
 								{doc.rating.toFixed(1)}
 							</span>
 						</div>
-						<button
-							type="button"
-							className="w-full py-4 bg-slate-50 text-slate-900 font-bold rounded-2xl hover:bg-slate-100 transition-colors"
+						<Link
+							href={`/doctors/${doc.id}`}
+							className="w-full py-4 text-center bg-slate-50 text-slate-900 font-medium rounded-2xl hover:bg-slate-100 transition-colors"
 						>
-							Book Appointment
-						</button>
+							View Details
+						</Link>
 					</div>
 				))}
 			</div>

@@ -40,7 +40,7 @@ export function FreelancersSection() {
 			<div className="max-w-7xl mx-auto">
 				<div className="flex items-end justify-between mb-12">
 					<div>
-						<h2 className="text-4xl font-bold text-white leading-tight">
+						<h2 className="text-3xl font-bold text-white leading-tight">
 							Professional Freelancers
 						</h2>
 						<p className="text-slate-400 mt-2 text-lg">
@@ -48,7 +48,7 @@ export function FreelancersSection() {
 						</p>
 					</div>
 					<Link
-						href="/marketplace"
+						href="/freelancers"
 						className="text-blue-400 font-semibold flex items-center gap-1 hover:underline transition-all"
 					>
 						Explore Marketplace
@@ -72,9 +72,12 @@ export function FreelancersSection() {
 									/>
 								</div>
 								<div>
-									<h3 className="text-xl font-bold text-white">
-										{freelancer.name}
-									</h3>
+									<Link href={`/freelancers/${freelancer.id}`}>
+										<h3 className="text-xl font-bold text-white">
+											{freelancer.name}
+										</h3>
+									</Link>
+
 									<p className="text-blue-400 text-sm">{freelancer.role}</p>
 								</div>
 							</div>

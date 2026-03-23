@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { SectionHeader } from "./SectionHeader";
 
 const MALLS = [
@@ -38,22 +39,23 @@ export function ShoppingMallsSection() {
 			/>
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 				{MALLS.map((mall) => (
-					<div
-						key={mall.id}
-						className="group relative aspect-[4/5] rounded-3xl overflow-hidden cursor-pointer"
-					>
-						<Image
-							src={mall.image}
-							alt={mall.name}
-							fill
-							className="object-cover transition-transform duration-500 group-hover:scale-110"
-							referrerPolicy="no-referrer"
-						/>
-						<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
-							<h3 className="text-white font-bold text-xl mb-1">{mall.name}</h3>
-							<p className="text-white/70 text-sm">{mall.location}</p>
+					<Link href={`/malls/${mall.id}`} key={mall.id}>
+						<div className="group relative aspect-[4/5] rounded-3xl overflow-hidden cursor-pointer">
+							<Image
+								src={mall.image}
+								alt={mall.name}
+								fill
+								className="object-cover transition-transform duration-500 group-hover:scale-110"
+								referrerPolicy="no-referrer"
+							/>
+							<div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-8">
+								<h3 className="text-white font-bold text-xl mb-1">
+									{mall.name}
+								</h3>
+								<p className="text-white/70 text-sm">{mall.location}</p>
+							</div>
 						</div>
-					</div>
+					</Link>
 				))}
 			</div>
 		</section>

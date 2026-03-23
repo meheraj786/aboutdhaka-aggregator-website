@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Button } from "../ui/button";
+import Link from "next/link";
 
 const CATEGORIES = [
 	"All Stories",
@@ -10,7 +10,7 @@ const CATEGORIES = [
 	"Lifestyle",
 ];
 
-const STORIES = [
+const BLOGS = [
 	{
 		id: "st1",
 		title: "The Ultimate Guide to Old Dhaka's Street Food",
@@ -63,7 +63,7 @@ export function BlogsSection() {
 			<div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
 				<div>
 					<h2 className="text-4xl font-bold text-slate-900 leading-tight">
-						City Stories & Guides
+						Our Blogs
 					</h2>
 					<p className="text-slate-500 mt-2 text-lg">
 						Curated insights into life, food, and culture in the heart of
@@ -88,58 +88,60 @@ export function BlogsSection() {
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-				{STORIES.map((story) => (
-					<div
-						key={story.id}
-						className="group bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm hover:shadow-md transition-all"
-					>
-						<div className="relative aspect-[16/9] w-full overflow-hidden">
-							<Image
-								src={story.image}
-								alt={story.title}
-								fill
-								className="object-cover transition-transform duration-500 group-hover:scale-105"
-								referrerPolicy="no-referrer"
-							/>
-							<div className="absolute top-6 left-6">
-								<span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-blue-600 text-[10px] font-bold rounded-md tracking-widest uppercase">
-									{story.category}
-								</span>
-							</div>
-						</div>
-						<div className="p-8">
-							<h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
-								{story.title}
-							</h3>
-							<p className="text-slate-500 text-base leading-relaxed mb-8">
-								{story.excerpt}
-							</p>
-							<div className="flex items-center justify-between pt-6 border-t border-slate-100">
-								<div className="flex items-center gap-3">
-									<div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden relative">
-										<Image
-											src={`https://picsum.photos/seed/${story.author}/100/100`}
-											alt={story.author}
-											fill
-											className="object-cover"
-										/>
-									</div>
-									<span className="text-sm font-bold text-slate-900">
-										{story.author}
+				{BLOGS.map((blog) => (
+					<Link href={`/blogs/${blog.id}`} key={blog.id}>
+						<div className="group bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm hover:shadow-md transition-all">
+							<div className="relative aspect-[16/9] w-full overflow-hidden">
+								<Image
+									src={blog.image}
+									alt={blog.title}
+									fill
+									className="object-cover transition-transform duration-500 group-hover:scale-105"
+									referrerPolicy="no-referrer"
+								/>
+								<div className="absolute top-6 left-6">
+									<span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-blue-600 text-[10px] font-bold rounded-md tracking-widest uppercase">
+										{blog.category}
 									</span>
 								</div>
-								<span className="text-xs text-slate-400 font-medium tracking-tight">
-									{story.readTime}
-								</span>
+							</div>
+							<div className="p-8">
+								<h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-blue-600 transition-colors">
+									{blog.title}
+								</h3>
+								<p className="text-slate-500 text-base leading-relaxed mb-8">
+									{blog.excerpt}
+								</p>
+								<div className="flex items-center justify-between pt-6 border-t border-slate-100">
+									<div className="flex items-center gap-3">
+										<div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden relative">
+											<Image
+												src={`https://picsum.photos/seed/${blog.author}/100/100`}
+												alt={blog.author}
+												fill
+												className="object-cover"
+											/>
+										</div>
+										<span className="text-sm font-bold text-slate-900">
+											{blog.author}
+										</span>
+									</div>
+									<span className="text-xs text-slate-400 font-medium tracking-tight">
+										{blog.readTime}
+									</span>
+								</div>
 							</div>
 						</div>
-					</div>
+					</Link>
 				))}
 			</div>
-			<div className="text-center">
-				<Button className="mt-12 px-10 py-5 text-md font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full mx-auto">
+			<div className="text-center mt-12">
+				<Link
+					href="/blogs"
+					className=" px-8 py-4 text-md font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-full mx-auto"
+				>
 					See All Stories
-				</Button>
+				</Link>
 			</div>
 		</section>
 	);

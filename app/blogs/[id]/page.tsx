@@ -39,7 +39,7 @@ export default function BlogDetailPage() {
 	return (
 		<div className="min-h-screen bg-white pb-20">
 			{/* Article Header */}
-			<div className="max-w-4xl mx-auto px-6 pt-20 pb-12">
+			<div className="max-w-7xl mx-auto px-6 pt-20 pb-12">
 				<div className="flex items-center gap-4 mb-8">
 					<span className="bg-blue-50 text-blue-600 text-[10px] font-black px-4 py-1.5 rounded-md uppercase tracking-wider">
 						Lifestyle

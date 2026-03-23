@@ -1,5 +1,6 @@
 import { Hospital as HospitalIcon, Phone, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const hospitals = [
 	{
@@ -48,12 +49,12 @@ const HospitalsAndRestaurants = () => {
 						<h2 className="text-2xl font-bold text-slate-900">
 							Popular Hospitals
 						</h2>
-						<a
-							href="/"
+						<Link
+							href="/hospitals"
 							className="text-blue-600 font-medium hover:underline text-sm"
 						>
 							See all
-						</a>
+						</Link>
 					</div>
 					<div className="space-y-4">
 						{hospitals.map((hosp) => (
@@ -98,12 +99,12 @@ const HospitalsAndRestaurants = () => {
 						<h2 className="text-2xl font-bold text-slate-900">
 							Best Restaurants
 						</h2>
-						<a
-							href="/"
+						<Link
+							href="/restaurants"
 							className="text-blue-600 font-medium hover:underline text-sm"
 						>
 							See all
-						</a>
+						</Link>
 					</div>
 					<div className="space-y-4">
 						{restaurants.map((rest) => (

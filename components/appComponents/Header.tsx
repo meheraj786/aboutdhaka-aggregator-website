@@ -10,7 +10,7 @@ const navItems = [
 	{ name: "HOME", href: "/" },
 	{ name: "PLACES", href: "/places" },
 	{ name: "HOSPITALS", href: "/hospitals" },
-	{ name: "RESTURANTS", href: "/resturants" },
+	{ name: "RESTAURANTS", href: "/restaurants" },
 	{ name: "MALLS", href: "/malls" },
 	{ name: "PC BUILDER", href: "/pc-builder" },
 ];

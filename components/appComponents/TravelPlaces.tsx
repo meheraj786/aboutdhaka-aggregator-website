@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const places = [
 	{
@@ -47,12 +48,12 @@ const TravelPlaces = () => {
 							Must-visit historical and cultural landmarks
 						</p>
 					</div>
-					<a
-						href="/"
+					<Link
+						href="/places"
 						className="flex items-center gap-2 text-blue-600 font-semibold hover:gap-3 transition-all"
 					>
 						See more <ArrowRight className="w-5 h-5" />
-					</a>
+					</Link>
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
