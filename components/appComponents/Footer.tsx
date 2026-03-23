@@ -1,4 +1,4 @@
-import {  Globe, Mail } from "lucide-react";
+import { Globe, Mail } from "lucide-react";
 import Link from "next/link";
 import Logo from "./Logo";
 
