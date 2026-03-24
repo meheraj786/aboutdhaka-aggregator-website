@@ -1,5 +1,8 @@
 "use client";
 
+import {  Home } from "lucide-react";
+import Link from "next/link";
+
 export default function ComingSoonPage() {
 	return (
 		<main
@@ -105,6 +108,15 @@ export default function ComingSoonPage() {
 					experience it when we go live.
 				</p>
 			</div>
+			<div className="text-center">
+				<Link
+					href="/"
+					className="text-blue-600 font-semibold gap-1 hover:underline transition-all mt-7 flex justify-center items-center"
+				>
+					<Home className="w-5 h-5" /> Go Back
+				</Link>
+			</div>
+
 
 			<style jsx global>{`
 
