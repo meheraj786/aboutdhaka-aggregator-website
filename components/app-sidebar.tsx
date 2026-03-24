@@ -4,7 +4,6 @@ import {
 	CameraIcon,
 	ChartBarIcon,
 	CircleHelpIcon,
-	CommandIcon,
 	DatabaseIcon,
 	FileChartColumnIcon,
 	FileIcon,
@@ -30,6 +29,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import Logo from "./appComponents/Logo";
 
 const data = {
 	user: {
@@ -158,10 +158,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 							asChild
 							className="data-[slot=sidebar-menu-button]:p-1.5!"
 						>
-							<a href="/">
-								<CommandIcon className="size-5!" />
-								<span className="text-base font-semibold">Acme Inc.</span>
-							</a>
+							<Logo />
 						</SidebarMenuButton>
 					</SidebarMenuItem>
 				</SidebarMenu>

@@ -127,7 +127,7 @@ export default function BlogDetailPage() {
 						<p className="mb-12">
 							Our journey begins at the iconic Lalbagh Fort, an unfinished
 							17th-century Mughal fortress. Walking through its majestic
-							gateways, you're transported to an era of emperors and
+							gateways, you&apos;re transported to an era of emperors and
 							architectural splendor. The tomb of Pari Bibi, with its intricate
 							marble work, stands as a testament to the craftsmanship of the
 							past.
@@ -153,8 +153,8 @@ export default function BlogDetailPage() {
 							No visit to Old Dhaka is complete without indulging in its
 							legendary street food. The narrow lanes are home to some of the
 							oldest eateries in the city. From the melt-in-your-mouth Kacchi
-							Biryani of Haji's to the refreshing Beauty Lassi, your taste buds
-							are in for a treat.
+							Biryani of Haji&apos;s to the refreshing Beauty Lassi, your taste
+							buds are in for a treat.
 						</p>
 
 						<ul className="space-y-4 mb-12 list-none p-0">
