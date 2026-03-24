@@ -1,22 +1,26 @@
 "use client";
 
 import {
+	BriefcaseMedical,
+	Building,
+	Bus,
 	CameraIcon,
-	ChartBarIcon,
 	CircleHelpIcon,
+	CookingPot,
 	DatabaseIcon,
+	Dog,
 	FileChartColumnIcon,
 	FileIcon,
 	FileTextIcon,
-	FolderIcon,
+	Glasses,
 	LayoutDashboardIcon,
-	ListIcon,
+	MapPinIcon,
+	Paperclip,
 	SearchIcon,
 	Settings2Icon,
 	UsersIcon,
 } from "lucide-react";
 import type * as React from "react";
-import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavUser } from "@/components/nav-user";
@@ -40,28 +44,63 @@ const data = {
 	navMain: [
 		{
 			title: "Dashboard",
-			url: "#",
+			url: "/dashboard",
 			icon: <LayoutDashboardIcon />,
 		},
 		{
-			title: "Lifecycle",
-			url: "#",
-			icon: <ListIcon />,
+			title: "Places",
+			url: "/dashboard/places",
+			icon: <MapPinIcon />,
 		},
 		{
-			title: "Analytics",
-			url: "#",
-			icon: <ChartBarIcon />,
+			title: "Hospitals",
+			url: "/dashboard/hospitals",
+			icon: <BriefcaseMedical />,
 		},
 		{
-			title: "Projects",
-			url: "#",
-			icon: <FolderIcon />,
+			title: "Restaurants",
+			url: "/dashboard/restaurants",
+			icon: <CookingPot />,
 		},
 		{
-			title: "Team",
-			url: "#",
+			title: "Malls",
+			url: "/dashboard/malls",
+			icon: <Building />,
+		},
+		{
+			title: "Doctors",
+			url: "/dashboard/doctors",
 			icon: <UsersIcon />,
+		},
+		{
+			title: "Rents",
+			url: "/dashboard/rents",
+			icon: <Building />,
+		},
+		{
+			title: "Vets",
+			url: "/dashboard/vets",
+			icon: <Dog />,
+		},
+		{
+			title: "Teachers",
+			url: "/dashboard/teachers",
+			icon: <Glasses />,
+		},
+		{
+			title: "Bus",
+			url: "/dashboard/bus",
+			icon: <Bus />,
+		},
+		{
+			title: "Freelancers",
+			url: "/dashboard/freelancers",
+			icon: <CircleHelpIcon />,
+		},
+		{
+			title: "Blogs",
+			url: "/dashboard/blogs",
+			icon: <Paperclip />,
 		},
 	],
 	navClouds: [
@@ -165,7 +204,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={data.navMain} />
-				<NavDocuments items={data.documents} />
+				{/* <NavDocuments items={data.documents} /> */}
 				<NavSecondary items={data.navSecondary} className="mt-auto" />
 			</SidebarContent>
 			<SidebarFooter>

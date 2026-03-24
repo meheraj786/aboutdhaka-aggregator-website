@@ -1,6 +1,7 @@
 "use client";
 
 import { CirclePlusIcon, MailIcon } from "lucide-react";
+// import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
 	SidebarGroup,
@@ -19,6 +20,7 @@ export function NavMain({
 		icon?: React.ReactNode;
 	}[];
 }) {
+	// const path = usePathname();
 	return (
 		<SidebarGroup>
 			<SidebarGroupContent className="flex flex-col gap-2">
