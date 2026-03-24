@@ -1,6 +1,6 @@
 "use client";
 
-import {  Home } from "lucide-react";
+import { Home } from "lucide-react";
 import Link from "next/link";
 
 export default function ComingSoonPage() {
@@ -116,7 +116,6 @@ export default function ComingSoonPage() {
 					<Home className="w-5 h-5" /> Go Back
 				</Link>
 			</div>
-
 
 			<style jsx global>{`
 
