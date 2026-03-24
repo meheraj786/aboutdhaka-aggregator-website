@@ -8,6 +8,7 @@ import { ShoppingMallsSection } from "@/components/appComponents/Malls";
 import { PCBuilderSection } from "@/components/appComponents/PcBuilder";
 import { PetCareSection } from "@/components/appComponents/PetCare";
 import { RentalsSection } from "@/components/appComponents/Rental";
+import { CityNavigationSection } from "@/components/appComponents/Routes";
 import TravelPlaces from "@/components/appComponents/TravelPlaces";
 import { TutorsSection } from "@/components/appComponents/Tutors";
 
@@ -25,6 +26,7 @@ export default function Home() {
 			<PetCareSection />
 			<RentalsSection />
 			<TutorsSection />
+			<CityNavigationSection />
 			<BlogsSection />
 		</>
 	);
