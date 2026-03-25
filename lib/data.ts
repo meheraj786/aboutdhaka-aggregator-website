@@ -35,6 +35,23 @@ export interface ShoppingMall {
 	shops: string[];
 }
 
+export interface Rental {
+	id: string;
+	title: string;
+	type: "Flat" | "Apartment" | "Room" | "Sublet" | "Store" | "Bachelor Seat";
+	price: number;
+	location: string;
+	area: string;
+	bedrooms?: number;
+	bathrooms?: number;
+	size?: number; // sqft
+	description: string;
+	images: string[];
+	amenities: string[];
+	contact: string;
+	postedAt: string;
+}
+
 export const PLACES: Place[] = [
 	{
 		id: "ahsan-manzil",
@@ -191,5 +208,73 @@ export const SHOPPING_MALLS: ShoppingMall[] = [
 		coordinates: { lat: 23.7341, lng: 90.3752 },
 		facilities: ["Food Court", "Boutique Shops", "Parking", "ATM Services"],
 		shops: ["Sailor", "Le Reve", "Gentle Park", "Artisti", "Infinity"],
+	},
+];
+
+export const RENTALS: Rental[] = [
+	{
+		id: "r1",
+		title: "Modern 3BR Apartment in Gulshan",
+		type: "Apartment",
+		price: 45000,
+		location: "Road 12, Gulshan 1, Dhaka",
+		area: "Gulshan",
+		bedrooms: 3,
+		bathrooms: 3,
+		size: 1800,
+		description:
+			"A spacious and well-lit apartment in the heart of Gulshan. Features modern fittings, 24/7 security, and a beautiful balcony view.",
+		images: [
+			"https://picsum.photos/seed/rent1/800/600",
+			"https://picsum.photos/seed/rent1-2/800/600",
+		],
+		amenities: ["Elevator", "Generator", "Parking", "Security"],
+		contact: "01711223344",
+		postedAt: "2026-03-20",
+	},
+	{
+		id: "r2",
+		title: "Cozy Single Room for Bachelor",
+		type: "Bachelor Seat",
+		price: 5500,
+		location: "Sector 4, Uttara, Dhaka",
+		area: "Uttara",
+		description:
+			"A clean and quiet room for a single bachelor. Shared bathroom and kitchen. High-speed internet available.",
+		images: ["https://picsum.photos/seed/rent2/800/600"],
+		amenities: ["WiFi", "Water", "Electricity"],
+		contact: "01822334455",
+		postedAt: "2026-03-22",
+	},
+	{
+		id: "r3",
+		title: "Commercial Storefront in Dhanmondi",
+		type: "Store",
+		price: 25000,
+		location: "Satmasjid Road, Dhanmondi, Dhaka",
+		area: "Dhanmondi",
+		size: 450,
+		description:
+			"Prime location storefront suitable for a boutique or small cafe. High foot traffic area.",
+		images: ["https://picsum.photos/seed/rent3/800/600"],
+		amenities: ["Main Road Access", "Glass Front", "Security"],
+		contact: "01933445566",
+		postedAt: "2026-03-24",
+	},
+	{
+		id: "r4",
+		title: "2BR Sublet in Mirpur",
+		type: "Sublet",
+		price: 12000,
+		location: "Block C, Mirpur 12, Dhaka",
+		area: "Mirpur",
+		bedrooms: 1,
+		bathrooms: 1,
+		description:
+			"One large bedroom available for sublet in a 3BR flat. Preferred for a small family or working professional.",
+		images: ["https://picsum.photos/seed/rent4/800/600"],
+		amenities: ["Kitchen Access", "Balcony", "Lift"],
+		contact: "01644556677",
+		postedAt: "2026-03-25",
 	},
 ];
