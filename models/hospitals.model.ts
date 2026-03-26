@@ -14,6 +14,8 @@ export interface IHospital extends Document {
 	doctors?: mongoose.Types.ObjectId[];
 }
 
+export const modelName = "Hospital";
+
 const HospitalSchema: Schema<IHospital> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -31,7 +33,6 @@ const HospitalSchema: Schema<IHospital> = new Schema(
 	{ timestamps: true },
 );
 
-export const Hospital: Model<IHospital> = mongoose.model<IHospital>(
-	"Hospital",
-	HospitalSchema,
-);
+export const Hospital: Model<IHospital> =
+	mongoose.models[modelName] ||
+	mongoose.model<IHospital>(modelName, HospitalSchema);

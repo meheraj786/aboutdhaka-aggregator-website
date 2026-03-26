@@ -14,6 +14,8 @@ export interface IRent extends Document {
 	price?: number;
 }
 
+export const modelName = "Rent";
+
 const RentSchema: Schema<IRent> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -31,4 +33,5 @@ const RentSchema: Schema<IRent> = new Schema(
 	{ timestamps: true },
 );
 
-export const Rent: Model<IRent> = mongoose.model<IRent>("Rent", RentSchema);
+export const Rent: Model<IRent> =
+	mongoose.models[modelName] || mongoose.model<IRent>(modelName, RentSchema);

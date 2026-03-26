@@ -7,6 +7,8 @@ export interface IBlog extends Document {
 	category?: string;
 }
 
+const modelName = "Blog";
+
 const BlogSchema: Schema<IBlog> = new Schema(
 	{
 		title: { type: String, required: true },
@@ -17,4 +19,5 @@ const BlogSchema: Schema<IBlog> = new Schema(
 	{ timestamps: true },
 );
 
-export const Blog: Model<IBlog> = mongoose.model<IBlog>("Blog", BlogSchema);
+export const Blog: Model<IBlog> =
+	mongoose.models[modelName] || mongoose.model<IBlog>(modelName, BlogSchema);

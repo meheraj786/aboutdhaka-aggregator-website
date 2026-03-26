@@ -16,6 +16,8 @@ export interface IMall extends Document {
 	reviewsCount?: number;
 }
 
+export const modelName = "Mall";
+
 const MallSchema: Schema<IMall> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -35,4 +37,5 @@ const MallSchema: Schema<IMall> = new Schema(
 	{ timestamps: true },
 );
 
-export const Mall: Model<IMall> = mongoose.model<IMall>("Mall", MallSchema);
+export const Mall: Model<IMall> =
+	mongoose.models[modelName] || mongoose.model<IMall>(modelName, MallSchema);

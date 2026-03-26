@@ -5,6 +5,8 @@ export interface IArea extends Document {
 	buses?: mongoose.Types.ObjectId[];
 }
 
+const modelName = "Area";
+
 const AreaSchema: Schema<IArea> = new Schema(
 	{
 		name: { type: String, required: true, unique: true },
@@ -13,4 +15,5 @@ const AreaSchema: Schema<IArea> = new Schema(
 	{ timestamps: true },
 );
 
-export const Area: Model<IArea> = mongoose.model<IArea>("Area", AreaSchema);
+export const Area: Model<IArea> =
+	mongoose.models[modelName] || mongoose.model<IArea>(modelName, AreaSchema);

@@ -1,6 +1,8 @@
+"use client";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
 import Pagination from "@/components/appComponents/Pagination";
 import PlaceCard from "@/components/appComponents/PlaceCard";
+import { useFetchPlaces } from "@/hooks/usePlaces";
 
 const placesData = [
 	{
@@ -71,7 +73,11 @@ const placesData = [
 	},
 ];
 
-export default function page() {
+export default function PlacesPage() {
+	const { data } = useFetchPlaces();
+
+	console.log(data, "places");
+
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
 			<main className="flex-grow py-12 px-6  md:px-12">

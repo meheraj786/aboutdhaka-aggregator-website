@@ -15,6 +15,8 @@ export interface IRestaurant extends Document {
 	reviewsCount?: number;
 }
 
+export const modelName = "Restaurant";
+
 const RestaurantSchema: Schema<IRestaurant> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -33,7 +35,6 @@ const RestaurantSchema: Schema<IRestaurant> = new Schema(
 	{ timestamps: true },
 );
 
-export const Restaurant: Model<IRestaurant> = mongoose.model<IRestaurant>(
-	"Restaurant",
-	RestaurantSchema,
-);
+export const Restaurant: Model<IRestaurant> =
+	mongoose.models[modelName] ||
+	mongoose.model<IRestaurant>(modelName, RestaurantSchema);

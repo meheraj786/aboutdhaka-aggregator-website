@@ -15,6 +15,8 @@ export interface IPlace extends Document {
 	gallery?: string[];
 }
 
+const modelName = "Place";
+
 const PlaceSchema: Schema<IPlace> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -33,7 +35,5 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 	{ timestamps: true },
 );
 
-export const Place: Model<IPlace> = mongoose.model<IPlace>(
-	"Place",
-	PlaceSchema,
-);
+export const Place: Model<IPlace> =
+	mongoose.models[modelName] || mongoose.model<IPlace>(modelName, PlaceSchema);

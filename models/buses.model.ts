@@ -8,6 +8,8 @@ export interface IBus extends Document {
 	stopages?: string[];
 }
 
+const modelName = "Bus";
+
 const BusSchema: Schema<IBus> = new Schema(
 	{
 		name: { type: String, required: true },
@@ -19,4 +21,5 @@ const BusSchema: Schema<IBus> = new Schema(
 	{ timestamps: true },
 );
 
-export const Bus: Model<IBus> = mongoose.model<IBus>("Bus", BusSchema);
+export const Bus: Model<IBus> =
+	mongoose.models[modelName] || mongoose.model<IBus>(modelName, BusSchema);

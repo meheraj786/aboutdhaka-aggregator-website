@@ -13,8 +13,10 @@ export interface IDoctor extends Document {
 	availableTime?: object;
 	qualification?: string;
 	services?: string[];
-	hospitals?: mongoose.Types.ObjectId[]; // Many-to-Many
+	hospitals?: mongoose.Types.ObjectId[];
 }
+
+export const modelName = "Doctor";
 
 const DoctorSchema: Schema<IDoctor> = new Schema(
 	{
@@ -35,7 +37,6 @@ const DoctorSchema: Schema<IDoctor> = new Schema(
 	{ timestamps: true },
 );
 
-export const Doctor: Model<IDoctor> = mongoose.model<IDoctor>(
-	"Doctor",
-	DoctorSchema,
-);
+export const Doctor: Model<IDoctor> =
+	mongoose.models[modelName] ||
+	mongoose.model<IDoctor>(modelName, DoctorSchema);
