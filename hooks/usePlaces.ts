@@ -2,17 +2,17 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	createPlace,
 	deletePlace,
+	type GetPlacesParams,
 	getPlaceById,
 	getPlaces,
 	updatePlace,
-	type GetPlacesParams,
 } from "@/actions/place.action";
-import type { UpdatePlaceInput } from "@/validators/places";
 import { queryKeys } from "@/lib/queryKeys";
+import type { UpdatePlaceInput } from "@/validators/places";
 
 export function useFetchPlaces(params: GetPlacesParams = {}) {
 	return useQuery({
-		queryKey: [queryKeys.places, "get", params],  
+		queryKey: [queryKeys.places, "get", params],
 		queryFn: () => getPlaces(params),
 		placeholderData: (prev) => prev,
 	});

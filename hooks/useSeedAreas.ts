@@ -4,20 +4,20 @@ import { seedAreas } from "@/actions/area.action";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function useSeedAreas() {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: seedAreas,
-    onSuccess: (data) => {
-      if (data.success) {
-        toast.success(data.message);
-        queryClient.invalidateQueries({ queryKey: [queryKeys.areas] });
-      } else {
-        toast.error(data.message);
-      }
-    },
-    onError: () => {
-      toast.error("An unexpected error occurred while seeding areas.");
-    },
-  });
+	return useMutation({
+		mutationFn: seedAreas,
+		onSuccess: (data) => {
+			if (data.success) {
+				toast.success(data.message);
+				queryClient.invalidateQueries({ queryKey: [queryKeys.areas] });
+			} else {
+				toast.error(data.message);
+			}
+		},
+		onError: () => {
+			toast.error("An unexpected error occurred while seeding areas.");
+		},
+	});
 }

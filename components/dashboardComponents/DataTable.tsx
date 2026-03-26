@@ -1,16 +1,18 @@
 "use client";
 import {
+  type Column,
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import {
   ArrowUpDown,
   ChevronDown,
@@ -46,7 +48,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import autoTable from "jspdf-autotable";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,11 +105,13 @@ export default function DataTable<TData, TValue>({
   emptyMessage = "No results found.",
   className,
 }: DataTableProps<TData, TValue>) {
-
   // ── Local UI state ─────────────────────────────────────────────────────────
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
   // Search is debounced so we don't fire an API call on every keystroke
@@ -138,8 +141,13 @@ export default function DataTable<TData, TValue>({
       sortBy: sortItem?.id,
       sortOrder: sortItem ? (sortItem.desc ? "desc" : "asc") : undefined,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, sorting, internalPageSize]);
+  }, [
+    debouncedSearch,
+    sorting,
+    internalPageSize,
+    currentPage,
+    onPaginationChange,
+  ]);
 
   // ── TanStack table (manual mode for pagination) ────────────────────────────
   const table = useReactTable({
@@ -198,8 +206,10 @@ export default function DataTable<TData, TValue>({
     const rows = data.map((row) =>
       headers.map((header) => {
         const value = (row as Record<string, unknown>)[header];
-        return typeof value === "string" || typeof value === "number" ? value : "";
-      })
+        return typeof value === "string" || typeof value === "number"
+          ? value
+          : "";
+      }),
     );
     return { headers, rows };
   };
@@ -248,7 +258,7 @@ export default function DataTable<TData, TValue>({
         return typeof value === "string" || typeof value === "number"
           ? String(value).replace(/৳/g, "TK ")
           : "";
-      })
+      }),
     );
 
     autoTable(doc, {
@@ -281,7 +291,10 @@ export default function DataTable<TData, TValue>({
         <CardContent>
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-8 animate-pulse rounded bg-muted" />
+              <div
+                key={`skeleton-${i}`}
+                className="h-8 animate-pulse rounded bg-muted"
+              />
             ))}
           </div>
         </CardContent>
@@ -298,7 +311,6 @@ export default function DataTable<TData, TValue>({
         </CardHeader>
       )}
       <CardContent className="p-0">
-
         {/* Toolbar */}
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center space-x-2">
@@ -357,7 +369,9 @@ export default function DataTable<TData, TValue>({
                         key={col.id}
                         className="capitalize"
                         checked={col.getIsVisible()}
-                        onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                        onCheckedChange={(value) =>
+                          col.toggleVisibility(!!value)
+                        }
                       >
                         {col.id}
                       </DropdownMenuCheckboxItem>
@@ -384,7 +398,7 @@ export default function DataTable<TData, TValue>({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     ))}
@@ -397,18 +411,29 @@ export default function DataTable<TData, TValue>({
                     <TableRow
                       key={row.id}
                       data-state={row.getIsSelected() && "selected"}
-                      className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}
+                      className={
+                        index % 2 === 0 ? "bg-background" : "bg-muted/30"
+                      }
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="border-r whitespace-nowrap">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        <TableCell
+                          key={cell.id}
+                          className="border-r whitespace-nowrap"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
                       {emptyMessage}
                     </TableCell>
                   </TableRow>
@@ -527,8 +552,7 @@ export default function DataTable<TData, TValue>({
 // ─── Sortable column header helper ────────────────────────────────────────────
 
 export function createSortableHeader(title: string) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const SortableHeader = ({ column }: { column: any }) => (
+  const SortableHeader = ({ column }: { column: Column<unknown, unknown> }) => (
     <Button
       variant="ghost"
       onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}

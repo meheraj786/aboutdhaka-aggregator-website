@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "@/app/globals.css";
-import QueryProvider from "@/providers/QueryProvide";
 import { Toaster } from "@/components/ui/sonner";
+import QueryProvider from "@/providers/QueryProvide";
 
 const inter = Inter({
 	variable: "--font-inter",

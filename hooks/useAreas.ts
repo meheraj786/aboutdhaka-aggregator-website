@@ -3,9 +3,9 @@ import { getAreas } from "@/actions/area.action";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function useFetchAreas() {
-  return useQuery({
-    queryKey: [queryKeys.areas],
-    queryFn: getAreas,
-    staleTime: 5 * 60 * 1000,
-  });
+	return useQuery({
+		queryKey: [queryKeys.areas],
+		queryFn: getAreas,
+		staleTime: 5 * 60 * 1000,
+	});
 }

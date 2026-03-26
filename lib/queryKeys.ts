@@ -1,6 +1,6 @@
 export const queryKeys = {
-  areas: "areas",
-  places: "places",
-  doctors: "doctors",
-  hospitals: "hospitals",
+	areas: "areas",
+	places: "places",
+	doctors: "doctors",
+	hospitals: "hospitals",
 };
