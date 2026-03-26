@@ -5,21 +5,22 @@ import {
 	getPlaceById,
 	getPlaces,
 	updatePlace,
+	type GetPlacesParams,
 } from "@/actions/place.action";
 import type { UpdatePlaceInput } from "@/validators/places";
+import { queryKeys } from "@/lib/queryKeys";
 
-export function useFetchPlaces() {
+export function useFetchPlaces(params: GetPlacesParams = {}) {
 	return useQuery({
-		queryKey: ["places", "get"],
-		queryFn: async () => {
-			return await getPlaces();
-		},
+		queryKey: [queryKeys.places, "get", params],  
+		queryFn: () => getPlaces(params),
+		placeholderData: (prev) => prev,
 	});
 }
 
 export function useFetchPlaceById(id: string) {
 	return useQuery({
-		queryKey: ["place", id],
+		queryKey: [queryKeys.places, id],
 		queryFn: async () => {
 			return await getPlaceById(id);
 		},
@@ -33,7 +34,7 @@ export function useCreatePlace() {
 	return useMutation({
 		mutationFn: createPlace,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["places", "get"] });
+			queryClient.invalidateQueries({ queryKey: [queryKeys.places, "get"] });
 		},
 	});
 }
@@ -45,7 +46,7 @@ export function useUpdatePlace() {
 		mutationFn: ({ id, data }: { id: string; data: UpdatePlaceInput }) =>
 			updatePlace(id, data),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["places", "get"] });
+			queryClient.invalidateQueries({ queryKey: [queryKeys.places, "get"] });
 		},
 	});
 }
@@ -56,7 +57,7 @@ export function useDeletePlace() {
 	return useMutation({
 		mutationFn: deletePlace,
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["places", "get"] });
+			queryClient.invalidateQueries({ queryKey: [queryKeys.places, "get"] });
 		},
 	});
 }

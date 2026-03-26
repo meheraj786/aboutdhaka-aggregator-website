@@ -1,87 +1,49 @@
 "use client";
+import { useState } from "react";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
-import Pagination from "@/components/appComponents/Pagination";
 import PlaceCard from "@/components/appComponents/PlaceCard";
 import { useFetchPlaces } from "@/hooks/usePlaces";
+import type { GetPlacesParams } from "@/actions/place.action";
 
-const placesData = [
-	{
-		id: 1,
-		title: "Ahsan Manzil",
-		category: "Museum",
-		location: "Sadarghat, Dhaka",
-		rating: 4.8,
-		description:
-			"The official residential palace and seat of the Nawab of Dhaka, a stunning example of Indo-Saracenic Revival...",
-		image:
-			"https://images.unsplash.com/photo-1590053419082-936306541334?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		id: 2,
-		title: "Lalbagh Fort",
-		category: "Historical",
-		location: "Lalbagh, Old Dhaka",
-		rating: 4.7,
-		description:
-			"An incomplete 17th-century Mughal fort complex that stands as a symbol of Dhaka's rich imperial history.",
-		image:
-			"https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/%E0%A6%B2%E0%A6%BE%E0%A6%B2_%E0%A6%95%E0%A7%87%E0%A6%B2%E0%A7%8D%E0%A6%B2%E0%A6%BE%E0%A6%B0_%E0%A6%AE%E0%A6%BE%E0%A6%AF%E0%A6%BC%E0%A6%BE.jpg/1280px-%E0%A6%B2%E0%A6%BE%E0%A6%B2_%E0%A6%95%E0%A7%87%E0%A6%B2%E0%A7%8D%E0%A6%B2%E0%A6%BE%E0%A6%B0_%E0%A6%AE%E0%A6%BE%E0%A6%AF%E0%A6%BC%E0%A6%BE.jpg",
-	},
-	{
-		id: 3,
-		title: "Hatirjheel",
-		category: "Park",
-		location: "Gulshan/Tejgaon",
-		rating: 4.9,
-		description:
-			"A popular waterfront area for recreation, offering scenic boat rides and illuminated bridges at night.",
-		image:
-			"https://images.unsplash.com/photo-1623059528907-735992983794?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		id: 4,
-		title: "National Museum",
-		category: "Cultural",
-		location: "Shahbagh, Dhaka",
-		rating: 4.6,
-		description:
-			"Housing thousands of artifacts, this is the largest museum in Bangladesh, showcasing history and art.",
-		image:
-			"https://images.unsplash.com/photo-1590053419082-936306541334?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		id: 5,
-		title: "Ramna Park",
-		category: "Park",
-		location: "Ramna, Dhaka",
-		rating: 4.5,
-		description:
-			"A large historical park and garden, famous for the annual Pohela Boishakh celebrations.",
-		image:
-			"https://images.unsplash.com/photo-1623059528929-417163013d33?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		id: 6,
-		title: "Jatiya Sangsad",
-		category: "Architectural",
-		location: "Sher-e-Bangla Nagar",
-		rating: 4.9,
-		description:
-			"Louis Kahn's architectural masterpiece and the house of the Parliament of Bangladesh.",
-		image:
-			"https://images.unsplash.com/photo-1623059528929-417163013d33?auto=format&fit=crop&q=80&w=800",
-	},
-];
+const PAGE_SIZE = 6;
 
 export default function PlacesPage() {
-	const { data } = useFetchPlaces();
+	// ── Single source of truth for all backend params ─────────────────────────
+	const [params, setParams] = useState<GetPlacesParams>({
+		page: 1,
+		pageSize: PAGE_SIZE,
+		sortBy: "createdAt",
+		sortOrder: "desc",
+	});
 
-	console.log(data, "places");
+	const { data, isLoading } = useFetchPlaces(params);
+
+	const places = data?.items ?? [];
+	const totalCount = data?.totalCount ?? 0;
+	const currentPage = data?.currentPage ?? 1;
+	const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+	// ── Helpers ───────────────────────────────────────────────────────────────
+	const goToPage = (page: number) =>
+		setParams((prev) => ({ ...prev, page }));
+
+	const handleSearch = (search: string) =>
+		setParams((prev) => ({ ...prev, search, page: 1 })); // search করলে page 1 এ ফেরত
+
+	const handleSort = (value: string) => {
+		const sortMap: Record<string, Pick<GetPlacesParams, "sortBy" | "sortOrder">> = {
+			popular:  { sortBy: "rating",     sortOrder: "desc" },
+			newest:   { sortBy: "createdAt",  sortOrder: "desc" },
+			rating:   { sortBy: "rating",     sortOrder: "desc" },
+		};
+		setParams((prev) => ({ ...prev, ...sortMap[value], page: 1 }));
+	};
 
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
-			<main className="flex-grow py-12 px-6  md:px-12">
+			<main className="flex-grow py-12 px-6 md:px-12">
 				<div className="max-w-7xl mx-auto">
+
 					{/* Header */}
 					<div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
 						<div>
@@ -89,18 +51,28 @@ export default function PlacesPage() {
 								Explore Places in Dhaka
 							</h1>
 							<p className="text-slate-500">
-								Discover 120+ cultural landmarks and hidden gems.
+								Discover {totalCount}+ cultural landmarks and hidden gems.
 							</p>
 						</div>
 
 						<div className="flex items-center gap-3">
-							<span className="text-sm text-slate-500 font-medium">
-								Sort by:
-							</span>
-							<select className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all">
-								<option>Most Popular</option>
-								<option>Newest</option>
-								<option>Rating: High to Low</option>
+							{/* Search */}
+							<input
+								type="text"
+								placeholder="Search places..."
+								onChange={(e) => handleSearch(e.target.value)}
+								className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+							/>
+
+							{/* Sort */}
+							<span className="text-sm text-slate-500 font-medium">Sort by:</span>
+							<select
+								onChange={(e) => handleSort(e.target.value)}
+								className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+							>
+								<option value="popular">Most Popular</option>
+								<option value="newest">Newest</option>
+								<option value="rating">Rating: High to Low</option>
 							</select>
 						</div>
 					</div>
@@ -109,16 +81,77 @@ export default function PlacesPage() {
 						{/* Sidebar */}
 						<FilterSidebar />
 
-						{/* Content Grid */}
+						{/* Content */}
 						<div className="flex-grow">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{placesData.map((place) => (
-									<PlaceCard key={place.title} {...place} />
-								))}
-							</div>
 
-							{/* Pagination */}
-							<Pagination />
+							{/* Loading skeleton */}
+							{isLoading ? (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{Array.from({ length: PAGE_SIZE }).map((_, i) => (
+										<div key={i} className="h-64 animate-pulse rounded-2xl bg-slate-200" />
+									))}
+								</div>
+							) : (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{places.map((place) => (
+										<PlaceCard key={place._id as string} {...place} />
+									))}
+								</div>
+							)}
+
+							{/* ── Pagination ─────────────────────────────────────────── */}
+							{totalPages > 1 && (
+								<div className="flex items-center justify-between mt-10 flex-wrap gap-4">
+									<p className="text-sm text-slate-500">
+										Showing{" "}
+										<span className="font-semibold text-slate-700">
+											{(currentPage - 1) * PAGE_SIZE + 1}–
+											{Math.min(currentPage * PAGE_SIZE, totalCount)}
+										</span>{" "}
+										of <span className="font-semibold text-slate-700">{totalCount}</span> places
+									</p>
+
+									<div className="flex items-center gap-2">
+										<button
+											onClick={() => goToPage(currentPage - 1)}
+											disabled={currentPage === 1}
+											className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+										>
+											← Previous
+										</button>
+
+										{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+											let page: number;
+											if (totalPages <= 5) page = i + 1;
+											else if (currentPage <= 3) page = i + 1;
+											else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
+											else page = currentPage - 2 + i;
+
+											return (
+												<button
+													key={page}
+													onClick={() => goToPage(page)}
+													className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${
+														page === currentPage
+															? "bg-blue-600 text-white shadow-sm"
+															: "border border-slate-200 text-slate-600 hover:bg-slate-100"
+													}`}
+												>
+													{page}
+												</button>
+											);
+										})}
+
+										<button
+											onClick={() => goToPage(currentPage + 1)}
+											disabled={currentPage === totalPages}
+											className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+										>
+											Next →
+										</button>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>
