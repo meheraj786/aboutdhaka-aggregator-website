@@ -1,11 +1,11 @@
 "use client";
 import {
-	type Column,
 	type ColumnDef,
 	type ColumnFiltersState,
 	flexRender,
 	getCoreRowModel,
 	getSortedRowModel,
+	type HeaderContext,
 	type SortingState,
 	useReactTable,
 	type VisibilityState,
@@ -551,11 +551,13 @@ export default function DataTable<TData, TValue>({
 
 // ─── Sortable column header helper ────────────────────────────────────────────
 
-export function createSortableHeader(title: string) {
-	const SortableHeader = ({ column }: { column: Column<unknown, unknown> }) => (
+export function createSortableHeader<TData, TValue>(title: string) {
+	const SortableHeader = (props: HeaderContext<TData, TValue>) => (
 		<Button
 			variant="ghost"
-			onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+			onClick={() =>
+				props.column.toggleSorting(props.column.getIsSorted() === "asc")
+			}
 			className="h-auto p-0 font-medium text-xs hover:bg-transparent hover:text-primary-foreground/80"
 		>
 			{title}

@@ -91,11 +91,11 @@ export function PlaceFormDialog() {
 			category: "",
 			detail: "",
 			rating: 0,
-			closingDay: "",
 			fee: 0,
-			contact: "",
 			facilities: [],
 			gallery: [],
+			closingDay: "",
+			contact: "",
 			hours: {},
 		},
 	});
