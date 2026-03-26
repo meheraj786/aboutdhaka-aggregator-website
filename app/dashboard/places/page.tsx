@@ -2,7 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { GetPlacesParams } from "@/actions/place.action";
 import DataTable, {
@@ -175,12 +175,15 @@ export default function PlacesDashboardPage() {
 	const { mutate: deletePlace } = useDeletePlace();
 	const { mutate: seed, isPending: isSeeding } = useSeedAreas();
 
-	const handleDelete = (id: string) => {
-		deletePlace(id, {
-			onSuccess: () => toast.success("Place deleted"),
-			onError: () => toast.error("Failed to delete place"),
-		});
-	};
+	const handleDelete = useCallback(
+		(id: string) => {
+			deletePlace(id, {
+				onSuccess: () => toast.success("Place deleted"),
+				onError: () => toast.error("Failed to delete place"),
+			});
+		},
+		[deletePlace],
+	);
 
 	const handleSeed = () => {
 		if (
@@ -192,17 +195,29 @@ export default function PlacesDashboardPage() {
 		seed();
 	};
 
-	const handlePaginationChange = (p: PaginationParams) => {
-		setParams({
-			page: p.page,
-			pageSize: p.pageSize,
-			search: p.search,
-			sortBy: p.sortBy,
-			sortOrder: p.sortOrder as "asc" | "desc" | undefined,
+	const handlePaginationChange = useCallback((p: PaginationParams) => {
+		setParams((prev) => {
+			// Check if anything actually changed to avoid redundant updates
+			if (
+				prev.page === p.page &&
+				prev.pageSize === p.pageSize &&
+				prev.search === p.search &&
+				prev.sortBy === p.sortBy &&
+				prev.sortOrder === p.sortOrder
+			) {
+				return prev;
+			}
+			return {
+				page: p.page,
+				pageSize: p.pageSize,
+				search: p.search,
+				sortBy: p.sortBy,
+				sortOrder: p.sortOrder as "asc" | "desc" | undefined,
+			};
 		});
-	};
+	}, []);
 
-	const columns = PlacesColumns(handleDelete);
+	const columns = useMemo(() => PlacesColumns(handleDelete), [handleDelete]);
 
 	return (
 		<div className="p-6 space-y-6">

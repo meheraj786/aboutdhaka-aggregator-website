@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -72,6 +72,21 @@ const COMMON_FACILITIES = [
 	"Photography Allowed",
 ];
 
+const DEFAULT_VALUES: CreatePlaceInput = {
+	name: "",
+	area: "",
+	location: "",
+	category: "",
+	detail: "",
+	rating: 0,
+	fee: 0,
+	facilities: [],
+	gallery: [],
+	closingDay: "",
+	contact: "",
+	hours: {},
+};
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function PlaceFormDialog() {
@@ -82,36 +97,28 @@ export function PlaceFormDialog() {
 	const { data: areas = [], isLoading: areasLoading } = useFetchAreas();
 	const { mutate: createPlace, isPending } = useCreatePlace();
 
+	const resolver = useMemo(() => zodResolver(createPlaceSchema), []);
+
+	console.log(areas, "area");
+
 	const form = useForm<CreatePlaceInput>({
-		resolver: zodResolver(createPlaceSchema),
-		defaultValues: {
-			name: "",
-			area: "",
-			location: "",
-			category: "",
-			detail: "",
-			rating: 0,
-			fee: 0,
-			facilities: [],
-			gallery: [],
-			closingDay: "",
-			contact: "",
-			hours: {},
-		},
+		resolver,
+		defaultValues: DEFAULT_VALUES,
 	});
 
-	useEffect(() => {
-		if (!open) {
-			form.reset();
+	const handleOpenChange = (newOpen: boolean) => {
+		setOpen(newOpen);
+		if (!newOpen) {
+			form.reset(DEFAULT_VALUES);
 			setFacilityInput("");
 			setGalleryInput("");
 		}
-	}, [open, form]);
+	};
 
 	const onSubmit = (values: CreatePlaceInput) => {
 		createPlace(values, {
 			onSuccess: () => {
-				setOpen(false);
+				handleOpenChange(false);
 				toast.success("Event has been created.");
 			},
 		});
@@ -151,7 +158,7 @@ export function PlaceFormDialog() {
 
 	// ── Render ─────────────────────────────────────────────────────────────────
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
 				<Button className="gap-2">
 					<Plus className="h-4 w-4" />

@@ -131,23 +131,18 @@ export default function DataTable<TData, TValue>({
 		return () => clearTimeout(timer);
 	}, [searchInput]);
 
-	// ── Notify parent whenever pagination / search / sort changes ─────────────
+	// ── Notify parent whenever search, sort, or page size changes ─────────────
+	// We handle page changes separately via goToPage to avoid infinite loops
 	React.useEffect(() => {
 		const sortItem = sorting[0];
 		onPaginationChange({
-			page: currentPage,
+			page: 1, // Reset to page 1 on search/sort/size change
 			pageSize: internalPageSize,
 			search: debouncedSearch || undefined,
 			sortBy: sortItem?.id,
 			sortOrder: sortItem ? (sortItem.desc ? "desc" : "asc") : undefined,
 		});
-	}, [
-		debouncedSearch,
-		sorting,
-		internalPageSize,
-		currentPage,
-		onPaginationChange,
-	]);
+	}, [debouncedSearch, sorting, internalPageSize, onPaginationChange]);
 
 	// ── TanStack table (manual mode for pagination) ────────────────────────────
 	const table = useReactTable({
