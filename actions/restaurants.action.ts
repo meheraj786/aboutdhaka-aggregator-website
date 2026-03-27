@@ -3,9 +3,7 @@
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
 import { Restaurant } from "@/models/restaurants.model";
-import {
-	createRestaurantSchema,
-} from "@/validators/restaurants";
+import { createRestaurantSchema } from "@/validators/restaurants";
 
 export interface GetRestaurantsParams {
 	page?: number;
