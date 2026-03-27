@@ -231,7 +231,7 @@ export default function PlacesDashboardPage() {
 				</div>
 
 				<div className="flex items-center gap-2">
-					<Button variant="outline" onClick={handleSeed} disabled={isSeeding}>
+					<Button variant="outline" className="hidden" onClick={handleSeed} disabled={isSeeding}>
 						{isSeeding ? "Seeding..." : "Seed Areas"}
 					</Button>
 					{/* Add Place button → opens dialog */}
