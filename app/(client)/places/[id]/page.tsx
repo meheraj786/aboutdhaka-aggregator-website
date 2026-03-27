@@ -7,6 +7,7 @@ import {
 	CreditCard,
 	Heart,
 	Info,
+	Loader2,
 	MapPin,
 	Phone,
 	Share2,
@@ -21,9 +22,43 @@ import { PLACES } from "@/lib/data";
 
 export default function PlaceDetailPage() {
 	const params = useParams();
-	const place = PLACES.find((p) => p.id === params.id);
-	const { data } = useFetchPlaceById(params.id as string);
-	console.log(data, "data");
+	const { data, isLoading, error } = useFetchPlaceById(params.id as string);
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+			</div>
+		);
+	}
+
+	if (error || !data) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<div className="text-center">
+					<h2 className="text-2xl font-bold text-slate-900 mb-2">
+						Place not found
+					</h2>
+					<p className="text-slate-600 mb-4">
+						The place you are looking for does not exist or has been removed.
+					</p>
+					<Link
+						href="/places"
+						className="text-blue-600 font-bold hover:underline"
+					>
+						Back to Places
+					</Link>
+				</div>
+			</div>
+		);
+	}
+
+	const place = data;
+
+	const formattedOpeningHours =
+		place?.hours && typeof place?.hours === "object"
+			? `${place?.hours.open ?? "N/A"} - ${place?.hours.close ?? "N/A"}`
+			: "N/A";
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -31,8 +66,8 @@ export default function PlaceDetailPage() {
 				{/* Hero Section */}
 				<section className="relative h-[60vh] min-h-[400px] w-full">
 					<Image
-						src={data?.gallery[0] || ""}
-						alt={data?.name || ""}
+						src={data.gallery?.[0] || ""}
+						alt={data.name || ""}
 						fill
 						className="object-cover"
 						priority
@@ -58,7 +93,7 @@ export default function PlaceDetailPage() {
 								</Link>
 								<ChevronRight className="w-3 h-3 text-white/60" />
 								<span className="text-white text-sm font-bold">
-									{data?.name}
+									{data.name}
 								</span>
 							</div>
 
@@ -66,21 +101,20 @@ export default function PlaceDetailPage() {
 								<div>
 									<div className="flex items-center gap-3 mb-4">
 										<span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-md tracking-widest uppercase">
-											{data?.category}
+											{data.category}
 										</span>
 										<div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white">
 											<Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
 											<span className="text-xs font-bold">
-												{data?.rating} ({data?.reviews} reviews)
+												{data.rating} ({data.reviews || 0} reviews)
 											</span>
 										</div>
 									</div>
 									<h1 className="text-4xl md:text-6xl font-bold text-white mb-2">
-										{data?.name}
+										{data.name}
 									</h1>
 									<p className="text-white/90 flex items-center gap-2 text-lg">
-										<MapPin className="w-5 h-5 text-blue-400" />{" "}
-										{data?.location}
+										<MapPin className="w-5 h-5 text-blue-400" /> {data.location}
 									</p>
 								</div>
 
@@ -119,7 +153,7 @@ export default function PlaceDetailPage() {
 									About this place
 								</h2>
 								<p className="text-slate-600 text-lg leading-relaxed">
-									{data?.detail}
+									{data.detail}
 								</p>
 							</div>
 
@@ -128,7 +162,7 @@ export default function PlaceDetailPage() {
 									Facilities & Features
 								</h3>
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-									{data?.facilities.map((facility: string) => (
+									{data.facilities?.map((facility: string) => (
 										<div
 											key={facility}
 											className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl"
@@ -147,7 +181,7 @@ export default function PlaceDetailPage() {
 									Photo Gallery
 								</h3>
 								<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-									{data?.gallery.map((img: string, idx: number) => (
+									{data.gallery?.map((img: string, idx: number) => (
 										<motion.div
 											key={img}
 											initial={{ opacity: 0, y: 20 }}
@@ -157,7 +191,7 @@ export default function PlaceDetailPage() {
 										>
 											<Image
 												src={img}
-												alt={`${place?.name} Gallery ${idx + 1}`}
+												alt={`${data.name} Gallery ${idx + 1}`}
 												fill
 												className="object-cover transition-transform duration-500 group-hover:scale-110"
 												referrerPolicy="no-referrer"
@@ -185,7 +219,7 @@ export default function PlaceDetailPage() {
 												Opening Hours
 											</p>
 											<p className="text-slate-700 font-medium">
-												{data?.openingHours}
+												{formattedOpeningHours}
 											</p>
 										</div>
 									</div>
@@ -199,7 +233,7 @@ export default function PlaceDetailPage() {
 												Entry Fee
 											</p>
 											<p className="text-slate-700 font-medium">
-												{data?.entryFee}
+												{data.fee === 0 ? "Free" : `৳${data.fee}`}
 											</p>
 										</div>
 									</div>
@@ -213,7 +247,7 @@ export default function PlaceDetailPage() {
 												Contact
 											</p>
 											<p className="text-slate-700 font-medium">
-												{data?.contact}
+												{data.contact}
 											</p>
 										</div>
 									</div>
@@ -227,7 +261,7 @@ export default function PlaceDetailPage() {
 												Area
 											</p>
 											<p className="text-slate-700 font-medium">
-												{data?.area?.name}
+												{data.area?.name}
 											</p>
 										</div>
 									</div>
@@ -251,7 +285,7 @@ export default function PlaceDetailPage() {
 					</div>
 				</section>
 
-				{/* Nearby Places */}
+				{/* Nearby Places Section */}
 				<section className="bg-slate-50 py-20 px-4">
 					<div className="max-w-7xl mx-auto">
 						<div className="flex items-end justify-between mb-12">
@@ -260,7 +294,7 @@ export default function PlaceDetailPage() {
 									Nearby Places
 								</h2>
 								<p className="text-slate-500 mt-2">
-									Explore other interesting spots in {place?.area}.
+									Explore other interesting spots in the area.
 								</p>
 							</div>
 							<Link
@@ -272,7 +306,7 @@ export default function PlaceDetailPage() {
 						</div>
 
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-							{PLACES.filter((p) => p.id !== place?.id)
+							{PLACES.filter((p) => p.id !== params.id)
 								.slice(0, 3)
 								.map((nearby) => (
 									<Link

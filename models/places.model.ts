@@ -1,4 +1,5 @@
-import mongoose, { type Document, type Model, Schema } from "mongoose";
+// models/Place.ts
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IPlace extends Document {
 	name: string;
@@ -7,15 +8,14 @@ export interface IPlace extends Document {
 	category: string;
 	detail?: string;
 	rating?: number;
-	hours?: object;
+	reviews?: number;
+	hours?: Record<string | number, string>;
 	closingDay?: string;
 	fee?: number;
 	contact?: string;
 	facilities?: string[];
 	gallery?: string[];
 }
-
-const modelName = "Place";
 
 const PlaceSchema: Schema<IPlace> = new Schema(
 	{
@@ -25,7 +25,8 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 		category: String,
 		detail: String,
 		rating: { type: Number, default: 0, min: 0, max: 5 },
-		hours: Object,
+		reviews: { type: Number, default: 0 },
+		hours: { type: Object, default: {} },
 		closingDay: String,
 		fee: Number,
 		contact: String,
@@ -35,5 +36,5 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 	{ timestamps: true },
 );
 
-export const Place: Model<IPlace> =
-	mongoose.models[modelName] || mongoose.model<IPlace>(modelName, PlaceSchema);
+export const Place =
+	mongoose.models.Place || mongoose.model<IPlace>("Place", PlaceSchema);

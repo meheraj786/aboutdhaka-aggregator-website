@@ -77,12 +77,13 @@ export async function getPlaceById(id: string) {
 		const place = await Place.findById(id).populate("area", "name").lean();
 
 		if (!place) {
-			return { success: false, error: "Place not found" };
+			throw new ActionError("Place not found");
 		}
 
 		return place;
 	} catch (error) {
 		console.error("Error fetching place:", error);
+		if (error instanceof ActionError) throw error;
 		throw new ActionError("Failed to fetch place");
 	}
 }
