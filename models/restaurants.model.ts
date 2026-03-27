@@ -1,9 +1,9 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
 
-export interface IRestaurant extends Document {
+export interface IRestaurantBase {
 	name: string;
 	area: mongoose.Types.ObjectId;
-	location: string; // ← string
+	location: string;
 	category: string;
 	detail?: string;
 	rating?: number;
@@ -14,6 +14,8 @@ export interface IRestaurant extends Document {
 	gallery?: string[];
 	reviewsCount?: number;
 }
+
+export interface IRestaurant extends IRestaurantBase, Document {}
 
 export const modelName = "Restaurant";
 

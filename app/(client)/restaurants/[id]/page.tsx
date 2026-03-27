@@ -1,66 +1,43 @@
 "use client";
 
 import {
-	Camera,
-	Car,
+	Cookie,
 	Heart,
+	Loader2,
 	MapPin,
 	Share2,
 	Star,
 	Utensils,
-	Wifi,
-	Wind,
 } from "lucide-react";
 import Image from "next/image";
+import { useParams } from "next/navigation";
+import {
+	useFetchRestaurantById,
+} from "@/hooks/useRestaurants";
 
-const gallery = [
-	"https://images.unsplash.com/photo-1473093226795-af9932fe5856?auto=format&fit=crop&q=80&w=400",
-	"https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=400",
-	"https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=400",
-];
 
-const menuHighlights = [
-	{
-		name: "Burrata with Heirloom Tomatoes",
-		category: "STARTERS",
-		price: "1,450",
-		desc: "Creamy burrata, basil pesto, balsamic glaze",
-	},
-	{
-		name: "Calamari Fritti",
-		category: "STARTERS",
-		price: "1,150",
-		desc: "Crispy squid with spicy marinara dip",
-	},
-	{
-		name: "Wagyu Ribeye Steak",
-		category: "MAIN COURSE",
-		price: "4,200",
-		desc: "Grade 7 Wagyu, garlic mash, red wine jus",
-	},
-	{
-		name: "Seafood Risotto",
-		category: "MAIN COURSE",
-		price: "2,800",
-		desc: "Saffron infused arborio, prawns, scallops",
-	},
-];
 
-const amenities = [
-	{ icon: Wifi, label: "Free WiFi" },
-	{ icon: Car, label: "Parking" },
-	{ icon: Wind, label: "Outdoor" },
-	{ icon: Utensils, label: "Fully AC" },
-];
+
 
 export default function RestaurantDetailPage() {
+	const id = useParams().id;
+	const { data, isLoading } = useFetchRestaurantById(id as string);
+	const image = data?.gallery[0];
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+			</div>
+		);
+	}
 	return (
 		<div className="min-h-screen bg-slate-50/30 pb-20">
 			{/* Hero Section */}
 			<div className="relative h-[600px] w-full">
 				<Image
-					src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=1920"
-					alt="The Glasshouse Brasserie"
+					src={image || ""}
+					alt={data?.name || ""}
 					fill
 					className="object-cover"
 					referrerPolicy="no-referrer"
@@ -85,14 +62,14 @@ export default function RestaurantDetailPage() {
 				<div className="absolute bottom-16 left-6 md:left-12 lg:left-24 max-w-4xl">
 					<div className="flex gap-2 mb-6">
 						<span className="bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-md uppercase tracking-wider">
-							Fine Dining
+							{data?.category}
 						</span>
-						<span className="bg-white/10 backdrop-blur-md text-white text-[10px] font-black px-4 py-1.5 rounded-md uppercase tracking-wider">
+						{/* <span className="bg-white/10 backdrop-blur-md text-white text-[10px] font-black px-4 py-1.5 rounded-md uppercase tracking-wider">
 							Italian Cuisine
-						</span>
+						</span> */}
 					</div>
 					<h1 className="text-6xl md:text-7xl font-black text-white mb-6 tracking-tight">
-						The Glasshouse Brasserie
+						{data?.name}
 					</h1>
 					<div className="flex flex-wrap items-center gap-6 text-blue-50/80 font-bold">
 						<div className="flex items-center gap-2">
@@ -101,7 +78,7 @@ export default function RestaurantDetailPage() {
 						</div>
 						<div className="flex items-center gap-2">
 							<MapPin className="w-5 h-5" />
-							<span>Gulshan 2, Dhaka</span>
+							<span>{data?.area?.name}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<Utensils className="w-5 h-5" />
@@ -116,7 +93,7 @@ export default function RestaurantDetailPage() {
 			</div>
 
 			{/* Action Bar */}
-			<div className="max-w-7xl mx-auto px-6 -mt-10 relative z-10">
+			{/* <div className="max-w-7xl mx-auto px-6 -mt-10 relative z-10">
 				<div className="bg-white rounded-[2.5rem] p-6 shadow-2xl shadow-slate-200/50 border border-slate-100 flex flex-col md:flex-row items-center gap-4">
 					<button
 						type="button"
@@ -140,7 +117,7 @@ export default function RestaurantDetailPage() {
 						Get Directions
 					</button>
 				</div>
-			</div>
+			</div> */}
 
 			{/* Content Grid */}
 			<div className="max-w-7xl mx-auto px-6 mt-20 grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -181,7 +158,7 @@ export default function RestaurantDetailPage() {
 							</button>
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-							{gallery.map((img) => (
+							{data?.gallery?.map((img: string) => (
 								<div
 									key={img}
 									className="relative aspect-square rounded-[2rem] overflow-hidden group cursor-pointer shadow-lg shadow-slate-200"
@@ -205,42 +182,40 @@ export default function RestaurantDetailPage() {
 							Menu Highlights
 						</h2>
 						<div className="space-y-12">
-							{["STARTERS", "MAIN COURSE"].map((cat) => (
+							{/* {data?.menu?.map((cat) => (
 								<div key={cat}>
 									<h3 className="text-blue-600 font-black text-xs tracking-[0.2em] mb-8 border-b border-blue-100 pb-4 uppercase">
 										{cat}
-									</h3>
-									<div className="space-y-8">
-										{menuHighlights
-											.filter((item) => item.category === cat)
-											.map((item) => (
-												<div
-													key={item.name}
-													className="flex justify-between items-start group"
-												>
-													<div className="space-y-1">
-														<h4 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">
-															{item.name}
-														</h4>
-														<p className="text-slate-400 text-sm">
-															{item.desc}
-														</p>
-													</div>
-													<span className="text-xl font-black text-slate-900 flex items-center gap-1">
-														<span className="text-slate-300 text-sm">৳</span>{" "}
-														{item.price}
-													</span>
-												</div>
-											))}
-									</div>
-								</div>
-							))}
-							<button
+									</h3> */}
+							<div className="space-y-8">
+								{data?.menu?.map(
+									(item: { name: string; desc: string; price: string }) => (
+										<div
+											key={item.name}
+											className="flex justify-between items-start group"
+										>
+											<div className="space-y-1">
+												<h4 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+													{item.name}
+												</h4>
+												<p className="text-slate-400 text-sm">{item.desc}</p>
+											</div>
+											<span className="text-xl font-black text-slate-900 flex items-center gap-1">
+												<span className="text-slate-300 text-sm">৳</span>{" "}
+												{item.price}
+											</span>
+										</div>
+									),
+								)}
+							</div>
+							{/* </div> */}
+							{/* ))} */}
+							{/* <button
 								type="button"
 								className="w-full py-5 rounded-2xl border-2 border-slate-100 text-slate-900 font-black hover:bg-slate-50 transition-all"
 							>
 								View Full Menu
-							</button>
+							</button> */}
 						</div>
 					</section>
 
@@ -277,9 +252,9 @@ export default function RestaurantDetailPage() {
 								</span>
 							</div>
 							<p className="text-slate-600 text-lg leading-relaxed italic">
-								"The ambiance is unmatched in Dhaka. The steak was cooked to
-								perfection and the service was impeccable. Truly a premium
-								experience!"
+								&quot;The ambiance is unmatched in Dhaka. The steak was cooked
+								to perfection and the service was impeccable. Truly a premium
+								experience!&quot;
 							</p>
 						</div>
 					</section>
@@ -304,7 +279,7 @@ export default function RestaurantDetailPage() {
 									Location
 								</h3>
 								<p className="text-slate-600 font-bold leading-relaxed">
-									Plot 14, Road 53, Gulshan 2 Circle, Dhaka 1212, Bangladesh
+									{data?.location}
 								</p>
 							</div>
 
@@ -313,20 +288,20 @@ export default function RestaurantDetailPage() {
 									Amenities
 								</h3>
 								<div className="grid grid-cols-2 gap-6">
-									{amenities.map((item) => (
-										<div key={item.label} className="flex items-center gap-3">
+									{data?.amenities?.map((item: string) => (
+										<div key={item} className="flex items-center gap-3">
 											<div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-												<item.icon className="w-5 h-5" />
+												<Cookie className="w-5 h-5" />
 											</div>
 											<span className="text-sm font-bold text-slate-600">
-												{item.label}
+												{item}
 											</span>
 										</div>
 									))}
 								</div>
 							</div>
 
-							<div>
+							{/* <div>
 								<h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-6">
 									Opening Hours
 								</h3>
@@ -355,7 +330,7 @@ export default function RestaurantDetailPage() {
 										</div>
 									))}
 								</div>
-							</div>
+							</div> */}
 						</div>
 					</section>
 				</div>

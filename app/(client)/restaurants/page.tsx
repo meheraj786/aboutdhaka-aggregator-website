@@ -1,49 +1,18 @@
+"use client";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
-import ListingCard from "@/components/appComponents/ListingCard";
 import Pagination from "@/components/appComponents/Pagination";
+import RestaurantsCard from "@/components/appComponents/RestaurantsCard";
+import { useFetchRestaurants } from "@/hooks/useRestaurants";
 
-const dineData = [
-	{
-		title: "The Great Kabab Factory",
-		category: "Indian",
-		location: "Gulshan 2, Dhaka",
-		rating: 4.8,
-		description:
-			"Authentic Indian kababs and biryanis in a fine dining setting.",
-		image:
-			"https://images.unsplash.com/photo-1561651823-34feb02250e4?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "Takeout",
-		category: "Fast Food",
-		location: "Dhanmondi, Dhaka",
-		rating: 4.6,
-		description: "Famous for their burgers and shakes, a popular hangout spot.",
-		image:
-			"https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "Izumi",
-		category: "Japanese",
-		location: "Gulshan, Dhaka",
-		rating: 4.9,
-		description:
-			"Premium Japanese cuisine with an emphasis on fresh ingredients.",
-		image:
-			"https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "Chillox",
-		category: "Fast Food",
-		location: "Banani, Dhaka",
-		rating: 4.7,
-		description: "One of the most popular burger chains in the city.",
-		image:
-			"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=800",
-	},
-];
+const PAGE_SIZE = 6;
 
 export default function DinePage() {
+	const { data, isLoading, error } = useFetchRestaurants();
+
+	console.log(data?.items, "data");
+
+	if (error) return <div>Error loading restaurants...</div>;
+
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
 			<main className="flex-grow py-12 px-6 md:px-12 lg:px-24">
@@ -71,12 +40,24 @@ export default function DinePage() {
 
 					<div className="flex gap-10">
 						<FilterSidebar />
+
 						<div className="flex-grow">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{dineData.map((item) => (
-									<ListingCard key={item.title} {...item} />
-								))}
-							</div>
+							{isLoading ? (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{Array.from({ length: PAGE_SIZE }).map((_, i) => (
+										<div
+											key={`skeleton-${i}`}
+											className="h-64 animate-pulse rounded-2xl bg-slate-200"
+										/>
+									))}
+								</div>
+							) : (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{data?.items?.map((item) => (
+										<RestaurantsCard key={String(item._id)} {...item} />
+									))}
+								</div>
+							)}
 							<Pagination />
 						</div>
 					</div>

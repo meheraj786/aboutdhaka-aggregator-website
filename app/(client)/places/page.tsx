@@ -8,7 +8,6 @@ import { useFetchPlaces } from "@/hooks/usePlaces";
 const PAGE_SIZE = 6;
 
 export default function PlacesPage() {
-	// ── Single source of truth for all backend params ─────────────────────────
 	const [params, setParams] = useState<GetPlacesParams>({
 		page: 1,
 		pageSize: PAGE_SIZE,
@@ -23,11 +22,10 @@ export default function PlacesPage() {
 	const currentPage = data?.currentPage ?? 1;
 	const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-	// ── Helpers ───────────────────────────────────────────────────────────────
 	const goToPage = (page: number) => setParams((prev) => ({ ...prev, page }));
 
 	const handleSearch = (search: string) =>
-		setParams((prev) => ({ ...prev, search, page: 1 })); // search করলে page 1 এ ফেরত
+		setParams((prev) => ({ ...prev, search, page: 1 }));
 
 	const handleSort = (value: string) => {
 		const sortMap: Record<

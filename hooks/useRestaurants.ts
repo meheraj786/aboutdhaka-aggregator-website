@@ -3,6 +3,7 @@ import {
 	createRestaurant,
 	deleteRestaurant,
 	type GetRestaurantsParams,
+	getRestaurantById,
 	getRestaurants,
 } from "@/actions/restaurants.action";
 import { queryKeys } from "@/lib/queryKeys";
@@ -31,5 +32,15 @@ export function useDeleteRestaurant() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: [queryKeys.restaurants] });
 		},
+	});
+}
+
+export function useFetchRestaurantById(id: string) {
+	return useQuery({
+		queryKey: [queryKeys.restaurants, id],
+		queryFn: async () => {
+			return await getRestaurantById(id);
+		},
+		enabled: !!id,
 	});
 }

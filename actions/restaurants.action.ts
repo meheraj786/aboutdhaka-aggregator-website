@@ -49,6 +49,8 @@ export async function getRestaurants(params: GetRestaurantsParams = {}) {
 	}
 }
 
+export type GetRestaurantsReturn = Awaited<ReturnType<typeof getRestaurants>>;
+
 export async function createRestaurant(payload: unknown) {
 	try {
 		const data = createRestaurantSchema.parse(payload);
