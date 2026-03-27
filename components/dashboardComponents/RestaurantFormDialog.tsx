@@ -1,9 +1,21 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, X, Image as ImageIcon, Utensils, Trash2 } from "lucide-react";
+import {
+	Image as ImageIcon,
+	Loader2,
+	Plus,
+	Trash2,
+	Utensils,
+	X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
-import { Controller, useForm, useFieldArray, type Resolver } from "react-hook-form";
+import {
+	Controller,
+	type Resolver,
+	useFieldArray,
+	useForm,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,9 +43,19 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useCreateRestaurant } from "@/hooks/useRestaurants";
-import { type CreateRestaurantInput, createRestaurantSchema } from "@/validators/restaurants";
+import {
+	type CreateRestaurantInput,
+	createRestaurantSchema,
+} from "@/validators/restaurants";
 
-const CATEGORIES = ["Fast Food", "Fine Dining", "Cafe", "Buffet", "Street Food", "Bakery"];
+const CATEGORIES = [
+	"Fast Food",
+	"Fine Dining",
+	"Cafe",
+	"Buffet",
+	"Street Food",
+	"Bakery",
+];
 
 const DEFAULT_VALUES: CreateRestaurantInput = {
 	name: "",
@@ -58,7 +80,9 @@ export function RestaurantFormDialog() {
 	const areas = useMemo(() => areasData, [areasData]);
 
 	const form = useForm<CreateRestaurantInput>({
-		resolver: zodResolver(createRestaurantSchema) as Resolver<CreateRestaurantInput>,
+		resolver: zodResolver(
+			createRestaurantSchema,
+		) as Resolver<CreateRestaurantInput>,
 		defaultValues: DEFAULT_VALUES,
 	});
 
@@ -78,7 +102,7 @@ export function RestaurantFormDialog() {
 			},
 			onError: (error) => {
 				toast.error(error.message || "Failed to create restaurant");
-			}
+			},
 		});
 	};
 
@@ -102,10 +126,13 @@ export function RestaurantFormDialog() {
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={(val) => {
-			setOpen(val);
-			if(!val) form.reset(DEFAULT_VALUES);
-		}}>
+		<Dialog
+			open={open}
+			onOpenChange={(val) => {
+				setOpen(val);
+				if (!val) form.reset(DEFAULT_VALUES);
+			}}
+		>
 			<DialogTrigger asChild>
 				<Button className="gap-2">
 					<Plus className="h-4 w-4" />
@@ -116,7 +143,7 @@ export function RestaurantFormDialog() {
 				<DialogHeader>
 					<DialogTitle>Add New Restaurant</DialogTitle>
 				</DialogHeader>
-				
+
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-2">
 					{/* Basic Info */}
 					<FieldGroup>
@@ -127,7 +154,9 @@ export function RestaurantFormDialog() {
 								<Field>
 									<FieldLabel>Restaurant Name *</FieldLabel>
 									<Input {...field} placeholder="e.g. Sultan's Dine" />
-									{fieldState.error && <FieldError errors={[fieldState.error]} />}
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
 								</Field>
 							)}
 						/>
@@ -151,7 +180,9 @@ export function RestaurantFormDialog() {
 												))}
 											</SelectContent>
 										</Select>
-										{fieldState.error && <FieldError errors={[fieldState.error]} />}
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
 									</Field>
 								)}
 							/>
@@ -167,7 +198,9 @@ export function RestaurantFormDialog() {
 											</SelectTrigger>
 											<SelectContent>
 												{CATEGORIES.map((c) => (
-													<SelectItem key={c} value={c}>{c}</SelectItem>
+													<SelectItem key={c} value={c}>
+														{c}
+													</SelectItem>
 												))}
 											</SelectContent>
 										</Select>
@@ -183,7 +216,9 @@ export function RestaurantFormDialog() {
 								<Field>
 									<FieldLabel>Full Address *</FieldLabel>
 									<Input {...field} placeholder="House, Road, Block..." />
-									{fieldState.error && <FieldError errors={[fieldState.error]} />}
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
 								</Field>
 							)}
 						/>
@@ -197,10 +232,10 @@ export function RestaurantFormDialog() {
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
 								<Utensils className="h-3.5 w-3.5" /> Restaurant Menu
 							</FieldLabel>
-							<Button 
-								type="button" 
-								variant="outline" 
-								size="sm" 
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
 								onClick={() => append({ name: "", price: "" })}
 								className="h-7 text-xs"
 							>
@@ -212,23 +247,31 @@ export function RestaurantFormDialog() {
 							{fields.map((field, index) => (
 								<div key={field.id} className="flex gap-2 items-start">
 									<div className="flex-1">
-										<Input 
-											{...form.register(`menu.${index}.name` as const)} 
+										<Input
+											{...form.register(`menu.${index}.name` as const)}
 											placeholder="Item Name (e.g. Kacchi)"
-											className={form.formState.errors.menu?.[index]?.name ? "border-destructive" : ""}
+											className={
+												form.formState.errors.menu?.[index]?.name
+													? "border-destructive"
+													: ""
+											}
 										/>
 									</div>
 									<div className="w-24">
-										<Input 
-											{...form.register(`menu.${index}.price` as const)} 
-											placeholder="Price" 
-											className={form.formState.errors.menu?.[index]?.price ? "border-destructive" : ""}
+										<Input
+											{...form.register(`menu.${index}.price` as const)}
+											placeholder="Price"
+											className={
+												form.formState.errors.menu?.[index]?.price
+													? "border-destructive"
+													: ""
+											}
 										/>
 									</div>
-									<Button 
-										type="button" 
-										variant="ghost" 
-										size="icon" 
+									<Button
+										type="button"
+										variant="ghost"
+										size="icon"
 										className="text-muted-foreground hover:text-destructive"
 										onClick={() => remove(index)}
 									>
@@ -248,23 +291,37 @@ export function RestaurantFormDialog() {
 
 					{/* Amenities Section */}
 					<section className="space-y-3">
-						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">Amenities</FieldLabel>
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+							Amenities
+						</FieldLabel>
 						<div className="flex gap-2">
-							<Input 
-								value={amenityInput} 
+							<Input
+								value={amenityInput}
 								onChange={(e) => setAmenityInput(e.target.value)}
-								placeholder="e.g. WiFi, AC" 
-								onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addAmenity(); } }}
+								placeholder="e.g. WiFi, AC"
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										addAmenity();
+									}
+								}}
 							/>
-							<Button type="button" variant="outline" onClick={addAmenity}>Add</Button>
+							<Button type="button" variant="outline" onClick={addAmenity}>
+								Add
+							</Button>
 						</div>
 						<div className="flex flex-wrap gap-2">
 							{amenities.map((item) => (
 								<Badge key={item} variant="secondary" className="pr-1 py-1">
 									{item}
-									<X 
-										className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive" 
-										onClick={() => form.setValue("amenities", amenities.filter(a => a !== item))} 
+									<X
+										className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+										onClick={() =>
+											form.setValue(
+												"amenities",
+												amenities.filter((a) => a !== item),
+											)
+										}
 									/>
 								</Badge>
 							))}
@@ -275,13 +332,20 @@ export function RestaurantFormDialog() {
 
 					{/* Gallery Section */}
 					<section className="space-y-3">
-						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">Gallery Images</FieldLabel>
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+							Gallery Images
+						</FieldLabel>
 						<div className="flex gap-2">
-							<Input 
-								value={galleryInput} 
+							<Input
+								value={galleryInput}
 								onChange={(e) => setGalleryInput(e.target.value)}
-								placeholder="Paste image URL..." 
-								onKeyDown={(e) => { if(e.key === 'Enter') { e.preventDefault(); addGalleryUrl(); } }}
+								placeholder="Paste image URL..."
+								onKeyDown={(e) => {
+									if (e.key === "Enter") {
+										e.preventDefault();
+										addGalleryUrl();
+									}
+								}}
 							/>
 							<Button type="button" variant="outline" onClick={addGalleryUrl}>
 								<Plus className="h-4 w-4" />
@@ -291,12 +355,20 @@ export function RestaurantFormDialog() {
 						{gallery.length > 0 && (
 							<div className="grid grid-cols-1 gap-2">
 								{gallery.map((url, index) => (
-									<div key={index} className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+									<div
+										key={index}
+										className="flex items-center gap-2 p-2 border rounded-md bg-muted/50"
+									>
 										<ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
 										<span className="text-xs truncate flex-1">{url}</span>
-										<button 
-											type="button" 
-											onClick={() => form.setValue("gallery", gallery.filter(g => g !== url))}
+										<button
+											type="button"
+											onClick={() =>
+												form.setValue(
+													"gallery",
+													gallery.filter((g) => g !== url),
+												)
+											}
 											className="text-muted-foreground hover:text-destructive"
 										>
 											<X className="h-4 w-4" />
@@ -308,12 +380,23 @@ export function RestaurantFormDialog() {
 					</section>
 
 					<div className="flex justify-end gap-3 pt-4">
-						<Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+							disabled={isPending}
+						>
 							Cancel
 						</Button>
-						<Button type="submit" className="min-w-[120px]" disabled={isPending}>
+						<Button
+							type="submit"
+							className="min-w-[120px]"
+							disabled={isPending}
+						>
 							{isPending ? (
-								<><Loader2 className="animate-spin mr-2 h-4 w-4" /> Saving...</>
+								<>
+									<Loader2 className="animate-spin mr-2 h-4 w-4" /> Saving...
+								</>
 							) : (
 								"Save Restaurant"
 							)}
