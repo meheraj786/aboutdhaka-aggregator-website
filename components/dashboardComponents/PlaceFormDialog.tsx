@@ -59,6 +59,7 @@ const DAYS = [
 	"Thursday",
 	"Friday",
 	"Closed All Week",
+	"Open All Week",
 ];
 
 const COMMON_FACILITIES = [
@@ -166,7 +167,7 @@ export function PlaceFormDialog() {
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+			<DialogContent className=" max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle className="text-xl font-bold">Add New Place</DialogTitle>
 				</DialogHeader>
@@ -580,7 +581,7 @@ export function PlaceFormDialog() {
 						</div>
 
 						{gallery.length > 0 && (
-							<div className="space-y-2">
+							<div className="space-y-2 max-w-xs">
 								{gallery.map((url, i) => (
 									<div
 										key={url}

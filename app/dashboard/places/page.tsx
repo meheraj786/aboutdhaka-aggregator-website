@@ -57,6 +57,9 @@ function PlacesColumns(
 		{
 			accessorKey: "location",
 			header: createSortableHeader("Location"),
+			cell: ({ row }) => (
+				<div className="w-40 truncate">{row.getValue("location") ?? "—"}</div>
+			),
 		},
 		{
 			// area is populated — show the name
