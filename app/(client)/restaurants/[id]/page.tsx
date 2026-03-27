@@ -11,13 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import {
-	useFetchRestaurantById,
-} from "@/hooks/useRestaurants";
-
-
-
-
+import { useFetchRestaurantById } from "@/hooks/useRestaurants";
 
 export default function RestaurantDetailPage() {
 	const id = useParams().id;
