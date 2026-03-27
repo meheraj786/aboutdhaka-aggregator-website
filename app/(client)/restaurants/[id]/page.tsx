@@ -68,7 +68,7 @@ export default function RestaurantDetailPage() {
 					<div className="flex flex-wrap items-center gap-6 text-blue-50/80 font-bold">
 						<div className="flex items-center gap-2">
 							<Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-							<span>4.8 (1.2k reviews)</span>
+							<span>{data?.rating}</span>
 						</div>
 						<div className="flex items-center gap-2">
 							<MapPin className="w-5 h-5" />
@@ -123,18 +123,7 @@ export default function RestaurantDetailPage() {
 							About the Experience
 						</h2>
 						<p className="text-slate-500 text-xl leading-relaxed font-medium">
-							Experience culinary artistry in the heart of Dhaka. The Glasshouse
-							Brasserie offers a sophisticated urban retreat featuring
-							floor-to-ceiling glass walls and an open kitchen. Our signature{" "}
-							<span className="text-blue-600 font-bold">
-								Truffle Infused Tagliatelle
-							</span>{" "}
-							and{" "}
-							<span className="text-blue-600 font-bold">
-								Oak-Smoked Sea Bass
-							</span>{" "}
-							are crafted using locally sourced ingredients and authentic
-							Italian techniques.
+							{data?.detail}
 						</p>
 					</section>
 
@@ -144,12 +133,12 @@ export default function RestaurantDetailPage() {
 							<h2 className="text-3xl font-black text-slate-900 tracking-tight">
 								Food Gallery
 							</h2>
-							<button
+							{/* <button
 								type="button"
 								className="text-blue-600 font-bold hover:underline"
 							>
 								View All
-							</button>
+							</button> */}
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 							{data?.gallery?.map((img: string) => (
