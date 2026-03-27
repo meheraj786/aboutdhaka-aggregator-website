@@ -3,4 +3,7 @@ export const queryKeys = {
 	places: "places",
 	doctors: "doctors",
 	hospitals: "hospitals",
+	restaurants: "restaurants",
+	malls: "malls",
+	pcs: "pcs",
 };
