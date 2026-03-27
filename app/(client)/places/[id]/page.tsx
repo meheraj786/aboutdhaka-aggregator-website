@@ -16,11 +16,14 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useFetchPlaceById } from "@/hooks/usePlaces";
 import { PLACES } from "@/lib/data";
 
 export default function PlaceDetailPage() {
 	const params = useParams();
 	const place = PLACES.find((p) => p.id === params.id);
+	const { data } = useFetchPlaceById(params.id as string);
+	console.log(data, "data");
 
 	return (
 		<div className="min-h-screen bg-white">
@@ -28,8 +31,8 @@ export default function PlaceDetailPage() {
 				{/* Hero Section */}
 				<section className="relative h-[60vh] min-h-[400px] w-full">
 					<Image
-						src={place?.image || ""}
-						alt={place?.name || ""}
+						src={data?.gallery[0] || ""}
+						alt={data?.name || ""}
 						fill
 						className="object-cover"
 						priority
@@ -55,7 +58,7 @@ export default function PlaceDetailPage() {
 								</Link>
 								<ChevronRight className="w-3 h-3 text-white/60" />
 								<span className="text-white text-sm font-bold">
-									{place?.name}
+									{data?.name}
 								</span>
 							</div>
 
@@ -63,21 +66,21 @@ export default function PlaceDetailPage() {
 								<div>
 									<div className="flex items-center gap-3 mb-4">
 										<span className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-md tracking-widest uppercase">
-											{place?.category}
+											{data?.category}
 										</span>
 										<div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-white">
 											<Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
 											<span className="text-xs font-bold">
-												{place?.rating} ({place?.reviews} reviews)
+												{data?.rating} ({data?.reviews} reviews)
 											</span>
 										</div>
 									</div>
 									<h1 className="text-4xl md:text-6xl font-bold text-white mb-2">
-										{place?.name}
+										{data?.name}
 									</h1>
 									<p className="text-white/90 flex items-center gap-2 text-lg">
 										<MapPin className="w-5 h-5 text-blue-400" />{" "}
-										{place?.location}
+										{data?.location}
 									</p>
 								</div>
 
@@ -116,7 +119,7 @@ export default function PlaceDetailPage() {
 									About this place
 								</h2>
 								<p className="text-slate-600 text-lg leading-relaxed">
-									{place?.longDescription}
+									{data?.detail}
 								</p>
 							</div>
 
@@ -125,7 +128,7 @@ export default function PlaceDetailPage() {
 									Facilities & Features
 								</h3>
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-									{place?.facilities.map((facility: string) => (
+									{data?.facilities.map((facility: string) => (
 										<div
 											key={facility}
 											className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl"
@@ -144,7 +147,7 @@ export default function PlaceDetailPage() {
 									Photo Gallery
 								</h3>
 								<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-									{place?.gallery.map((img: string, idx: number) => (
+									{data?.gallery.map((img: string, idx: number) => (
 										<motion.div
 											key={img}
 											initial={{ opacity: 0, y: 20 }}
@@ -182,7 +185,7 @@ export default function PlaceDetailPage() {
 												Opening Hours
 											</p>
 											<p className="text-slate-700 font-medium">
-												{place?.openingHours}
+												{data?.openingHours}
 											</p>
 										</div>
 									</div>
@@ -196,7 +199,7 @@ export default function PlaceDetailPage() {
 												Entry Fee
 											</p>
 											<p className="text-slate-700 font-medium">
-												{place?.entryFee}
+												{data?.entryFee}
 											</p>
 										</div>
 									</div>
@@ -210,7 +213,7 @@ export default function PlaceDetailPage() {
 												Contact
 											</p>
 											<p className="text-slate-700 font-medium">
-												{place?.contact}
+												{data?.contact}
 											</p>
 										</div>
 									</div>
@@ -224,7 +227,7 @@ export default function PlaceDetailPage() {
 												Area
 											</p>
 											<p className="text-slate-700 font-medium">
-												{place?.area}
+												{data?.area?.name}
 											</p>
 										</div>
 									</div>

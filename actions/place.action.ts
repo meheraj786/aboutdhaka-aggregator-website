@@ -86,6 +86,7 @@ export async function getPlaceById(id: string) {
 		throw new ActionError("Failed to fetch place");
 	}
 }
+export type GetPlaceByIdReturn = Awaited<ReturnType<typeof getPlaceById>>;
 
 export async function createPlace(payload: unknown) {
 	try {

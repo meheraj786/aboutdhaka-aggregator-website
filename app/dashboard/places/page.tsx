@@ -4,7 +4,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import type { GetPlacesParams } from "@/actions/place.action";
+import type {
+	GetPlaceByIdReturn,
+	GetPlacesParams,
+} from "@/actions/place.action";
 import DataTable, {
 	createSortableHeader,
 	type PaginationParams,
@@ -32,9 +35,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeletePlace, useFetchPlaces } from "@/hooks/usePlaces";
 import { useSeedAreas } from "@/hooks/useSeedAreas";
-import type { IPlace } from "@/models/places.model";
 
-function PlacesColumns(onDelete: (id: string) => void): ColumnDef<IPlace>[] {
+function PlacesColumns(
+	onDelete: (id: string) => void,
+): ColumnDef<GetPlaceByIdReturn>[] {
 	return [
 		{
 			accessorKey: "name",
@@ -59,7 +63,7 @@ function PlacesColumns(onDelete: (id: string) => void): ColumnDef<IPlace>[] {
 			id: "area",
 			header: "Area",
 			cell: ({ row }) => {
-				const area = row.original.area as unknown as { name?: string } | null;
+				const area = row.original?.area;
 				return <span>{area?.name ?? "—"}</span>;
 			},
 		},
@@ -245,9 +249,9 @@ export default function PlacesDashboardPage() {
 			</div>
 
 			{/* ── Table ────────────────────────────────────────────────────────── */}
-			<DataTable<IPlace, unknown>
-				columns={columns}
-				data={(data?.items as IPlace[]) ?? []}
+			<DataTable<GetPlaceByIdReturn, unknown>
+				columns={columns || []}
+				data={(data?.items as GetPlaceByIdReturn[]) ?? []}
 				totalCount={data?.totalCount ?? 0}
 				currentPage={data?.currentPage ?? 1}
 				pageSize={params.pageSize}

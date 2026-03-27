@@ -27,8 +27,8 @@ const PlaceCard: React.FC<PlaceCardProps> = ({
 		<div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-md hover:shadow-xl transition-shadow flex flex-col h-full">
 			<div className="relative h-48 w-full">
 				<Image
-					src={image}
-					alt={name}
+					src={image || ""}
+					alt={name || ""}
 					fill
 					className="object-cover"
 					referrerPolicy="no-referrer"
