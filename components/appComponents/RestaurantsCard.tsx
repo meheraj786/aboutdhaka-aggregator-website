@@ -5,7 +5,7 @@ import Link from "next/link";
 import type React from "react";
 import type { IRestaurantBase } from "@/models/restaurants.model";
 
-interface RestaurantCardProps extends Partial<IRestaurantBase> {
+export interface RestaurantCardProps extends Partial<IRestaurantBase> {
 	_id: string | Types.ObjectId;
 }
 
