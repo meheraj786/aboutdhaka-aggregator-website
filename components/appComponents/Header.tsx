@@ -1,5 +1,5 @@
 "use client";
-import { Menu, Search, User, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,7 +26,7 @@ export default function Header() {
 				<Logo />
 
 				{/* Desktop Navigation */}
-				<nav className="hidden md:flex md:items-center md:gap-8">
+				<nav className="hidden md:flex md:items-end md:gap-8">
 					{navItems.map((item) => (
 						<Link
 							key={item.name}
@@ -43,8 +43,8 @@ export default function Header() {
 				</nav>
 
 				{/* Action Icons */}
-				<div className="flex items-center gap-4">
-					<button
+				<div className="flex md:hidden items-center gap-4">
+					{/* <button
 						type="button"
 						className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
 					>
@@ -55,7 +55,7 @@ export default function Header() {
 						className="rounded-full p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
 					>
 						<User size={20} />
-					</button>
+					</button> */}
 
 					{/* Mobile Menu Toggle */}
 					<button

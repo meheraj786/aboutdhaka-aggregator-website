@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { login } from "@/actions/auth.action";
+import Logo from "@/components/appComponents/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { type LoginInput, loginSchema } from "@/validators/auth";
@@ -44,6 +45,9 @@ export default function LoginPage() {
 	return (
 		<div className="flex h-screen items-center justify-center bg-slate-50">
 			<div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-8 shadow-lg">
+				<div className=" w-full flex justify-center">
+					<Logo />
+				</div>
 				<div className="text-center">
 					<h2 className="text-3xl font-bold tracking-tight">Admin Login</h2>
 					<p className="mt-2 text-sm text-muted-foreground">
