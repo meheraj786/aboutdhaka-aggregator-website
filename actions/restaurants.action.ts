@@ -43,8 +43,13 @@ export async function getRestaurants(params: GetRestaurantsParams = {}) {
 			Restaurant.countDocuments(filter),
 		]);
 
-		return { items, totalCount, currentPage: page };
-	} catch (_) {
+		return {
+			items: JSON.parse(JSON.stringify(items)),
+			totalCount,
+			currentPage: page,
+		};
+	} catch (error) {
+		console.error("Error fetching restaurants:", error);
 		throw new Error("Failed to fetch restaurants");
 	}
 }

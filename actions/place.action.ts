@@ -59,7 +59,7 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 
 		// ── Return shape DataTable expects ────────────────────────────────────
 		return {
-			items,
+			items: JSON.parse(JSON.stringify(items)),
 			totalCount,
 			currentPage: page,
 		};
