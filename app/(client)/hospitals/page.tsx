@@ -1,51 +1,15 @@
+"use client";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
-import ListingCard from "@/components/appComponents/ListingCard";
+import HospitalCard, {
+	type HospitalCardProps,
+} from "@/components/appComponents/HospitalCard";
 import Pagination from "@/components/appComponents/Pagination";
-
-const hospitalsData = [
-	{
-		title: "Evercare Hospital",
-		category: "General",
-		location: "Bashundhara R/A, Dhaka",
-		rating: 4.7,
-		description:
-			"A multi-disciplinary super-specialty tertiary care hospital in Bangladesh.",
-		image:
-			"https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "United Hospital",
-		category: "General",
-		location: "Gulshan, Dhaka",
-		rating: 4.6,
-		description:
-			"One of the leading private sector healthcare providers in Bangladesh.",
-		image:
-			"https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "Square Hospital",
-		category: "Specialized",
-		location: "Panthapath, Dhaka",
-		rating: 4.8,
-		description:
-			"A tertiary care hospital that provides high-quality healthcare services.",
-		image:
-			"https://images.unsplash.com/photo-1581056771107-24ca5f033842?auto=format&fit=crop&q=80&w=800",
-	},
-	{
-		title: "Labaid Specialized",
-		category: "Cardiac",
-		location: "Dhanmondi, Dhaka",
-		rating: 4.5,
-		description:
-			"Specialized in cardiac care and other multi-disciplinary treatments.",
-		image:
-			"https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&q=80&w=800",
-	},
-];
+import { useFetchHospitals } from "@/hooks/useHospitals";
 
 export default function HospitalsPage() {
+	const { data, isLoading } = useFetchHospitals();
+	console.log(data, "Data");
+
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
 			<main className="flex-grow py-12 px-6 md:px-12 lg:px-24">
@@ -74,11 +38,22 @@ export default function HospitalsPage() {
 					<div className="flex gap-10">
 						<FilterSidebar />
 						<div className="flex-grow">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{hospitalsData.map((item) => (
-									<ListingCard key={item.title} {...item} />
-								))}
-							</div>
+							{isLoading ? (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{Array.from({ length: 4 }).map((_, i) => (
+										<div
+											key={`skeleton-${i}`}
+											className="h-64 animate-pulse rounded-2xl bg-slate-200"
+										/>
+									))}
+								</div>
+							) : (
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{data?.items?.map((item: HospitalCardProps) => (
+										<HospitalCard key={item._id} {...item} />
+									))}
+								</div>
+							)}
 							<Pagination />
 						</div>
 					</div>

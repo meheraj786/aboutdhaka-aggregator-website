@@ -2,66 +2,37 @@
 
 import {
 	Activity,
-	Bed,
-	ChevronRight,
-	Eye,
 	Heart,
+	HospitalIcon,
 	Info,
+	Loader2,
 	MapPin,
 	Phone,
 	Search,
 	Share2,
 	Star,
-	Stethoscope,
 } from "lucide-react";
 import Image from "next/image";
-
-const doctors = [
-	{
-		name: "Dr. Ahmed Zubair",
-		specialty: "Chief Cardiologist",
-		image:
-			"https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?auto=format&fit=crop&q=80&w=200",
-	},
-	{
-		name: "Dr. Sarah Rahman",
-		specialty: "Neurologist",
-		image:
-			"https://images.unsplash.com/photo-1594824476967-48c8b964273f?auto=format&fit=crop&q=80&w=200",
-	},
-];
-
-const services = [
-	{ icon: Heart, label: "Cardiology", color: "text-rose-500" },
-	{ icon: Eye, label: "Ophthalmology", color: "text-blue-500" },
-	{ icon: Activity, label: "Radiology", color: "text-emerald-500" },
-	{ icon: Bed, label: "ICU & CCU", color: "text-indigo-500" },
-];
-
-const tests = [
-	{
-		name: "Complete Blood Count (CBC)",
-		category: "Pathology",
-		price: "450 BDT",
-	},
-	{ name: "X-Ray Chest (P/A View)", category: "Radiology", price: "600 BDT" },
-	{ name: "MRI Brain (Plain)", category: "Radiology", price: "8,500 BDT" },
-	{ name: "Lipid Profile", category: "Pathology", price: "1,200 BDT" },
-	{
-		name: "Ultrasonography (Whole Abdomen)",
-		category: "Radiology",
-		price: "1,500 BDT",
-	},
-];
+import { useParams } from "next/navigation";
+import { useFetchHospitalById } from "@/hooks/useHospitals";
 
 export default function HospitalDetailPage() {
+	const id = useParams().id;
+	const { data, isLoading } = useFetchHospitalById(id as string);
+	console.log(data, "data");
+	if (isLoading)
+		return (
+			<div className="min-h-screen text-blue-500 flex items-center justify-center bg-slate-50/30 pb-20">
+				<Loader2 className="animate-spin" />{" "}
+			</div>
+		);
 	return (
 		<div className="min-h-screen bg-slate-50/30 pb-20">
 			{/* Hero Section */}
 			<div className="relative h-[500px] w-full">
 				<Image
-					src="https://images.unsplash.com/photo-1586773860418-d3b97998c637?auto=format&fit=crop&q=80&w=1920"
-					alt="Square Hospital"
+					src={data?.data?.image || ""}
+					alt={data?.data?.name || ""}
 					fill
 					className="object-cover"
 					referrerPolicy="no-referrer"
@@ -94,11 +65,11 @@ export default function HospitalDetailPage() {
 						★ 24/7 Emergency
 					</span>
 					<h1 className="text-5xl md:text-6xl font-black text-white mb-2 tracking-tight">
-						Square Hospital
+						{data?.data?.name}
 					</h1>
 					<p className="text-blue-50 text-xl flex items-center gap-2">
 						<MapPin className="w-5 h-5" />
-						Panthapath, Dhaka
+						{data?.data?.area?.name}
 					</p>
 				</div>
 			</div>
@@ -115,7 +86,7 @@ export default function HospitalDetailPage() {
 								Direct Appointment
 							</span>
 							<span className="text-xl font-black text-slate-900">
-								+880 1234 567890
+								{data?.data?.phone}
 							</span>
 						</div>
 					</div>
@@ -149,61 +120,56 @@ export default function HospitalDetailPage() {
 							</h2>
 						</div>
 						<div className="bg-white rounded-[2rem] p-10 border border-slate-100 shadow-sm leading-relaxed text-slate-600 text-lg">
-							Square Hospital is a 400-bed tertiary care hospital and the
-							leading contributor of private healthcare services in Bangladesh.
-							This was a project of Square Group, the most prominent business
-							conglomerate of the country. The hospital is located in the heart
-							of Dhaka and aims to provide high quality healthcare with the
-							latest technology and top medical experts.
+							{data?.data?.detail}
 						</div>
 					</section>
 
 					{/* Top Doctors */}
-					<section>
-						<div className="flex items-center justify-between mb-8">
-							<div className="flex items-center gap-3">
-								<Stethoscope className="w-6 h-6 text-blue-600" />
-								<h2 className="text-2xl font-bold text-slate-900">
-									Top Doctors
-								</h2>
-							</div>
-							<button
-								type="button"
-								className="text-blue-600 font-bold text-sm hover:underline"
-							>
-								View All
-							</button>
-						</div>
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-							{doctors.map((doc) => (
-								<div
-									key={doc.name}
-									className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-md transition-all cursor-pointer"
-								>
-									<div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
-										<Image
-											src={doc.image}
-											alt={doc.name}
-											fill
-											className="object-cover"
-											referrerPolicy="no-referrer"
-										/>
-									</div>
-									<div>
-										<h3 className="font-bold text-slate-900 text-lg mb-1">
-											{doc.name}
-										</h3>
-										<p className="text-slate-400 text-sm mb-3">
-											{doc.specialty}
-										</p>
-										<span className="text-blue-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
-											Book Appointment <ChevronRight className="w-3 h-3" />
-										</span>
-									</div>
-								</div>
-							))}
-						</div>
-					</section>
+					{/* <section>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <Stethoscope className="w-6 h-6 text-blue-600" />
+                <h2 className="text-2xl font-bold text-slate-900">
+                  Top Doctors
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="text-blue-600 font-bold text-sm hover:underline"
+              >
+                View All
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {doctors.map((doc) => (
+                <div
+                  key={doc.name}
+                  className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex items-center gap-6 group hover:shadow-md transition-all cursor-pointer"
+                >
+                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0">
+                    <Image
+                      src={doc.image}
+                      alt={doc.name}
+                      fill
+                      className="object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-lg mb-1">
+                      {doc.name}
+                    </h3>
+                    <p className="text-slate-400 text-sm mb-3">
+                      {doc.specialty}
+                    </p>
+                    <span className="text-blue-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 group-hover:gap-2 transition-all">
+                      Book Appointment <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section> */}
 
 					{/* Medical Services */}
 					<section>
@@ -214,18 +180,18 @@ export default function HospitalDetailPage() {
 							</h2>
 						</div>
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-							{services.map((service) => (
+							{data?.data?.services?.map((service: string) => (
 								<div
-									key={service.label}
+									key={service}
 									className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-blue-200 transition-all cursor-pointer"
 								>
 									<div
-										className={`w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${service.color}`}
+										className={`w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform `}
 									>
-										<service.icon className="w-6 h-6" />
+										<HospitalIcon className="w-6 h-6" />
 									</div>
 									<span className="font-bold text-slate-900 text-sm">
-										{service.label}
+										{service}
 									</span>
 								</div>
 							))}
@@ -256,27 +222,29 @@ export default function HospitalDetailPage() {
 									<thead>
 										<tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
 											<th className="px-8 py-4">Test Name</th>
-											<th className="px-8 py-4">Category</th>
+											{/* <th className="px-8 py-4">Category</th> */}
 											<th className="px-8 py-4 text-right">Price (BDT)</th>
 										</tr>
 									</thead>
 									<tbody className="divide-y divide-slate-50">
-										{tests.map((test) => (
-											<tr
-												key={test.name}
-												className="hover:bg-slate-50/30 transition-colors"
-											>
-												<td className="px-8 py-5 font-bold text-slate-700 text-sm">
-													{test.name}
-												</td>
-												<td className="px-8 py-5 text-slate-400 text-sm">
-													{test.category}
-												</td>
-												<td className="px-8 py-5 text-right font-black text-blue-600 text-sm">
-													{test.price}
-												</td>
-											</tr>
-										))}
+										{data?.data?.testPrices?.map(
+											(test: { name: string; price: string }) => (
+												<tr
+													key={test?.name}
+													className="hover:bg-slate-50/30 transition-colors"
+												>
+													<td className="px-8 py-5 font-bold text-slate-700 text-sm">
+														{test?.name}
+													</td>
+													{/* <td className="px-8 py-5 text-slate-400 text-sm">
+                          {test.category}
+                        </td> */}
+													<td className="px-8 py-5 text-right font-black text-blue-600 text-sm">
+														{test?.price}
+													</td>
+												</tr>
+											),
+										)}
 									</tbody>
 								</table>
 							</div>
@@ -322,8 +290,7 @@ export default function HospitalDetailPage() {
 							</div>
 							<div className="p-8">
 								<p className="text-slate-500 text-sm leading-relaxed">
-									18/F, Bir Uttam Qazi Nuruzzaman Sarak, West Panthapath, Dhaka
-									1205
+									{data?.data?.location}
 								</p>
 							</div>
 						</div>
@@ -338,7 +305,9 @@ export default function HospitalDetailPage() {
 							</div>
 							<div className="flex items-center gap-1.5 bg-yellow-50 px-3 py-1 rounded-lg">
 								<Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-								<span className="text-sm font-black text-yellow-700">4.8</span>
+								<span className="text-sm font-black text-yellow-700">
+									{data?.data?.rating}
+								</span>
 							</div>
 						</div>
 						<div className="space-y-6">
@@ -384,7 +353,7 @@ export default function HospitalDetailPage() {
 										</div>
 									</div>
 									<p className="text-slate-500 text-sm leading-relaxed italic">
-										"{review.text}"
+										&quot;{review.text}&quot;
 									</p>
 								</div>
 							))}

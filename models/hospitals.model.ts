@@ -12,6 +12,7 @@ export interface IHospital extends Document {
 	services?: string[];
 	reviewsCount?: number;
 	doctors?: mongoose.Types.ObjectId[];
+	image?: string;
 }
 
 export const modelName = "Hospital";
@@ -29,6 +30,7 @@ const HospitalSchema: Schema<IHospital> = new Schema(
 		services: [String],
 		reviewsCount: { type: Number, default: 0 },
 		doctors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Doctor" }],
+		image: String,
 	},
 	{ timestamps: true },
 );
