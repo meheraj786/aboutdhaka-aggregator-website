@@ -9,10 +9,16 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 
 export function useFetchRestaurants(params: GetRestaurantsParams = {}) {
-	return useQuery({
-		queryKey: [queryKeys.restaurants, "get", params],
-		queryFn: () => getRestaurants(params),
-	});
+  return useQuery({
+    queryKey: [queryKeys.restaurants, "get", params],
+    queryFn: () => getRestaurants(params),
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+  });
 }
 
 export function useCreateRestaurant() {
