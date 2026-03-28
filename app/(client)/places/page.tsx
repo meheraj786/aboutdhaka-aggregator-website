@@ -16,9 +16,8 @@ export default function PlacesPage() {
 	});
 
 	const { data, isLoading } = useFetchPlaces(params);
-	const {data:da}=useFetchPlaces(params)
+	const { data: da } = useFetchPlaces(params);
 	console.log(da, "daaaaaaaaaaaaataaaaaaaaaaaaaaaaa");
-	
 
 	const places = data?.items ?? [];
 	const totalCount = data?.totalCount ?? 0;

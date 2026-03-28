@@ -4,7 +4,7 @@ import { z } from "zod";
 import { dbConnect } from "@/lib/db";
 import { Place } from "@/models/places.model";
 import { createPlaceSchema, updatePlaceSchema } from "@/validators/places";
-import '@/models/area.model';
+import "@/models/area.model";
 
 class ActionError extends Error {
 	constructor(message: string) {
