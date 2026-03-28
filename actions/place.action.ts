@@ -12,7 +12,6 @@ class ActionError extends Error {
 	}
 }
 
-// ─── Pagination params type ───────────────────────────────────────────────────
 export interface GetPlacesParams {
 	page?: number;
 	pageSize?: number;
@@ -26,11 +25,8 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 		await dbConnect();
 
 		const page = Math.max(1, params.page ?? 1);
-		const pageSize = Math.min(100, params.pageSize ?? 10); // max 100 per page
+		const pageSize = Math.min(100, params.pageSize ?? 10);
 		const skip = (page - 1) * pageSize;
-
-		// ── Search filter ─────────────────────────────────────────────────────
-		// searches in title, category, and location fields
 		const filter = params.search
 			? {
 					$or: [
@@ -41,12 +37,10 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 				}
 			: {};
 
-		// ── Sort ──────────────────────────────────────────────────────────────
 		const sortField = params.sortBy ?? "createdAt";
 		const sortDirection = params.sortOrder === "asc" ? 1 : -1;
 		const sort = { [sortField]: sortDirection } as Record<string, 1 | -1>;
 
-		// ── Run query + count in parallel ─────────────────────────────────────
 		const [items, totalCount] = await Promise.all([
 			Place.find(filter)
 				.populate("area", "name")
@@ -57,7 +51,6 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 			Place.countDocuments(filter),
 		]);
 
-		// ── Return shape DataTable expects ────────────────────────────────────
 		return {
 			items: JSON.parse(JSON.stringify(items)),
 			totalCount,
@@ -69,7 +62,8 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 	}
 }
 
-// ── rest of the actions stay exactly the same ─────────────────────────────────
+export type GetPlacesReturn = Awaited<ReturnType<typeof getPlaces>>;
+
 
 export async function getPlaceById(id: string) {
 	try {
