@@ -10,12 +10,15 @@ const PAGE_SIZE = 6;
 export default function PlacesPage() {
 	const [params, setParams] = useState<GetPlacesParams>({
 		page: 1,
-		pageSize: PAGE_SIZE,
+		pageSize: 10,
 		sortBy: "createdAt",
 		sortOrder: "desc",
 	});
 
 	const { data, isLoading } = useFetchPlaces(params);
+	const {data:da}=useFetchPlaces(params)
+	console.log(da, "daaaaaaaaaaaaataaaaaaaaaaaaaaaaa");
+	
 
 	const places = data?.items ?? [];
 	const totalCount = data?.totalCount ?? 0;
