@@ -64,7 +64,6 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 
 export type GetPlacesReturn = Awaited<ReturnType<typeof getPlaces>>;
 
-
 export async function getPlaceById(id: string) {
 	try {
 		await dbConnect();
