@@ -7,6 +7,7 @@ import {
 	EllipsisVerticalIcon,
 	LogOutIcon,
 } from "lucide-react";
+import { logout } from "@/actions/auth.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -23,7 +24,6 @@ import {
 	SidebarMenuItem,
 	useSidebar,
 } from "@/components/ui/sidebar";
-import { logout } from "@/actions/auth.action";
 
 export function NavUser({
 	user,
