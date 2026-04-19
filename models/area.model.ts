@@ -15,10 +15,12 @@ const AreaSchema: Schema<IArea> = new Schema(
 	{
 		name: { type: String, required: true, unique: true },
 		buses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bus" }],
-		stops: [{
-			name: String,
-			buses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bus" }],
-		}],
+		stops: [
+			{
+				name: String,
+				buses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bus" }],
+			},
+		],
 	},
 	{ timestamps: true },
 );
