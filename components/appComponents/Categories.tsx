@@ -77,7 +77,7 @@ export const categories = [
 		icon: Bus,
 		label: "Bus Routes",
 		color: "bg-indigo-50 text-indigo-500",
-		link: "/bus-routes",
+		link: "/bus",
 	},
 	{
 		icon: GraduationCap,

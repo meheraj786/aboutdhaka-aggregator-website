@@ -100,8 +100,6 @@ export function PlaceFormDialog() {
 
 	const resolver = useMemo(() => zodResolver(createPlaceSchema), []);
 
-	console.log(areas, "area");
-
 	const form = useForm<CreatePlaceInput>({
 		resolver,
 		defaultValues: DEFAULT_VALUES,
