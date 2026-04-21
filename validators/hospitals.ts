@@ -50,10 +50,7 @@ const reviewSchema = z.object({
 	comment: z.string().min(1, "Review comment is required"),
 	time: z.string().min(1, "Review time is required"),
 	initial: z.string().min(1, "Initial is required"),
-	rating: z
-		.number()
-		.min(0)
-		.max(5),
+	rating: z.number().min(0).max(5),
 });
 
 export const createHospitalSchema = z.object({
@@ -77,10 +74,7 @@ export const createHospitalSchema = z.object({
 		.array(z.string().min(1, "Facility is required"))
 		.min(1, "At least one facility is required")
 		.default([]),
-	totalBeds: z
-		.number()
-		.int()
-		.positive(),
+	totalBeds: z.number().int().positive(),
 	established: z
 		.number()
 		.int()
