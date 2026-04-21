@@ -3,11 +3,46 @@
 import { dbConnect } from "@/lib/db";
 import { Area } from "@/models/area.model";
 
-interface AreaDocument {
-	_id: { toString(): string };
-	name: string;
-	buses?: unknown[];
-	stops?: unknown[];
+// Helper function to serialize ObjectIds and plain objects for client transport
+function serializeData(data: unknown): unknown {
+	if (data === null || data === undefined) {
+		return data;
+	}
+
+	// Handle ObjectId - check if it's a Mongoose ObjectId instance
+	if (
+		typeof data === "object" &&
+		"toString" in data &&
+		"constructor" in data &&
+		typeof (data as Record<string, unknown>).toString === "function" &&
+		(data as Record<string, unknown>).constructor.name === "ObjectId"
+	) {
+		return (data as { toString(): string }).toString();
+	}
+
+	// Handle Date
+	if (data instanceof Date) {
+		return data.toISOString();
+	}
+
+	// Handle arrays
+	if (Array.isArray(data)) {
+		return data.map(serializeData);
+	}
+
+	// Handle objects
+	if (typeof data === "object") {
+		const result: Record<string, unknown> = {};
+		for (const key in data) {
+			if (Object.hasOwn(data, key)) {
+				result[key] = serializeData((data as Record<string, unknown>)[key]);
+			}
+		}
+		return result;
+	}
+
+	// Return primitives as-is
+	return data;
 }
 
 export async function getAreas() {
@@ -19,12 +54,9 @@ export async function getAreas() {
 			.populate("stops.buses")
 			.populate("stops.stop")
 			.lean();
-		return (areas as AreaDocument[]).map(({ _id, name, buses, stops }) => ({
-			_id: _id.toString(),
-			name,
-			buses: buses || [],
-			stops: stops || [],
-		}));
+
+		// Serialize all ObjectIds to strings for client transport
+		return serializeData(areas);
 	} catch (error) {
 		console.error("Error fetching areas:", error);
 		throw new Error("Failed to fetch areas");
@@ -87,16 +119,16 @@ const AREA_SEED_DATA = [
 		name: "Mirpur",
 		buses: ["69e738805548584ada29d28f", "69e738805548584ada29d290"],
 		stops: [
-			{ stop: "69e738015548584ada29d301", buses: ["69e738805548584ada29d28f"] }, // Mock: Mirpur 10
-			{ stop: "69e738015548584ada29d302", buses: ["69e738805548584ada29d290"] }, // Mock: Mirpur 1
+			{ stop: "69e738015548584ada29d301", buses: ["69e738805548584ada29d28f"] },
+			{ stop: "69e738015548584ada29d302", buses: ["69e738805548584ada29d290"] },
 		],
 	},
 	{
 		name: "Uttara",
 		buses: ["69e738805548584ada29d28f", "69e738805548584ada29d293"],
 		stops: [
-			{ stop: "69e738015548584ada29d303", buses: ["69e738805548584ada29d28f"] }, // Mock: House Building
-			{ stop: "69e738015548584ada29d304", buses: ["69e738805548584ada29d293"] }, // Mock: Azampur
+			{ stop: "69e738015548584ada29d303", buses: ["69e738805548584ada29d28f"] },
+			{ stop: "69e738015548584ada29d304", buses: ["69e738805548584ada29d293"] },
 		],
 	},
 	{
@@ -154,7 +186,6 @@ export async function seedAreas() {
 	try {
 		await dbConnect();
 
-		// ১. প্রথমে AREA_SEED_DATA প্রসেস করা (যাদের স্টপ আছে)
 		const seedOperations = AREA_SEED_DATA.map((data) => ({
 			updateOne: {
 				filter: { name: data.name },
@@ -163,7 +194,6 @@ export async function seedAreas() {
 			},
 		}));
 
-		// ২. বাকি এরিয়াগুলো যাদের ডাটা নেই তাদের প্রসেস করা
 		const remainingOperations = REMAINING_AREAS.map((name) => ({
 			updateOne: {
 				filter: { name: name },
@@ -172,7 +202,6 @@ export async function seedAreas() {
 			},
 		}));
 
-		// BulkWrite চালানো যাতে সব ডাটা একসাথে সেভ হয়
 		await Area.bulkWrite([...seedOperations, ...remainingOperations]);
 
 		return {
