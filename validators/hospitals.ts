@@ -21,11 +21,11 @@ const addressSchema = z.object({
 	division: z.string().min(1, "Division is required"),
 	coordinates: z.object({
 		lat: z
-			.number({ required_error: "Latitude is required" })
+			.number()
 			.min(-90, "Latitude must be at least -90")
 			.max(90, "Latitude must be at most 90"),
 		lng: z
-			.number({ required_error: "Longitude is required" })
+			.number()
 			.min(-180, "Longitude must be at least -180")
 			.max(180, "Longitude must be at most 180"),
 	}),
@@ -51,7 +51,7 @@ const reviewSchema = z.object({
 	time: z.string().min(1, "Review time is required"),
 	initial: z.string().min(1, "Initial is required"),
 	rating: z
-		.number({ required_error: "Review rating is required" })
+		.number()
 		.min(0)
 		.max(5),
 });
@@ -78,11 +78,11 @@ export const createHospitalSchema = z.object({
 		.min(1, "At least one facility is required")
 		.default([]),
 	totalBeds: z
-		.number({ required_error: "Total beds is required" })
+		.number()
 		.int()
 		.positive(),
 	established: z
-		.number({ required_error: "Established year is required" })
+		.number()
 		.int()
 		.min(1800, "Established year is invalid")
 		.max(new Date().getFullYear(), "Established year is invalid"),
@@ -97,7 +97,7 @@ export const createHospitalSchema = z.object({
 		.url("Invalid review link"),
 	isVerified: z.boolean().default(false),
 	isActive: z.boolean().default(true),
-	rating: z.number({ required_error: "Rating is required" }).min(0).max(5),
+	rating: z.number().min(0).max(5),
 	slug: z.string().optional(),
 });
 
