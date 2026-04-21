@@ -22,7 +22,7 @@ interface IBusWithStops {
 export async function findBusRoutes(
 	departureStopId: string,
 	destinationStopId: string,
-) {
+): Promise<{ type: string; data: IBusWithStops[] }> {
 	try {
 		await dbConnect();
 

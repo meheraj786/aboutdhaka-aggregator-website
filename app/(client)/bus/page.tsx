@@ -62,8 +62,8 @@ export default function BusRoutePage() {
 		dest: string;
 	} | null>(null);
 
-	const { data: areaData } = useFetchAreas();
-	const areas: IArea[] = areaData || [];
+	const { data: areaData = [] } = useFetchAreas();
+	const areas: IArea[] = areaData;
 
 	console.log(areaData, "data");
 
