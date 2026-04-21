@@ -189,7 +189,7 @@ export async function seedAreas() {
 		const seedOperations = AREA_SEED_DATA.map((data) => ({
 			updateOne: {
 				filter: { name: data.name },
-				update: { $set: data },
+				update: { $set: data as Record<string, unknown> },
 				upsert: true,
 			},
 		}));
@@ -197,12 +197,20 @@ export async function seedAreas() {
 		const remainingOperations = REMAINING_AREAS.map((name) => ({
 			updateOne: {
 				filter: { name: name },
-				update: { $setOnInsert: { name, buses: [], stops: [] } },
+				update: {
+					$setOnInsert: { name, buses: [], stops: [] } as Record<
+						string,
+						unknown
+					>,
+				},
 				upsert: true,
 			},
 		}));
 
-		await Area.bulkWrite([...seedOperations, ...remainingOperations]);
+		await Area.bulkWrite([
+			...seedOperations,
+			...remainingOperations,
+		] as Parameters<typeof Area.bulkWrite>[0]);
 
 		return {
 			success: true,

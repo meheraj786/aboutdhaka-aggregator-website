@@ -65,8 +65,7 @@ export default function BusRoutePage() {
 	const { data: areaData } = useFetchAreas();
 	const areas: IArea[] = areaData || [];
 
-  console.log(areaData, 'data');
-  
+	console.log(areaData, "data");
 
 	const { data: routeResults, isLoading: isSearching } = useFindBusRoutes(
 		searchParams?.dep || "",
