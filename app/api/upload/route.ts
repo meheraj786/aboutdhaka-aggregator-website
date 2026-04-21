@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -10,10 +10,7 @@ export async function POST(request: NextRequest) {
 		const files = formData.getAll("files");
 
 		if (!files || files.length === 0) {
-			return NextResponse.json(
-				{ error: "No files provided" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "No files provided" }, { status: 400 });
 		}
 
 		const uploadedUrls: string[] = [];
