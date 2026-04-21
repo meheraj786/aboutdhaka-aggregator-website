@@ -15,6 +15,7 @@ export interface IPlace extends Document {
 	contact?: string;
 	facilities?: string[];
 	gallery?: string[];
+	gps?: { type: string; coordinates: [number, number] };
 }
 
 const PlaceSchema: Schema<IPlace> = new Schema(
@@ -22,6 +23,10 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 		name: { type: String, required: true },
 		area: { type: mongoose.Schema.Types.ObjectId, ref: "Area", required: true },
 		location: { type: String, required: true },
+		gps: {
+			type: { type: String, enum: ["Point"] },
+			coordinates: [Number],
+		},
 		category: String,
 		detail: String,
 		rating: { type: Number, default: 0, min: 0, max: 5 },

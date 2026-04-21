@@ -6,4 +6,5 @@ export const queryKeys = {
 	restaurants: "restaurants",
 	malls: "malls",
 	pcs: "pcs",
+	busRoutes: "busRoutes",
 };
