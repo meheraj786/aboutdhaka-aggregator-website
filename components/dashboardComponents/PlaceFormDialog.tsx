@@ -460,9 +460,7 @@ export function PlaceFormDialog() {
 										<Input
 											type="time"
 											onChange={(e) => {
-												const current =
-													(form.getValues("hours") as Record<string, string>) ??
-													{};
+												const current = form.getValues("hours") ?? {};
 												form.setValue("hours", {
 													...current,
 													open: e.target.value,
@@ -477,9 +475,7 @@ export function PlaceFormDialog() {
 										<Input
 											type="time"
 											onChange={(e) => {
-												const current =
-													(form.getValues("hours") as Record<string, string>) ??
-													{};
+												const current = form.getValues("hours") ?? {};
 												form.setValue("hours", {
 													...current,
 													close: e.target.value,

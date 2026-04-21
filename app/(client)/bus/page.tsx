@@ -14,10 +14,7 @@ import {
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { type IAreaPopulated, seedAreas } from "@/actions/area.action";
-import {
-	type IBusWithStops,
-	type IConnectingRoute,
-} from "@/actions/bus.action";
+import type { IBusWithStops, IConnectingRoute } from "@/actions/bus.action";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useFindBusRoutes } from "@/hooks/useBus";
 

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { type IAreaPopulated, getAreas } from "@/actions/area.action";
+import { getAreas, type IAreaPopulated } from "@/actions/area.action";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function useFetchAreas() {

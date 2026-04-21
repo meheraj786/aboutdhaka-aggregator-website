@@ -18,7 +18,7 @@ export const createRestaurantSchema = z.object({
 			}),
 		)
 		.default([]),
-	hours: z.record(z.string()).optional(),
+	hours: z.record(z.string(), z.string()).optional(),
 });
 
 export const updateRestaurantSchema = createRestaurantSchema.partial();

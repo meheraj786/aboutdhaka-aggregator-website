@@ -7,7 +7,12 @@ export const createPlaceSchema = z.object({
 	category: z.string().min(1, "Category is required"),
 	detail: z.string().optional(),
 	rating: z.number().min(0).max(5),
-	hours: z.object({}).optional(),
+	hours: z
+		.object({
+			open: z.string().optional(),
+			close: z.string().optional(),
+		})
+		.optional(),
 	closingDay: z.string().optional(),
 	fee: z.number().min(0),
 	contact: z.string().optional(),
