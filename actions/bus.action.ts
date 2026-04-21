@@ -3,7 +3,7 @@
 import { dbConnect } from "@/lib/db";
 import { Bus } from "@/models/buses.model";
 
-interface IBusStop {
+export interface IBusStop {
 	_id: string;
 	stopName: string;
 	area: string;
@@ -13,16 +13,26 @@ interface IBusStop {
 	};
 }
 
-interface IBusWithStops {
+export interface IBusWithStops {
 	_id: string;
 	busName: string;
 	stops: IBusStop[];
 }
 
+export interface IConnectingRoute {
+	bus1: { name: string; _id: string };
+	bus2: { name: string; _id: string };
+	transferAt: IBusStop;
+}
+
+export type FindBusRoutesResponse =
+	| { type: "direct"; data: IBusWithStops[] }
+	| { type: "connecting"; data: IConnectingRoute[] };
+
 export async function findBusRoutes(
 	departureStopId: string,
 	destinationStopId: string,
-): Promise<{ type: string; data: IBusWithStops[] }> {
+): Promise<FindBusRoutesResponse> {
 	try {
 		await dbConnect();
 
@@ -58,7 +68,7 @@ export async function findBusRoutes(
 			bus.stops.some((s) => s._id.toString() === destinationStopId),
 		);
 
-		const results = [];
+		const results: IConnectingRoute[] = [];
 		const foundConnectionKeys = new Set();
 
 		for (const bus1 of busesFromStart) {

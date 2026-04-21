@@ -13,43 +13,13 @@ import {
 	Search,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
-import { seedAreas } from "@/actions/area.action";
+import { type IAreaPopulated, seedAreas } from "@/actions/area.action";
+import {
+	type IBusWithStops,
+	type IConnectingRoute,
+} from "@/actions/bus.action";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useFindBusRoutes } from "@/hooks/useBus";
-
-interface IStop {
-	_id: string;
-	stopName: string;
-	location?: {
-		type: string;
-		coordinates: [number, number];
-	};
-}
-
-interface IAreaStop {
-	stop: IStop;
-	buses: string[];
-	_id: string;
-}
-
-interface IArea {
-	_id: string;
-	name: string;
-	stops: IAreaStop[];
-	buses: string[];
-}
-
-interface IDirectBus {
-	_id: string;
-	busName: string;
-	stops: IStop[];
-}
-
-interface IConnectingRoute {
-	bus1: { name: string; _id: string };
-	bus2: { name: string; _id: string };
-	transferAt: IStop;
-}
 
 export default function BusRoutePage() {
 	const [departureAreaId, setDepartureAreaId] = useState<string>("");
@@ -63,7 +33,7 @@ export default function BusRoutePage() {
 	} | null>(null);
 
 	const { data: areaData = [] } = useFetchAreas();
-	const areas: IArea[] = areaData;
+	const areas: IAreaPopulated[] = areaData;
 
 	console.log(areaData, "data");
 
@@ -265,7 +235,7 @@ export default function BusRoutePage() {
 								)}
 
 								{routeResults?.type === "direct" &&
-									(routeResults.data as IDirectBus[]).map((bus) => (
+									(routeResults.data as IBusWithStops[]).map((bus) => (
 										<div
 											key={bus._id}
 											className="bg-white border border-slate-100 rounded-[2rem] p-8 shadow-sm hover:shadow-md transition-all"

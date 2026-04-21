@@ -4,15 +4,19 @@ import type { AnyBulkWriteOperation } from "mongodb";
 import { dbConnect } from "@/lib/db";
 import { Area } from "@/models/area.model";
 
-interface IBus {
+export interface IBus {
 	_id: string;
 	busName: string;
 }
 
-interface IBusStop {
+export interface IBusStop {
 	_id: string;
 	stopName: string;
 	area: string;
+	location: {
+		type: "Point";
+		coordinates: [number, number];
+	};
 }
 
 interface IAreaStop {
