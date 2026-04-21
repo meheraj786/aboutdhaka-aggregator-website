@@ -1,25 +1,15 @@
-import mongoose, { type Document, type Model, Schema } from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
 
-export interface IBus extends Document {
-	name: string;
-	category?: string;
-	rating?: number;
-	reviewsCount?: number;
-	stopages?: string[];
+interface IBus extends Document {
+	busName: string;
+	stops: mongoose.Types.ObjectId[];
 }
 
-const modelName = "Bus";
+const BusSchema = new Schema<IBus>({
+	busName: { type: String, required: true, unique: true },
 
-const BusSchema: Schema<IBus> = new Schema(
-	{
-		name: { type: String, required: true },
-		category: String,
-		rating: { type: Number, default: 0 },
-		reviewsCount: { type: Number, default: 0 },
-		stopages: [String],
-	},
-	{ timestamps: true },
-);
+	stops: [{ type: Schema.Types.ObjectId, ref: "BusStop" }],
+});
 
-export const Bus: Model<IBus> =
-	mongoose.models[modelName] || mongoose.model<IBus>(modelName, BusSchema);
+export const Bus =
+	mongoose.models.Bus || mongoose.model<IBus>("Bus", BusSchema);

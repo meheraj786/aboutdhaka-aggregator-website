@@ -1,10 +1,10 @@
-import mongoose, { type Document, type Model, Schema } from "mongoose";
+import mongoose, { type Model, Schema } from "mongoose";
 
-export interface IArea extends Document {
+export interface IArea extends mongoose.Document {
 	name: string;
 	buses?: mongoose.Types.ObjectId[];
 	stops?: {
-		name: string;
+		stop: mongoose.Types.ObjectId;
 		buses?: mongoose.Types.ObjectId[];
 	}[];
 }
@@ -17,7 +17,7 @@ const AreaSchema: Schema<IArea> = new Schema(
 		buses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bus" }],
 		stops: [
 			{
-				name: String,
+				stop: { type: mongoose.Schema.Types.ObjectId, ref: "BusStop" },
 				buses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Bus" }],
 			},
 		],

@@ -3,9 +3,113 @@
 import { dbConnect } from "@/lib/db";
 import { Area } from "@/models/area.model";
 
-const DHAKA_AREAS = [
+interface AreaDocument {
+	_id: { toString(): string };
+	name: string;
+	buses?: unknown[];
+	stops?: unknown[];
+}
+
+export async function getAreas() {
+	try {
+		await dbConnect();
+		const areas = await Area.find({})
+			.sort({ name: 1 })
+			.populate("buses")
+			.populate("stops.buses")
+			.populate("stops.stop")
+			.lean();
+		return (areas as AreaDocument[]).map(({ _id, name, buses, stops }) => ({
+			_id: _id.toString(),
+			name,
+			buses: buses || [],
+			stops: stops || [],
+		}));
+	} catch (error) {
+		console.error("Error fetching areas:", error);
+		throw new Error("Failed to fetch areas");
+	}
+}
+
+const AREA_SEED_DATA = [
+	{
+		name: "Dhanmondi",
+		buses: [
+			"69e738805548584ada29d28e",
+			"69e738805548584ada29d28f",
+			"69e738805548584ada29d290",
+			"69e738805548584ada29d291",
+			"69e738805548584ada29d293",
+		],
+		stops: [
+			{
+				stop: "69e738015548584ada29d284",
+				buses: ["69e738805548584ada29d28f", "69e738805548584ada29d290"],
+			}, // Shankar
+			{
+				stop: "69e738015548584ada29d285",
+				buses: ["69e738805548584ada29d28f", "69e738805548584ada29d291"],
+			}, // Jigatola
+			{
+				stop: "69e738015548584ada29d288",
+				buses: ["69e738805548584ada29d28e", "69e738805548584ada29d293"],
+			}, // Kalabagan
+			{
+				stop: "69e738015548584ada29d289",
+				buses: ["69e738805548584ada29d28f", "69e738805548584ada29d290"],
+			}, // Dhanmondi 15
+			{
+				stop: "69e738015548584ada29d28a",
+				buses: ["69e738805548584ada29d28e", "69e738805548584ada29d293"],
+			}, // Sukrabad
+		],
+	},
+	{
+		name: "Science Lab",
+		buses: [
+			"69e738805548584ada29d28e",
+			"69e738805548584ada29d28f",
+			"69e738805548584ada29d290",
+			"69e738805548584ada29d291",
+		],
+		stops: [
+			{
+				stop: "69e738015548584ada29d286",
+				buses: ["69e738805548584ada29d28e", "69e738805548584ada29d28f"],
+			}, // City College
+			{
+				stop: "69e738015548584ada29d287",
+				buses: ["69e738805548584ada29d290", "69e738805548584ada29d291"],
+			}, // Science Lab
+		],
+	},
+	{
+		name: "Mirpur",
+		buses: ["69e738805548584ada29d28f", "69e738805548584ada29d290"],
+		stops: [
+			{ stop: "69e738015548584ada29d301", buses: ["69e738805548584ada29d28f"] }, // Mock: Mirpur 10
+			{ stop: "69e738015548584ada29d302", buses: ["69e738805548584ada29d290"] }, // Mock: Mirpur 1
+		],
+	},
+	{
+		name: "Uttara",
+		buses: ["69e738805548584ada29d28f", "69e738805548584ada29d293"],
+		stops: [
+			{ stop: "69e738015548584ada29d303", buses: ["69e738805548584ada29d28f"] }, // Mock: House Building
+			{ stop: "69e738015548584ada29d304", buses: ["69e738805548584ada29d293"] }, // Mock: Azampur
+		],
+	},
+	{
+		name: "Badda",
+		buses: ["69e738805548584ada29d291"],
+		stops: [
+			{ stop: "69e738015548584ada29d305", buses: ["69e738805548584ada29d291"] },
+		],
+	},
+];
+
+const REMAINING_AREAS = [
 	"Adabor",
-	"Badda",
 	"Bangsal",
 	"Bimanbandar",
 	"Cantonment",
@@ -13,20 +117,17 @@ const DHAKA_AREAS = [
 	"Dakshinkhan",
 	"Darus Salam",
 	"Demra",
-	"Dhanmondi",
 	"Gendaria",
 	"Gulshan",
 	"Hazaribagh",
 	"Jatrabari",
 	"Kadamtali",
 	"Kafrul",
-	"Kalabagan",
 	"Kamrangirchar",
 	"Khilgaon",
 	"Khilkhet",
 	"Kotwali",
 	"Lalbagh",
-	"Mirpur",
 	"Mohammadpur",
 	"Motijheel",
 	"Mugda",
@@ -44,51 +145,40 @@ const DHAKA_AREAS = [
 	"Tejgaon",
 	"Tejgaon Industrial Area",
 	"Turag",
-	"Uttara",
 	"Uttar Khan",
 	"Vatara",
 	"Wari",
 ];
 
-export async function getAreas() {
-	try {
-		await dbConnect();
-		const areas = await Area.find({})
-			.select("_id name")
-			.sort({ name: 1 })
-			.lean();
-		return areas.map(({ _id, name }) => ({
-			_id: _id.toString(),
-			name,
-		}));
-	} catch (error) {
-		console.error("Error fetching areas:", error);
-		throw new Error("Failed to fetch areas");
-	}
-}
-
 export async function seedAreas() {
 	try {
 		await dbConnect();
 
-		const existingAreas = await Area.find({
-			name: { $in: DHAKA_AREAS },
-		}).select("name");
-		const existingNames = new Set(existingAreas.map((a) => a.name));
+		// ১. প্রথমে AREA_SEED_DATA প্রসেস করা (যাদের স্টপ আছে)
+		const seedOperations = AREA_SEED_DATA.map((data) => ({
+			updateOne: {
+				filter: { name: data.name },
+				update: { $set: data },
+				upsert: true,
+			},
+		}));
 
-		const areasToSeed = DHAKA_AREAS.filter(
-			(name) => !existingNames.has(name),
-		).map((name) => ({ name }));
+		// ২. বাকি এরিয়াগুলো যাদের ডাটা নেই তাদের প্রসেস করা
+		const remainingOperations = REMAINING_AREAS.map((name) => ({
+			updateOne: {
+				filter: { name: name },
+				update: { $setOnInsert: { name, buses: [], stops: [] } },
+				upsert: true,
+			},
+		}));
 
-		if (areasToSeed.length > 0) {
-			await Area.insertMany(areasToSeed);
-			return {
-				success: true,
-				message: `Seeded ${areasToSeed.length} new areas.`,
-			};
-		}
+		// BulkWrite চালানো যাতে সব ডাটা একসাথে সেভ হয়
+		await Area.bulkWrite([...seedOperations, ...remainingOperations]);
 
-		return { success: true, message: "All areas already exist." };
+		return {
+			success: true,
+			message: "Areas seeded successfully with Bus and Stop IDs.",
+		};
 	} catch (error) {
 		console.error("Error seeding areas:", error);
 		return { success: false, message: "Failed to seed areas." };
