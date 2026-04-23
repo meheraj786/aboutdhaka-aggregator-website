@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "@/app/globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -20,16 +20,20 @@ const poppins = Poppins({
 	display: "swap",
 });
 
+export const viewport: Viewport = {
+	width: "device-width",
+	initialScale: 1.0,
+	themeColor: "#f3f4f6",
+};
+
 export const metadata: Metadata = {
 	title: "About Dhaka",
 	description: "Explore the best of Dhaka City.",
-	viewport: "width=device-width, initial-scale=1.0",
 	icons: {
 		icon: "/favicon.ico",
 		apple: "/apple-touch-icon.png",
 	},
 	manifest: "/site.webmanifest",
-	themeColor: "#f3f4f6",
 	openGraph: {
 		title: "About Dhaka",
 		description: "Explore the best of Dhaka City.",

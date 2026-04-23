@@ -69,20 +69,44 @@ export default function HospitalsPage() {
 				header: createSortableHeader("Hospital Name"),
 			},
 			{
-				accessorKey: "category",
-				header: "Category",
-			},
-			{
 				id: "area",
 				header: "Area",
 				cell: ({ row }) => {
-					const area = row.original.area as unknown as { name?: string };
-					return <span>{area?.name ?? "—"}</span>;
+					const area = row.original.address?.area ?? "—";
+					return <span>{area}</span>;
 				},
 			},
 			{
-				accessorKey: "phone",
+				id: "district",
+				header: "District",
+				cell: ({ row }) => {
+					const district = row.original.address?.district ?? "—";
+					return <span>{district}</span>;
+				},
+			},
+			{
+				id: "phone",
 				header: "Phone",
+				cell: ({ row }) => {
+					const phone = row.original.contact?.phone?.[0] ?? "—";
+					return <span>{phone}</span>;
+				},
+			},
+			{
+				id: "email",
+				header: "Email",
+				cell: ({ row }) => {
+					const email = row.original.contact?.email ?? "—";
+					return <span>{email}</span>;
+				},
+			},
+			{
+				accessorKey: "rating",
+				header: "Rating",
+				cell: ({ row }) => {
+					const rating = row.original.rating ?? "—";
+					return <span>{rating}</span>;
+				},
 			},
 			{
 				id: "actions",

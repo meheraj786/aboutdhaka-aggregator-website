@@ -1,8 +1,16 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Activity, Loader2, Plus, Stethoscope, Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+	Activity,
+	FileUp,
+	Loader2,
+	Plus,
+	Stethoscope,
+	Trash2,
+} from "lucide-react";
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import {
 	Controller,
 	type Resolver,
@@ -10,8 +18,8 @@ import {
 	useForm,
 } from "react-hook-form";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -42,33 +50,66 @@ import {
 	createHospitalSchema,
 } from "@/validators/hospitals";
 
-const HOSPITAL_CATEGORIES = [
-	"General",
-	"Specialized",
-	"Medical College",
-	"Clinic",
-	"Diagnostic Center",
-	"Maternity",
-	"Dental",
-	"Eye Hospital",
+const DISTRICTS = [
+	"Dhaka",
+	"Chittagong",
+	"Khulna",
+	"Rajshahi",
+	"Barisal",
+	"Sylhet",
+	"Rangpur",
+	"Mymensingh",
 ];
+
+const slugify = (value: string) =>
+	value
+		.toLowerCase()
+		.trim()
+		.replace(/[^a-z0-9\s-]/g, "")
+		.replace(/\s+/g, "-")
+		.replace(/-+/g, "-");
 
 const DEFAULT_VALUES: CreateHospitalInput = {
 	name: "",
-	area: "",
-	location: "",
-	category: "General",
-	phone: "",
-	detail: "",
-	rating: 0,
-	testPrices: [],
+	address: {
+		area: "",
+		district: "Dhaka",
+		division: "Dhaka",
+		coordinates: {
+			lat: 0,
+			lng: 0,
+		},
+	},
+	contact: {
+		phone: [""],
+		email: "",
+		website: "",
+	},
 	services: [],
-	image: "",
+	testPrices: [],
+	images: [],
+	thumbnail: "",
+	facilities: [],
+	totalBeds: 0,
+	established: 0,
+	openHours: {
+		open: "",
+		close: "",
+		isOpen24Hours: false,
+	},
+	reviews: [],
+	googleMapReviewLink: "",
+	isVerified: false,
+	isActive: true,
+	rating: 0,
 };
 
 export function HospitalFormDialog() {
 	const [open, setOpen] = useState(false);
-	const [serviceInput, setServiceInput] = useState("");
+	const [isUploading, setIsUploading] = useState(false);
+	const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
+	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+	const [uploadedThumbnail, setUploadedThumbnail] = useState("");
 	const { data: areasData = [] } = useFetchAreas();
 	const { mutate: createHosp, isPending } = useCreateHospital();
 
@@ -79,28 +120,148 @@ export function HospitalFormDialog() {
 			createHospitalSchema,
 		) as Resolver<CreateHospitalInput>,
 		defaultValues: DEFAULT_VALUES,
+		mode: "onTouched",
+		reValidateMode: "onChange",
 	});
 
-	const { fields, append, remove } = useFieldArray({
+	const {
+		formState: { errors },
+	} = form;
+
+	const watchedName = form.watch("name");
+
+	useEffect(() => {
+		const generatedSlug = slugify(watchedName || "");
+		form.setValue("slug", generatedSlug, { shouldDirty: true });
+	}, [watchedName, form]);
+
+	const {
+		fields: testPriceFields,
+		append: appendTestPrice,
+		remove: removeTestPrice,
+	} = useFieldArray({
 		control: form.control,
 		name: "testPrices",
 	});
 
-	const services = form.watch("services") || [];
+	const {
+		fields: serviceFields,
+		append: appendService,
+		remove: removeService,
+	} = useFieldArray({
+		control: form.control,
+		name: "services",
+	});
 
-	const addService = () => {
-		const trimmed = serviceInput.trim();
-		if (trimmed && !services.includes(trimmed)) {
-			form.setValue("services", [...services, trimmed]);
-			setServiceInput("");
+	const {
+		fields: reviewFields,
+		append: appendReview,
+		remove: removeReview,
+	} = useFieldArray({
+		control: form.control,
+		name: "reviews",
+	});
+
+	const phoneValues = form.watch("contact.phone") || [""];
+
+	const appendPhone = () => {
+		form.setValue("contact.phone", [...phoneValues, ""], {
+			shouldDirty: true,
+		});
+	};
+
+	const removePhone = (index: number) => {
+		const updatedPhones = phoneValues.filter((_, i) => i !== index);
+		form.setValue(
+			"contact.phone",
+			updatedPhones.length ? updatedPhones : [""],
+			{
+				shouldDirty: true,
+			},
+		);
+	};
+
+	const uploadToCloudinary = async (files: FileList) => {
+		const formData = new FormData();
+		for (let i = 0; i < files.length; i++) {
+			formData.append("files", files[i]);
+		}
+
+		const response = await fetch("/api/upload", {
+			method: "POST",
+			body: formData,
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json();
+			throw new Error(errorData.error || "Failed to upload image");
+		}
+
+		return response.json() as Promise<{ urls: string[] }>;
+	};
+
+	const uploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
+		const files = event.target.files;
+		if (!files || files.length === 0) return;
+
+		setIsUploading(true);
+		try {
+			const data = await uploadToCloudinary(files);
+			const currentImages = form.getValues("images") || [];
+			form.setValue("images", [...currentImages, ...data.urls]);
+			setUploadedImages([...uploadedImages, ...data.urls]);
+			toast.success(`${data.urls.length} image(s) uploaded successfully`);
+
+			// Reset file input
+			if (event.target) {
+				event.target.value = "";
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Failed to upload images";
+			toast.error(message);
+		} finally {
+			setIsUploading(false);
 		}
 	};
 
-	const removeService = (item: string) => {
+	const uploadThumbnail = async (
+		event: React.ChangeEvent<HTMLInputElement>,
+	) => {
+		const files = event.target.files;
+		if (!files || files.length === 0) return;
+
+		setIsUploadingThumbnail(true);
+		try {
+			const data = await uploadToCloudinary(files);
+			const thumbnailUrl = data.urls[0];
+			if (!thumbnailUrl) {
+				throw new Error("Thumbnail upload did not return a URL");
+			}
+
+			form.setValue("thumbnail", thumbnailUrl);
+			setUploadedThumbnail(thumbnailUrl);
+			toast.success("Thumbnail uploaded successfully");
+
+			if (event.target) {
+				event.target.value = "";
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : "Failed to upload thumbnail";
+			toast.error(message);
+		} finally {
+			setIsUploadingThumbnail(false);
+		}
+	};
+
+	const removeImage = (url: string) => {
+		const currentImages = form.getValues("images") || [];
 		form.setValue(
-			"services",
-			services.filter((s) => s !== item),
+			"images",
+			currentImages.filter((img) => img !== url),
 		);
+		setUploadedImages(uploadedImages.filter((img) => img !== url));
 	};
 
 	const onSubmit = (values: CreateHospitalInput) => {
@@ -108,17 +269,25 @@ export function HospitalFormDialog() {
 			onSuccess: () => {
 				setOpen(false);
 				form.reset(DEFAULT_VALUES);
+				setUploadedImages([]);
+				setUploadedThumbnail("");
 				toast.success("Hospital added successfully!");
 			},
 		});
 	};
+
+	const isOpen24Hours = form.watch("openHours.isOpen24Hours");
 
 	return (
 		<Dialog
 			open={open}
 			onOpenChange={(val) => {
 				setOpen(val);
-				if (!val) form.reset(DEFAULT_VALUES);
+				if (!val) {
+					form.reset(DEFAULT_VALUES);
+					setUploadedImages([]);
+					setUploadedThumbnail("");
+				}
 			}}
 		>
 			<DialogTrigger asChild>
@@ -126,7 +295,7 @@ export function HospitalFormDialog() {
 					<Plus className="h-4 w-4" /> Add Hospital
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
+			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-175">
 				<DialogHeader>
 					<DialogTitle>Add New Hospital</DialogTitle>
 				</DialogHeader>
@@ -150,19 +319,101 @@ export function HospitalFormDialog() {
 
 						<div className="grid grid-cols-2 gap-4">
 							<Controller
-								name="area"
+								name="rating"
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Area *</FieldLabel>
+										<FieldLabel>Rating (0-5) *</FieldLabel>
+										<Input
+											{...field}
+											type="text"
+											inputMode="numeric"
+											min="0"
+											max="5"
+											placeholder="e.g. 4"
+											value={field.value?.toString() ?? ""}
+											onChange={(e) => {
+												const sanitized = e.target.value.replace(/[^0-9]/g, "");
+												const latestDigit = sanitized.slice(-1);
+
+												if (latestDigit === "") {
+													field.onChange(undefined);
+													return;
+												}
+
+												const numeric = Number(latestDigit);
+												if (numeric >= 0 && numeric <= 5) {
+													field.onChange(numeric);
+												}
+											}}
+										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
+									</Field>
+								)}
+							/>
+							<Controller
+								name="slug"
+								control={form.control}
+								render={({ field }) => (
+									<Field>
+										<FieldLabel>Slug (auto generated)</FieldLabel>
+										<Input {...field} placeholder="hospital-slug" readOnly />
+									</Field>
+								)}
+							/>
+						</div>
+					</FieldGroup>
+
+					<Separator />
+
+					{/* Address Section */}
+					<section className="space-y-3">
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+							Address Information *
+						</FieldLabel>
+
+						<Controller
+							name="address.area"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<Field>
+									<FieldLabel>Area *</FieldLabel>
+									<Select onValueChange={field.onChange} value={field.value}>
+										<SelectTrigger>
+											<SelectValue placeholder="Select Area" />
+										</SelectTrigger>
+										<SelectContent>
+											{areas.map((a) => (
+												<SelectItem key={String(a._id)} value={String(a._id)}>
+													{a.name}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
+								</Field>
+							)}
+						/>
+
+						<div className="grid grid-cols-2 gap-4">
+							<Controller
+								name="address.district"
+								control={form.control}
+								render={({ field, fieldState }) => (
+									<Field>
+										<FieldLabel>District *</FieldLabel>
 										<Select onValueChange={field.onChange} value={field.value}>
 											<SelectTrigger>
-												<SelectValue placeholder="Select Area" />
+												<SelectValue placeholder="Select District" />
 											</SelectTrigger>
 											<SelectContent>
-												{areas.map((a) => (
-													<SelectItem key={String(a._id)} value={String(a._id)}>
-														{a.name}
+												{DISTRICTS.map((district) => (
+													<SelectItem key={district} value={district}>
+														{district}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -174,23 +425,12 @@ export function HospitalFormDialog() {
 								)}
 							/>
 							<Controller
-								name="category"
+								name="address.division"
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Category *</FieldLabel>
-										<Select onValueChange={field.onChange} value={field.value}>
-											<SelectTrigger>
-												<SelectValue placeholder="Select Category" />
-											</SelectTrigger>
-											<SelectContent>
-												{HOSPITAL_CATEGORIES.map((cat) => (
-													<SelectItem key={cat} value={cat}>
-														{cat}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+										<FieldLabel>Division *</FieldLabel>
+										<Input {...field} placeholder="Division" />
 										{fieldState.error && (
 											<FieldError errors={[fieldState.error]} />
 										)}
@@ -201,164 +441,715 @@ export function HospitalFormDialog() {
 
 						<div className="grid grid-cols-2 gap-4">
 							<Controller
-								name="phone"
+								name="address.coordinates.lat"
 								control={form.control}
-								render={({ field }) => (
+								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Phone Number</FieldLabel>
-										<Input {...field} placeholder="e.g. +880 1XXX-XXXXXX" />
+										<FieldLabel>Latitude *</FieldLabel>
+										<Input
+											type="number"
+											step="any"
+											value={field.value ?? ""}
+											onChange={(e) =>
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
+											}
+											placeholder="23.8103"
+										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
 									</Field>
 								)}
 							/>
 							<Controller
-								name="rating"
+								name="address.coordinates.lng"
 								control={form.control}
-								render={({ field }) => (
+								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Rating (0-5)</FieldLabel>
+										<FieldLabel>Longitude *</FieldLabel>
 										<Input
-											{...field}
 											type="number"
-											step="0.1"
-											placeholder="e.g. 4.5"
+											step="any"
+											value={field.value ?? ""}
 											onChange={(e) =>
-												field.onChange(parseFloat(e.target.value) || 0)
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
 											}
+											placeholder="90.4125"
 										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
 									</Field>
 								)}
 							/>
-						</div>
-
-						<Controller
-							name="location"
-							control={form.control}
-							render={({ field, fieldState }) => (
-								<Field>
-									<FieldLabel>Location / Full Address *</FieldLabel>
-									<Input {...field} placeholder="House, Road, Block..." />
-									{fieldState.error && (
-										<FieldError errors={[fieldState.error]} />
-									)}
-								</Field>
-							)}
-						/>
-						<Controller
-							name="image"
-							control={form.control}
-							render={({ field, fieldState }) => (
-								<Field>
-									<FieldLabel>Image URL</FieldLabel>
-									<Input
-										{...field}
-										placeholder="https://example.com/image.jpg"
-									/>
-									{fieldState.error && (
-										<FieldError errors={[fieldState.error]} />
-									)}
-								</Field>
-							)}
-						/>
-
-						<Controller
-							name="detail"
-							control={form.control}
-							render={({ field }) => (
-								<Field>
-									<FieldLabel>Description / Detail</FieldLabel>
-									<Textarea
-										{...field}
-										placeholder="Briefly describe the hospital..."
-										className="min-h-[100px] resize-none"
-									/>
-								</Field>
-							)}
-						/>
-					</FieldGroup>
-
-					<Separator />
-
-					{/* Services Section */}
-					<section className="space-y-3">
-						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-							<Activity className="h-4 w-4" /> Available Services
-						</FieldLabel>
-						<div className="flex gap-2">
-							<Input
-								value={serviceInput}
-								onChange={(e) => setServiceInput(e.target.value)}
-								placeholder="e.g. ICU, Emergency 24/7, Lab"
-								onKeyDown={(e) => {
-									if (e.key === "Enter") {
-										e.preventDefault();
-										addService();
-									}
-								}}
-							/>
-							<Button type="button" variant="outline" onClick={addService}>
-								Add
-							</Button>
-						</div>
-						<div className="flex flex-wrap gap-2">
-							{services.map((item) => (
-								<Badge key={item} variant="secondary" className="pr-1 py-1">
-									{item}
-									<X
-										className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
-										onClick={() => removeService(item)}
-									/>
-								</Badge>
-							))}
 						</div>
 					</section>
 
 					<Separator />
 
-					{/* Test Prices Section */}
-					<section className="space-y-4">
+					{/* Contact Section */}
+					<section className="space-y-3">
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+							Contact Information *
+						</FieldLabel>
+
+						<div className="space-y-2">
+							{phoneValues.map((_, index) => (
+								<div key={`phone-${index}`} className="flex gap-2 items-end">
+									<div className="flex-1">
+										<Input
+											{...form.register(`contact.phone.${index}`)}
+											placeholder="Phone number *"
+										/>
+									</div>
+									{phoneValues.length > 1 && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											onClick={() => removePhone(index)}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									)}
+								</div>
+							))}
+							{errors.contact?.phone?.message && (
+								<p className="text-sm text-destructive">
+									{errors.contact.phone.message}
+								</p>
+							)}
+							{phoneValues.map((_, index) => {
+								const phoneError = errors.contact?.phone?.[index];
+								if (!phoneError) return null;
+								return (
+									<p
+										key={`phone-error-${index}`}
+										className="text-sm text-destructive"
+									>
+										{phoneError.message}
+									</p>
+								);
+							})}
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => appendPhone()}
+							>
+								<Plus className="h-3 w-3 mr-1" /> Add Phone
+							</Button>
+						</div>
+
+						<Controller
+							name="contact.email"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<Field>
+									<FieldLabel>Email *</FieldLabel>
+									<Input
+										{...field}
+										type="email"
+										placeholder="info@hospital.com"
+									/>
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
+								</Field>
+							)}
+						/>
+
+						<Controller
+							name="contact.website"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<Field>
+									<FieldLabel>Website *</FieldLabel>
+									<Input {...field} placeholder="https://hospital.com" />
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
+								</Field>
+							)}
+						/>
+					</section>
+
+					<Separator />
+
+					{/* Images Upload Section */}
+					<section className="space-y-3">
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+							<FileUp className="h-4 w-4" /> Hospital Images ( optional )
+						</FieldLabel>
+						<div className="border-2 border-dashed rounded-lg p-4">
+							<input
+								type="file"
+								multiple
+								accept=".jpg,.jpeg,.png,.webp"
+								onChange={uploadImages}
+								disabled={isUploading}
+								className="hidden"
+								id="image-upload"
+							/>
+							<label
+								htmlFor="image-upload"
+								className="flex flex-col items-center justify-center cursor-pointer"
+							>
+								<FileUp className="h-8 w-8 text-muted-foreground mb-2" />
+								<span className="text-sm font-medium">
+									{isUploading ? "Uploading..." : "Click to upload images"}
+								</span>
+								<span className="text-xs text-muted-foreground">
+									JPG, PNG, WEBP (Max 5MB each)
+								</span>
+							</label>
+						</div>
+
+						{uploadedImages.length > 0 && (
+							<div className="grid grid-cols-3 gap-2">
+								{uploadedImages.map((url) => (
+									<div
+										key={url}
+										className="relative group rounded-md overflow-hidden"
+									>
+										<Image
+											src={url}
+											alt="Hospital"
+											width={240}
+											height={96}
+											className="h-24 w-full object-cover"
+											unoptimized
+										/>
+										<button
+											type="button"
+											onClick={() => removeImage(url)}
+											className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+										>
+											<Trash2 className="h-4 w-4 text-white" />
+										</button>
+									</div>
+								))}
+							</div>
+						)}
+
+						<div className="space-y-2">
+							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+								<FileUp className="h-4 w-4" /> Thumbnail Upload *
+							</FieldLabel>
+							<div className="border rounded-lg p-3">
+								<input
+									type="file"
+									accept=".jpg,.jpeg,.png,.webp"
+									onChange={uploadThumbnail}
+									disabled={isUploadingThumbnail}
+									className="hidden"
+									id="thumbnail-upload"
+								/>
+								<label
+									htmlFor="thumbnail-upload"
+									className="flex items-center justify-center cursor-pointer py-3"
+								>
+									<span className="text-sm font-medium">
+										{isUploadingThumbnail
+											? "Uploading thumbnail..."
+											: "Upload Thumbnail"}
+									</span>
+								</label>
+							</div>
+
+							{(uploadedThumbnail || form.watch("thumbnail")) && (
+								<div className="relative w-36">
+									<Image
+										src={uploadedThumbnail || form.watch("thumbnail") || ""}
+										alt="Thumbnail preview"
+										width={144}
+										height={96}
+										className="h-24 w-36 object-cover rounded-md"
+										unoptimized
+									/>
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={() => {
+											form.setValue("thumbnail", "");
+											setUploadedThumbnail("");
+										}}
+									>
+										<Trash2 className="h-4 w-4 mr-1" /> Remove
+									</Button>
+								</div>
+							)}
+
+							<p className="text-xs text-muted-foreground">
+								If not uploaded, the first hospital image will be used as
+								thumbnail.
+							</p>
+							{errors.thumbnail?.message && (
+								<p className="text-sm text-destructive">
+									{errors.thumbnail.message}
+								</p>
+							)}
+						</div>
+					</section>
+
+					<Separator />
+
+					{/* Services Section */}
+					<section className="space-y-3">
 						<div className="flex items-center justify-between">
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<Stethoscope className="h-4 w-4" /> Diagnostic Test Prices
+								<Activity className="h-4 w-4" /> Services *
 							</FieldLabel>
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
 								className="h-7 text-xs"
-								onClick={() => append({ name: "", price: "" })}
+								onClick={() =>
+									appendService({
+										name: "",
+										description: "",
+										icon: "",
+										averageCost: undefined,
+									})
+								}
+							>
+								<Plus className="h-3 w-3 mr-1" /> Add Service
+							</Button>
+						</div>
+
+						<div className="space-y-3">
+							{serviceFields.map((field, index) => (
+								<div key={field.id} className="space-y-2 p-3 border rounded-md">
+									<div className="grid grid-cols-2 gap-2">
+										<div>
+											<Input
+												{...form.register(`services.${index}.name`)}
+												placeholder="Service name (e.g., ICU)"
+											/>
+											{errors.services?.[index]?.name?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.services[index]?.name?.message}
+												</p>
+											)}
+										</div>
+										<div>
+											<Input
+												{...form.register(`services.${index}.averageCost`, {
+													valueAsNumber: true,
+												})}
+												type="number"
+												placeholder="Avg Cost (₳)"
+											/>
+											{errors.services?.[index]?.averageCost?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.services[index]?.averageCost?.message}
+												</p>
+											)}
+										</div>
+									</div>
+									<Input
+										{...form.register(`services.${index}.description`)}
+										placeholder="Description (optional)"
+									/>
+									<div className="flex gap-2">
+										<Input
+											{...form.register(`services.${index}.icon`)}
+											placeholder="Icon URL (optional)"
+											className="flex-1"
+										/>
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											onClick={() => removeService(index)}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</div>
+								</div>
+							))}
+							{errors.services?.message && (
+								<p className="text-sm text-destructive">
+									{errors.services.message}
+								</p>
+							)}
+						</div>
+					</section>
+
+					<Separator />
+
+					{/* Diagnostic Tests Section */}
+					<section className="space-y-3">
+						<div className="flex items-center justify-between">
+							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+								<Stethoscope className="h-4 w-4" /> Diagnostic Tests *
+							</FieldLabel>
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								className="h-7 text-xs"
+								onClick={() => appendTestPrice({ name: "", price: "" })}
 							>
 								<Plus className="h-3 w-3 mr-1" /> Add Test
 							</Button>
 						</div>
-						<div className="space-y-3">
-							{fields.map((field, index) => (
+
+						<div className="space-y-2">
+							{testPriceFields.map((field, index) => (
 								<div key={field.id} className="flex gap-2 items-start">
 									<div className="flex-1">
 										<Input
 											{...form.register(`testPrices.${index}.name`)}
-											placeholder="Test Name (e.g. MRI)"
+											placeholder="Test Name (e.g., MRI)"
 										/>
+										{errors.testPrices?.[index]?.name?.message && (
+											<p className="text-sm text-destructive mt-1">
+												{errors.testPrices[index]?.name?.message}
+											</p>
+										)}
 									</div>
-									<div className="w-28">
+									<div className="w-24">
 										<Input
 											{...form.register(`testPrices.${index}.price`)}
-											placeholder="Price (৳)"
+											placeholder="Price (₳)"
 										/>
+										{errors.testPrices?.[index]?.price?.message && (
+											<p className="text-sm text-destructive mt-1">
+												{errors.testPrices[index]?.price?.message}
+											</p>
+										)}
 									</div>
 									<Button
 										type="button"
 										variant="ghost"
 										size="icon"
 										className="text-muted-foreground hover:text-destructive"
-										onClick={() => remove(index)}
+										onClick={() => removeTestPrice(index)}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>
 								</div>
 							))}
-							{fields.length === 0 && (
+							{testPriceFields.length === 0 && (
 								<p className="text-xs text-center text-muted-foreground py-2 border border-dashed rounded-md">
 									No diagnostic tests added yet.
+								</p>
+							)}
+							{errors.testPrices?.message && (
+								<p className="text-sm text-destructive">
+									{errors.testPrices.message}
+								</p>
+							)}
+						</div>
+					</section>
+
+					<Separator />
+
+					{/* Additional Info Section */}
+					<section className="space-y-3">
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+							Additional Information *
+						</FieldLabel>
+
+						<div className="grid grid-cols-2 gap-4">
+							<Controller
+								name="totalBeds"
+								control={form.control}
+								render={({ field, fieldState }) => (
+									<Field>
+										<FieldLabel>Total Beds *</FieldLabel>
+										<Input
+											{...field}
+											type="number"
+											placeholder="e.g. 100"
+											value={field.value ?? ""}
+											onChange={(e) =>
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
+											}
+										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
+									</Field>
+								)}
+							/>
+							<Controller
+								name="established"
+								control={form.control}
+								render={({ field, fieldState }) => (
+									<Field>
+										<FieldLabel>Established Year *</FieldLabel>
+										<Input
+											{...field}
+											type="number"
+											placeholder="e.g. 2010"
+											value={field.value ?? ""}
+											onChange={(e) =>
+												field.onChange(
+													e.target.value === ""
+														? undefined
+														: Number(e.target.value),
+												)
+											}
+										/>
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
+									</Field>
+								)}
+							/>
+						</div>
+
+						<Controller
+							name="facilities"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<Field>
+									<FieldLabel>Facilities (comma-separated) *</FieldLabel>
+									<Textarea
+										value={field.value?.join(", ") || ""}
+										onChange={(e) =>
+											field.onChange(
+												e.target.value
+													.split(",")
+													.map((f) => f.trim())
+													.filter(Boolean),
+											)
+										}
+										placeholder="e.g. Parking, WiFi, Cafeteria"
+										className="min-h-20 resize-none"
+									/>
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
+								</Field>
+							)}
+						/>
+
+						<div className="grid grid-cols-2 gap-4">
+							<Controller
+								name="openHours.open"
+								control={form.control}
+								render={({ field }) => (
+									<Field>
+										<FieldLabel>Open Time (optional)</FieldLabel>
+										<Input
+											{...field}
+											placeholder="09:00 AM"
+											disabled={isOpen24Hours}
+										/>
+									</Field>
+								)}
+							/>
+							<Controller
+								name="openHours.close"
+								control={form.control}
+								render={({ field }) => (
+									<Field>
+										<FieldLabel>Close Time (optional)</FieldLabel>
+										<Input
+											{...field}
+											placeholder="10:00 PM"
+											disabled={isOpen24Hours}
+										/>
+									</Field>
+								)}
+							/>
+						</div>
+
+						<div className="flex items-center gap-4">
+							<Controller
+								name="openHours.isOpen24Hours"
+								control={form.control}
+								render={({ field }) => (
+									<label
+										htmlFor="hospital-open-24-hours"
+										className="flex items-center gap-2 text-sm"
+									>
+										<Checkbox
+											id="hospital-open-24-hours"
+											checked={field.value}
+											onCheckedChange={(value) =>
+												field.onChange(Boolean(value))
+											}
+										/>
+										Open 24 Hours
+									</label>
+								)}
+							/>
+
+							<Controller
+								name="isVerified"
+								control={form.control}
+								render={({ field }) => (
+									<label
+										htmlFor="hospital-is-verified"
+										className="flex items-center gap-2 text-sm"
+									>
+										<Checkbox
+											id="hospital-is-verified"
+											checked={field.value}
+											onCheckedChange={(value) =>
+												field.onChange(Boolean(value))
+											}
+										/>
+										Verified
+									</label>
+								)}
+							/>
+
+							<Controller
+								name="isActive"
+								control={form.control}
+								render={({ field }) => (
+									<label
+										htmlFor="hospital-is-active"
+										className="flex items-center gap-2 text-sm"
+									>
+										<Checkbox
+											id="hospital-is-active"
+											checked={field.value}
+											onCheckedChange={(value) =>
+												field.onChange(Boolean(value))
+											}
+										/>
+										Active
+									</label>
+								)}
+							/>
+						</div>
+
+						<Controller
+							name="googleMapReviewLink"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<Field>
+									<FieldLabel>Google Map Review Link *</FieldLabel>
+									<Input {...field} placeholder="https://maps.google.com/..." />
+									{fieldState.error && (
+										<FieldError errors={[fieldState.error]} />
+									)}
+								</Field>
+							)}
+						/>
+
+						<div className="space-y-3">
+							<div className="flex items-center justify-between">
+								<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+									Reviews (at least 2) *
+								</FieldLabel>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() =>
+										appendReview({
+											reviewer: "",
+											comment: "",
+											time: "",
+											initial: "",
+											rating: 0,
+										})
+									}
+								>
+									<Plus className="h-3 w-3 mr-1" /> Add Review
+								</Button>
+							</div>
+
+							{reviewFields.map((field, index) => (
+								<div key={field.id} className="space-y-2 p-3 border rounded-md">
+									<div className="grid grid-cols-2 gap-2">
+										<div>
+											<Input
+												{...form.register(`reviews.${index}.reviewer`)}
+												placeholder="Reviewer name"
+											/>
+											{errors.reviews?.[index]?.reviewer?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.reviews[index]?.reviewer?.message}
+												</p>
+											)}
+										</div>
+										<div>
+											<Input
+												{...form.register(`reviews.${index}.initial`)}
+												placeholder="Initial"
+											/>
+											{errors.reviews?.[index]?.initial?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.reviews[index]?.initial?.message}
+												</p>
+											)}
+										</div>
+									</div>
+									<div className="grid grid-cols-2 gap-2">
+										<div>
+											<Input
+												{...form.register(`reviews.${index}.time`)}
+												type="datetime-local"
+											/>
+											{errors.reviews?.[index]?.time?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.reviews[index]?.time?.message}
+												</p>
+											)}
+										</div>
+										<div>
+											<Input
+												{...form.register(`reviews.${index}.rating`, {
+													valueAsNumber: true,
+												})}
+												type="number"
+												min="0"
+												max="5"
+												step="0.1"
+												placeholder="Rating"
+											/>
+											{errors.reviews?.[index]?.rating?.message && (
+												<p className="text-sm text-destructive mt-1">
+													{errors.reviews[index]?.rating?.message}
+												</p>
+											)}
+										</div>
+									</div>
+									<Textarea
+										{...form.register(`reviews.${index}.comment`)}
+										placeholder="Comment"
+										className="min-h-20 resize-none"
+									/>
+									{errors.reviews?.[index]?.comment?.message && (
+										<p className="text-sm text-destructive mt-1">
+											{errors.reviews[index]?.comment?.message}
+										</p>
+									)}
+									<Button
+										type="button"
+										variant="ghost"
+										size="sm"
+										onClick={() => removeReview(index)}
+									>
+										<Trash2 className="h-4 w-4 mr-1" /> Remove Review
+									</Button>
+								</div>
+							))}
+							{errors.reviews?.message && (
+								<p className="text-sm text-destructive">
+									{errors.reviews.message}
 								</p>
 							)}
 						</div>
@@ -369,14 +1160,14 @@ export function HospitalFormDialog() {
 							type="button"
 							variant="outline"
 							onClick={() => setOpen(false)}
-							disabled={isPending}
+							disabled={isPending || isUploading || isUploadingThumbnail}
 						>
 							Cancel
 						</Button>
 						<Button
 							type="submit"
-							className="min-w-[120px]"
-							disabled={isPending}
+							className="min-w-30"
+							disabled={isPending || isUploading || isUploadingThumbnail}
 						>
 							{isPending ? (
 								<>
