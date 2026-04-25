@@ -18,6 +18,7 @@ import {
 	useForm,
 } from "react-hook-form";
 import { toast } from "sonner";
+import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -53,7 +54,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useCreateHospital } from "@/hooks/useHospitals";
 import { useFetchMedicalCategories } from "@/hooks/useMedicalCategories";
-import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import {
 	type CreateHospitalInput,
 	createHospitalSchema,
@@ -384,8 +384,9 @@ export function HospitalFormDialog() {
 							control={form.control}
 							render={({ field, fieldState }) => {
 								const selectedTypes = field.value || [];
-								const selectedCategories = categories.filter((cat: MedicalCategoryItem) =>
-									selectedTypes.includes(String(cat._id)),
+								const selectedCategories = categories.filter(
+									(cat: MedicalCategoryItem) =>
+										selectedTypes.includes(String(cat._id)),
 								);
 								return (
 									<Field>
@@ -443,15 +444,17 @@ export function HospitalFormDialog() {
 										{/* Display selected categories as badges */}
 										{selectedCategories.length > 0 && (
 											<div className="flex flex-wrap gap-1 mt-2">
-												{selectedCategories.map((category: MedicalCategoryItem) => (
-													<Badge
-														key={String(category._id)}
-														variant="secondary"
-														className="text-xs"
-													>
-														{category.name}
-													</Badge>
-												))}
+												{selectedCategories.map(
+													(category: MedicalCategoryItem) => (
+														<Badge
+															key={String(category._id)}
+															variant="secondary"
+															className="text-xs"
+														>
+															{category.name}
+														</Badge>
+													),
+												)}
 											</div>
 										)}
 
@@ -1056,21 +1059,21 @@ export function HospitalFormDialog() {
 							/>
 						</div>
 
-				<Controller
-					name="facilities"
-					control={form.control}
-					render={({ field, fieldState }) => (
-						<FacilitiesField
-							value={field.value}
-							onChange={field.onChange}
-							error={fieldState.error}
+						<Controller
+							name="facilities"
+							control={form.control}
+							render={({ field, fieldState }) => (
+								<FacilitiesField
+									value={field.value}
+									onChange={field.onChange}
+									error={fieldState.error}
+								/>
+							)}
 						/>
-					)}
-				/>
 
-				<div className="grid grid-cols-2 gap-4">
-					<Controller
-						name="openHours.open"
+						<div className="grid grid-cols-2 gap-4">
+							<Controller
+								name="openHours.open"
 								control={form.control}
 								render={({ field }) => (
 									<Field>
