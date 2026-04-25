@@ -10,6 +10,7 @@ import DataTable, {
 	type PaginationParams,
 } from "@/components/dashboardComponents/DataTable";
 import { HospitalFormDialog } from "@/components/dashboardComponents/HospitalFormDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	DropdownMenu,
@@ -69,19 +70,32 @@ export default function HospitalsPage() {
 				header: createSortableHeader("Hospital Name"),
 			},
 			{
+				id: "categories",
+				header: "Categories",
+				cell: ({ row }) => {
+					const types = row.original.types as Array<{
+						_id: string;
+						name: string;
+					}>;
+					return types && types.length > 0 ? (
+						<div className="flex flex-wrap gap-1">
+							{types.map((type) => (
+								<Badge key={type._id} variant="secondary" className="text-xs">
+									{type.name}
+								</Badge>
+							))}
+						</div>
+					) : (
+						<span className="text-muted-foreground text-sm">—</span>
+					);
+				},
+			},
+			{
 				id: "area",
 				header: "Area",
 				cell: ({ row }) => {
 					const area = row.original.address?.area ?? "—";
 					return <span>{area}</span>;
-				},
-			},
-			{
-				id: "district",
-				header: "District",
-				cell: ({ row }) => {
-					const district = row.original.address?.district ?? "—";
-					return <span>{district}</span>;
 				},
 			},
 			{

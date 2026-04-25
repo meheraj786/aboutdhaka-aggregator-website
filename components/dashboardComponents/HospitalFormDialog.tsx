@@ -18,6 +18,7 @@ import {
 	useForm,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,6 +28,12 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
 	Field,
 	FieldError,
@@ -45,10 +52,55 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useCreateHospital } from "@/hooks/useHospitals";
+import { useFetchMedicalCategories } from "@/hooks/useMedicalCategories";
+import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import {
 	type CreateHospitalInput,
 	createHospitalSchema,
 } from "@/validators/hospitals";
+
+type MedicalCategoryItem = GetMedicalCategoriesReturn["items"][number];
+
+// Separate component for facilities field to avoid hooks in render function
+function FacilitiesField({
+	value,
+	onChange,
+	error,
+}: {
+	value: string[];
+	onChange: (value: string[]) => void;
+	error?: { message?: string };
+}) {
+	const [localValue, setLocalValue] = useState(value?.join(", ") || "");
+
+	// Sync local value when field value changes externally
+	useEffect(() => {
+		setLocalValue(value?.join(", ") || "");
+	}, [value]);
+
+	return (
+		<Field>
+			<FieldLabel>Facilities (comma-separated) *</FieldLabel>
+			<Textarea
+				value={localValue}
+				onChange={(e) => {
+					setLocalValue(e.target.value);
+				}}
+				onBlur={() => {
+					// Convert to array when user leaves the field
+					const cleanedArray = localValue
+						.split(",")
+						.map((f) => f.trim())
+						.filter(Boolean);
+					onChange(cleanedArray);
+				}}
+				placeholder="e.g. Parking, WiFi, Cafeteria"
+				className="min-h-20 resize-none"
+			/>
+			{error && <FieldError errors={[error]} />}
+		</Field>
+	);
+}
 
 const DISTRICTS = [
 	"Dhaka",
@@ -71,6 +123,7 @@ const slugify = (value: string) =>
 
 const DEFAULT_VALUES: CreateHospitalInput = {
 	name: "",
+	types: [],
 	address: {
 		area: "",
 		district: "Dhaka",
@@ -111,9 +164,17 @@ export function HospitalFormDialog() {
 	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 	const [uploadedThumbnail, setUploadedThumbnail] = useState("");
 	const { data: areasData = [] } = useFetchAreas();
+	const { data: categoriesData } = useFetchMedicalCategories({
+		type: "hospital",
+		isActive: true,
+	});
 	const { mutate: createHosp, isPending } = useCreateHospital();
 
 	const areas = useMemo(() => areasData, [areasData]);
+	const categories = useMemo(
+		() => categoriesData?.items ?? [],
+		[categoriesData],
+	);
 
 	const form = useForm<CreateHospitalInput>({
 		resolver: zodResolver(
@@ -317,6 +378,91 @@ export function HospitalFormDialog() {
 							)}
 						/>
 
+						{/* Categories Field */}
+						<Controller
+							name="types"
+							control={form.control}
+							render={({ field, fieldState }) => {
+								const selectedTypes = field.value || [];
+								const selectedCategories = categories.filter((cat: MedicalCategoryItem) =>
+									selectedTypes.includes(String(cat._id)),
+								);
+								return (
+									<Field>
+										<FieldLabel>Categories *</FieldLabel>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													type="button"
+													variant="outline"
+													className="w-full justify-start font-normal"
+												>
+													{selectedTypes.length === 0
+														? "Select categories..."
+														: `${selectedTypes.length} selected`}
+												</Button>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent className="w-75 max-h-75 overflow-y-auto">
+												{categories.length === 0 ? (
+													<p className="text-sm text-muted-foreground p-2">
+														No categories available
+													</p>
+												) : (
+													categories.map((category: MedicalCategoryItem) => {
+														const categoryId = String(category._id);
+														const isChecked =
+															selectedTypes.includes(categoryId);
+
+														return (
+															<DropdownMenuCheckboxItem
+																key={categoryId}
+																checked={isChecked}
+																onCheckedChange={(checked) => {
+																	if (checked) {
+																		field.onChange([
+																			...selectedTypes,
+																			categoryId,
+																		]);
+																	} else {
+																		field.onChange(
+																			selectedTypes.filter(
+																				(id: string) => id !== categoryId,
+																			),
+																		);
+																	}
+																}}
+															>
+																{category.name}
+															</DropdownMenuCheckboxItem>
+														);
+													})
+												)}
+											</DropdownMenuContent>
+										</DropdownMenu>
+
+										{/* Display selected categories as badges */}
+										{selectedCategories.length > 0 && (
+											<div className="flex flex-wrap gap-1 mt-2">
+												{selectedCategories.map((category: MedicalCategoryItem) => (
+													<Badge
+														key={String(category._id)}
+														variant="secondary"
+														className="text-xs"
+													>
+														{category.name}
+													</Badge>
+												))}
+											</div>
+										)}
+
+										{fieldState.error && (
+											<FieldError errors={[fieldState.error]} />
+										)}
+									</Field>
+								);
+							}}
+						/>
+
 						<div className="grid grid-cols-2 gap-4">
 							<Controller
 								name="rating"
@@ -386,7 +532,7 @@ export function HospitalFormDialog() {
 										</SelectTrigger>
 										<SelectContent>
 											{areas.map((a) => (
-												<SelectItem key={String(a._id)} value={String(a._id)}>
+												<SelectItem key={String(a._id)} value={a.name}>
 													{a.name}
 												</SelectItem>
 											))}
@@ -644,55 +790,55 @@ export function HospitalFormDialog() {
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
 								<FileUp className="h-4 w-4" /> Thumbnail Upload *
 							</FieldLabel>
-							<div className="border rounded-lg p-3">
-								<input
-									type="file"
-									accept=".jpg,.jpeg,.png,.webp"
-									onChange={uploadThumbnail}
-									disabled={isUploadingThumbnail}
-									className="hidden"
-									id="thumbnail-upload"
-								/>
-								<label
-									htmlFor="thumbnail-upload"
-									className="flex items-center justify-center cursor-pointer py-3"
-								>
-									<span className="text-sm font-medium">
-										{isUploadingThumbnail
-											? "Uploading thumbnail..."
-											: "Upload Thumbnail"}
-									</span>
-								</label>
-							</div>
 
-							{(uploadedThumbnail || form.watch("thumbnail")) && (
-								<div className="relative w-36">
-									<Image
-										src={uploadedThumbnail || form.watch("thumbnail") || ""}
-										alt="Thumbnail preview"
-										width={144}
-										height={96}
-										className="h-24 w-36 object-cover rounded-md"
-										unoptimized
+							{/* Show upload button only when no thumbnail is uploaded */}
+							{!uploadedThumbnail && !form.watch("thumbnail") ? (
+								<div className="border rounded-lg p-3">
+									<input
+										type="file"
+										accept=".jpg,.jpeg,.png,.webp"
+										onChange={uploadThumbnail}
+										disabled={isUploadingThumbnail}
+										className="hidden"
+										id="thumbnail-upload"
 									/>
+									<label
+										htmlFor="thumbnail-upload"
+										className="flex items-center justify-center cursor-pointer py-3"
+									>
+										<span className="text-sm font-medium">
+											{isUploadingThumbnail
+												? "Uploading thumbnail..."
+												: "Upload Thumbnail"}
+										</span>
+									</label>
+								</div>
+							) : (
+								<div className="space-y-2">
+									<div className="relative inline-block">
+										<Image
+											src={uploadedThumbnail || form.watch("thumbnail") || ""}
+											alt="Thumbnail preview"
+											width={144}
+											height={96}
+											className="h-24 w-36 object-cover rounded-md border"
+											unoptimized
+										/>
+									</div>
 									<Button
 										type="button"
-										variant="ghost"
+										variant="outline"
 										size="sm"
 										onClick={() => {
 											form.setValue("thumbnail", "");
 											setUploadedThumbnail("");
 										}}
+										className="w-full"
 									>
 										<Trash2 className="h-4 w-4 mr-1" /> Remove
 									</Button>
 								</div>
 							)}
-
-							<p className="text-xs text-muted-foreground">
-								If not uploaded, the first hospital image will be used as
-								thumbnail.
-							</p>
 							{errors.thumbnail?.message && (
 								<p className="text-sm text-destructive">
 									{errors.thumbnail.message}
@@ -718,7 +864,6 @@ export function HospitalFormDialog() {
 									appendService({
 										name: "",
 										description: "",
-										icon: "",
 										averageCost: undefined,
 									})
 								}
@@ -757,14 +902,10 @@ export function HospitalFormDialog() {
 											)}
 										</div>
 									</div>
-									<Input
-										{...form.register(`services.${index}.description`)}
-										placeholder="Description (optional)"
-									/>
 									<div className="flex gap-2">
 										<Input
-											{...form.register(`services.${index}.icon`)}
-											placeholder="Icon URL (optional)"
+											{...form.register(`services.${index}.description`)}
+											placeholder="Description (optional)"
 											className="flex-1"
 										/>
 										<Button
@@ -915,35 +1056,21 @@ export function HospitalFormDialog() {
 							/>
 						</div>
 
-						<Controller
-							name="facilities"
-							control={form.control}
-							render={({ field, fieldState }) => (
-								<Field>
-									<FieldLabel>Facilities (comma-separated) *</FieldLabel>
-									<Textarea
-										value={field.value?.join(", ") || ""}
-										onChange={(e) =>
-											field.onChange(
-												e.target.value
-													.split(",")
-													.map((f) => f.trim())
-													.filter(Boolean),
-											)
-										}
-										placeholder="e.g. Parking, WiFi, Cafeteria"
-										className="min-h-20 resize-none"
-									/>
-									{fieldState.error && (
-										<FieldError errors={[fieldState.error]} />
-									)}
-								</Field>
-							)}
+				<Controller
+					name="facilities"
+					control={form.control}
+					render={({ field, fieldState }) => (
+						<FacilitiesField
+							value={field.value}
+							onChange={field.onChange}
+							error={fieldState.error}
 						/>
+					)}
+				/>
 
-						<div className="grid grid-cols-2 gap-4">
-							<Controller
-								name="openHours.open"
+				<div className="grid grid-cols-2 gap-4">
+					<Controller
+						name="openHours.open"
 								control={form.control}
 								render={({ field }) => (
 									<Field>

@@ -55,6 +55,10 @@ const reviewSchema = z.object({
 
 export const createHospitalSchema = z.object({
 	name: z.string().min(2, "Hospital name is required"),
+	types: z
+		.array(z.string())
+		.min(1, "At least one category is required")
+		.default([]),
 	address: addressSchema,
 	contact: contactSchema,
 	services: z

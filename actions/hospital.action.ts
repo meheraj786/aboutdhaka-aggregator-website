@@ -1,10 +1,12 @@
 "use server";
 
 import { z } from "zod";
+import cloudinary from "@/lib/cloudinary";
 import { dbConnect } from "@/lib/db";
 import { ensureHospitalIndexes, Hospital } from "@/models/hospitals.model";
 import { createHospitalSchema } from "@/validators/hospitals";
 import "@/models/area.model";
+import "@/models/medicalCategory.model";
 
 const slugify = (value: string) =>
 	value
@@ -35,6 +37,38 @@ const buildUniqueHospitalSlug = async (name: string, providedSlug?: string) => {
 	return candidateSlug;
 };
 
+/**
+ * Extract Cloudinary public_id from a Cloudinary URL
+ * Example URL: https://res.cloudinary.com/{cloud_name}/image/upload/v1234567890/hospital-aggregator/hospitals/abc123.jpg
+ * Returns: hospital-aggregator/hospitals/abc123
+ */
+const extractCloudinaryPublicId = (url: string): string | null => {
+	try {
+		const match = url.match(/\/upload\/(?:v\d+\/)?(.+)\.\w+$/);
+		return match ? match[1] : null;
+	} catch {
+		return null;
+	}
+};
+
+/**
+ * Delete images from Cloudinary
+ */
+const deleteCloudinaryImages = async (imageUrls: string[]) => {
+	const deletePromises = imageUrls
+		.map((url) => extractCloudinaryPublicId(url))
+		.filter((publicId): publicId is string => publicId !== null)
+		.map((publicId) =>
+			cloudinary.uploader
+				.destroy(publicId)
+				.catch((error) =>
+					console.error(`Failed to delete image ${publicId}:`, error),
+				),
+		);
+
+	await Promise.allSettled(deletePromises);
+};
+
 export interface GetHospitalsParams {
 	page?: number;
 	pageSize?: number;
@@ -54,6 +88,7 @@ export async function getHospitals(params: GetHospitalsParams = {}) {
 
 		const [items, totalCount] = await Promise.all([
 			Hospital.find(filter)
+				.populate("types", "name slug type")
 				.sort({ createdAt: -1 })
 				.skip(skip)
 				.limit(pageSize)
@@ -83,6 +118,7 @@ export async function createHospital(payload: unknown) {
 		const hospitalData = {
 			name: data.name,
 			slug: generatedSlug,
+			types: data.types || [],
 			rating: data.rating,
 			services: data.services || [],
 			testPrices: data.testPrices || [],
@@ -137,9 +173,39 @@ export async function createHospital(payload: unknown) {
 export async function deleteHospital(id: string) {
 	try {
 		await dbConnect();
+
+		// Fetch hospital to get image URLs before deletion
+		const hospital = await Hospital.findById(id).lean();
+
+		if (!hospital) {
+			throw new Error("Hospital not found");
+		}
+
+		// Collect all image URLs (images array + thumbnail)
+		const imageUrls: string[] = [];
+
+		if (hospital.images && Array.isArray(hospital.images)) {
+			imageUrls.push(...hospital.images);
+		}
+
+		if (hospital.thumbnail && typeof hospital.thumbnail === "string") {
+			// Only add thumbnail if it's not already in images array
+			if (!imageUrls.includes(hospital.thumbnail)) {
+				imageUrls.push(hospital.thumbnail);
+			}
+		}
+
+		// Delete images from Cloudinary (don't block deletion if this fails)
+		if (imageUrls.length > 0) {
+			await deleteCloudinaryImages(imageUrls);
+		}
+
+		// Delete hospital from database
 		await Hospital.findByIdAndDelete(id);
+
 		return { success: true };
-	} catch {
+	} catch (error) {
+		console.error("Delete hospital error:", error);
 		throw new Error("Failed to delete hospital");
 	}
 }
@@ -147,7 +213,9 @@ export async function deleteHospital(id: string) {
 export async function getHospitalById(id: string) {
 	try {
 		await dbConnect();
-		const res = await Hospital.findById(id).lean();
+		const res = await Hospital.findById(id)
+			.populate("types", "name slug type")
+			.lean();
 		return { success: true, data: JSON.parse(JSON.stringify(res)) };
 	} catch {
 		throw new Error("Failed to fetch hospital");

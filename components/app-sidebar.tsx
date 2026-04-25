@@ -12,6 +12,7 @@ import {
 	FileChartColumnIcon,
 	FileIcon,
 	FileTextIcon,
+	FolderHeart,
 	Glasses,
 	LayoutDashboardIcon,
 	MapPinIcon,
@@ -71,6 +72,11 @@ const data = {
 			title: "Doctors",
 			url: "/dashboard/doctors",
 			icon: <UsersIcon />,
+		},
+		{
+			title: "Medical Categories",
+			url: "/dashboard/medical-categories",
+			icon: <FolderHeart />,
 		},
 		{
 			title: "Rents",
