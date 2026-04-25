@@ -7,23 +7,30 @@ import {
 	Info,
 	Map as MapIcon,
 	MapPin,
-	Minus,
 	Navigation,
-	Plus,
 	Search,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import React, { useMemo, useState } from "react";
 import { type IAreaPopulated, seedAreas } from "@/actions/area.action";
 import type { IBusWithStops, IConnectingRoute } from "@/actions/bus.action";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useFindBusRoutes } from "@/hooks/useBus";
 
+const BusMap = dynamic(() => import("@/components/appComponents/BusMap"), {
+	ssr: false,
+	loading: () => (
+		<div className="h-full w-full bg-slate-100 animate-pulse flex items-center justify-center">
+			<MapIcon className="w-8 h-8 text-slate-300" />
+		</div>
+	),
+});
+
 export default function BusRoutePage() {
 	const [departureAreaId, setDepartureAreaId] = useState<string>("");
 	const [destinationAreaId, setDestinationAreaId] = useState<string>("");
 	const [departureStopId, setDepartureStopId] = useState<string>("");
 	const [destinationStopId, setDestinationStopId] = useState<string>("");
-
 	const [searchParams, setSearchParams] = useState<{
 		dep: string;
 		dest: string;
@@ -31,8 +38,6 @@ export default function BusRoutePage() {
 
 	const { data: areaData = [] } = useFetchAreas();
 	const areas: IAreaPopulated[] = areaData;
-
-	console.log(areaData, "data");
 
 	const { data: routeResults, isLoading: isSearching } = useFindBusRoutes(
 		searchParams?.dep || "",
@@ -48,6 +53,28 @@ export default function BusRoutePage() {
 		() => areas.find((a) => a._id === destinationAreaId),
 		[areas, destinationAreaId],
 	);
+
+	const departureCoords = useMemo(() => {
+		const stopData = selectedDepartureArea?.stops.find(
+			(s) => s.stop._id === departureStopId,
+		);
+		if (stopData?.stop?.location?.coordinates) {
+			const [lng, lat] = stopData.stop.location.coordinates;
+			return [lat, lng] as [number, number];
+		}
+		return undefined;
+	}, [selectedDepartureArea, departureStopId]);
+
+	const destinationCoords = useMemo(() => {
+		const stopData = selectedDestinationArea?.stops.find(
+			(s) => s.stop?._id === destinationStopId,
+		);
+		if (stopData?.stop?.location?.coordinates) {
+			const [lng, lat] = stopData.stop.location.coordinates;
+			return [lat, lng] as [number, number];
+		}
+		return undefined;
+	}, [selectedDestinationArea, destinationStopId]);
 
 	const handleSearch = () => {
 		if (!departureStopId || !destinationStopId) return;
@@ -70,7 +97,7 @@ export default function BusRoutePage() {
 						<button
 							type="button"
 							onClick={() => seedAreas()}
-							className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300 transition-colors"
+							className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all hidden shadow-sm"
 						>
 							Seed Data
 						</button>
@@ -362,70 +389,17 @@ export default function BusRoutePage() {
 							<h2 className="text-2xl font-bold text-slate-900 mb-8">
 								Route Preview
 							</h2>
-							<div className="relative bg-slate-100 rounded-[2.5rem] h-[550px] overflow-hidden border border-slate-200">
-								<div className="absolute inset-0 bg-[#E5E7EB] opacity-30">
-									<svg
-										className="w-full h-full"
-										viewBox="0 0 400 600"
-										role="img"
-										aria-label="Background grid pattern"
-									>
-										<title>Background grid pattern</title>
-										<path
-											d="M0 100 L400 150 M0 300 L400 350 M100 0 L150 600 M300 0 L350 600"
-											stroke="white"
-											strokeWidth="20"
-											fill="none"
-										/>
-									</svg>
-								</div>
-								<svg
-									className="absolute inset-0 w-full h-full"
-									viewBox="0 0 400 600"
-									role="img"
-									aria-label="Route path visualization"
-								>
-									<title>Route path visualization</title>
-									<path
-										d="M150 100 Q250 250 200 350 T300 550"
-										fill="none"
-										stroke="#3B82F6"
-										strokeWidth="4"
-										strokeDasharray="8 8"
-									/>
-									<circle cx="150" cy="100" r="6" fill="#3B82F6" />
-									<circle cx="300" cy="550" r="6" fill="#EF4444" />
-								</svg>
-								<div className="absolute top-[80px] left-[140px] bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
-									<span className="text-[10px] font-bold text-slate-900">
-										{selectedDepartureArea?.name || "Departure"}
-									</span>
-								</div>
-								<div className="absolute bottom-[40px] right-[80px] bg-white px-3 py-1.5 rounded-lg shadow-sm border border-slate-100">
-									<span className="text-[10px] font-bold text-slate-900">
-										{selectedDestinationArea?.name || "Destination"}
-									</span>
-								</div>
-								<div className="absolute bottom-8 right-8 flex flex-col gap-2">
-									<button
-										type="button"
-										className="w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all"
-									>
-										<Plus className="w-5 h-5" />
-									</button>
-									<button
-										type="button"
-										className="w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all"
-									>
-										<Minus className="w-5 h-5" />
-									</button>
-								</div>
+							<div className="relative bg-white rounded-[2.5rem] h-[550px] overflow-hidden border border-slate-200 shadow-inner">
+								<BusMap
+									departure={departureCoords}
+									destination={destinationCoords}
+								/>
 							</div>
 							<div className="mt-6 bg-blue-50/50 border border-blue-100 rounded-3xl p-6 flex gap-4">
 								<Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
 								<p className="text-sm text-slate-600 leading-relaxed">
-									Bus routes and timings may vary based on traffic conditions
-									and service availability. Always verify with the conductor.
+									The map shows a visual connection between stops. Actual bus
+									paths follow city roads and traffic patterns.
 								</p>
 							</div>
 						</div>
