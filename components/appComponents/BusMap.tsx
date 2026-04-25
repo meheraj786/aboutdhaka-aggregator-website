@@ -18,6 +18,7 @@ const icon = L.icon({
 	iconAnchor: [12, 41],
 });
 
+
 interface BusMapProps {
 	departure?: [number, number];
 	destination?: [number, number];
