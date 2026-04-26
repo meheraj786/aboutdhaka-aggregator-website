@@ -11,8 +11,9 @@ import {
 	Search,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import React, { useMemo, useState } from "react";
-import { type IAreaPopulated, seedAreas } from "@/actions/area.action";
+import { useSearchParams } from "next/navigation";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
+import type { IAreaPopulated } from "@/actions/area.action";
 import type { IBusWithStops, IConnectingRoute } from "@/actions/bus.action";
 import { useFetchAreas } from "@/hooks/useAreas";
 import { useFindBusRoutes } from "@/hooks/useBus";
@@ -26,7 +27,8 @@ const BusMap = dynamic(() => import("@/components/appComponents/BusMap"), {
 	),
 });
 
-export default function BusRoutePage() {
+function BusRouteContent() {
+	const query = useSearchParams();
 	const [departureAreaId, setDepartureAreaId] = useState<string>("");
 	const [destinationAreaId, setDestinationAreaId] = useState<string>("");
 	const [departureStopId, setDepartureStopId] = useState<string>("");
@@ -39,6 +41,22 @@ export default function BusRoutePage() {
 	const { data: areaData = [] } = useFetchAreas();
 	const areas: IAreaPopulated[] = areaData;
 
+	useEffect(() => {
+		const depA = query.get("depA");
+		const depS = query.get("depS");
+		const destA = query.get("destA");
+		const destS = query.get("destS");
+
+		if (depA) setDepartureAreaId(depA);
+		if (destA) setDestinationAreaId(destA);
+		if (depS) setDepartureStopId(depS);
+		if (destS) setDestinationStopId(destS);
+
+		if (depS && destS) {
+			setSearchParams({ dep: depS, dest: destS });
+		}
+	}, [query]);
+
 	const { data: routeResults, isLoading: isSearching } = useFindBusRoutes(
 		searchParams?.dep || "",
 		searchParams?.dest || "",
@@ -48,7 +66,6 @@ export default function BusRoutePage() {
 		() => areas.find((a) => a._id === departureAreaId),
 		[areas, departureAreaId],
 	);
-
 	const selectedDestinationArea = useMemo(
 		() => areas.find((a) => a._id === destinationAreaId),
 		[areas, destinationAreaId],
@@ -94,13 +111,6 @@ export default function BusRoutePage() {
 								Discover direct and connecting bus services across Dhaka city.
 							</p>
 						</div>
-						<button
-							type="button"
-							onClick={() => seedAreas()}
-							className="px-6 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all hidden shadow-sm"
-						>
-							Seed Data
-						</button>
 					</div>
 
 					<div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 shadow-sm mb-12">
@@ -122,7 +132,7 @@ export default function BusRoutePage() {
 												setDepartureAreaId(e.target.value);
 												setDepartureStopId("");
 											}}
-											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
 										>
 											<option value="">Select Area</option>
 											{areas.map((area) => (
@@ -134,7 +144,6 @@ export default function BusRoutePage() {
 										<ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5" />
 									</div>
 								</div>
-
 								<div className="space-y-2">
 									<label
 										htmlFor="dep-stop"
@@ -149,7 +158,7 @@ export default function BusRoutePage() {
 											disabled={!departureAreaId}
 											value={departureStopId}
 											onChange={(e) => setDepartureStopId(e.target.value)}
-											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-50 transition-all"
+											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 outline-none disabled:opacity-50"
 										>
 											<option value="">Select Bus Stop</option>
 											{selectedDepartureArea?.stops?.map((item) => (
@@ -180,7 +189,7 @@ export default function BusRoutePage() {
 												setDestinationAreaId(e.target.value);
 												setDestinationStopId("");
 											}}
-											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500/20"
 										>
 											<option value="">Select Area</option>
 											{areas.map((area) => (
@@ -192,7 +201,6 @@ export default function BusRoutePage() {
 										<ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none w-5 h-5" />
 									</div>
 								</div>
-
 								<div className="space-y-2">
 									<label
 										htmlFor="dest-stop"
@@ -207,7 +215,7 @@ export default function BusRoutePage() {
 											disabled={!destinationAreaId}
 											value={destinationStopId}
 											onChange={(e) => setDestinationStopId(e.target.value)}
-											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 focus:ring-2 focus:ring-blue-500/20 outline-none disabled:opacity-50 transition-all"
+											className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 pl-12 pr-10 appearance-none font-semibold text-slate-700 outline-none disabled:opacity-50"
 										>
 											<option value="">Select Bus Stop</option>
 											{selectedDestinationArea?.stops?.map((item) => (
@@ -274,8 +282,7 @@ export default function BusRoutePage() {
 															{bus.busName}
 														</h3>
 														<div className="flex items-center gap-1.5 text-slate-400 text-sm mt-1">
-															<Clock className="w-3.5 h-3.5" />
-															Direct Service
+															<Clock className="w-3.5 h-3.5" /> Direct Service
 														</div>
 													</div>
 												</div>
@@ -396,10 +403,9 @@ export default function BusRoutePage() {
 								/>
 							</div>
 							<div className="mt-6 bg-blue-50/50 border border-blue-100 rounded-3xl p-6 flex gap-4">
-								<Info className="w-5 h-5 text-blue-500 flex-shrink-0" />
+								<Info className="w-5 h-5 text-red-500 flex-shrink-0" />
 								<p className="text-sm text-slate-600 leading-relaxed">
-									The map shows a visual connection between stops. Actual bus
-									paths follow city roads and traffic patterns.
+									Map may not be 100% accurate.
 								</p>
 							</div>
 						</div>
@@ -407,5 +413,13 @@ export default function BusRoutePage() {
 				</div>
 			</main>
 		</div>
+	);
+}
+
+export default function BusRoutePage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<BusRouteContent />
+		</Suspense>
 	);
 }

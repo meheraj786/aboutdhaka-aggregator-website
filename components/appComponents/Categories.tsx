@@ -121,7 +121,7 @@ const Categories = () => {
 				>
 					<CarouselContent>
 						{categories.map((cat) => (
-							<CarouselItem key={cat.label} className="basis-1/8">
+							<CarouselItem key={cat.label} className="md:basis-1/8 basis-2/8">
 								<Link href={cat.link}>
 									<div
 										key={cat.label}
