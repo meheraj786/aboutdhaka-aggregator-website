@@ -10,6 +10,7 @@ import {
 	Database,
 	Gamepad2,
 	HardDrive,
+	Info,
 	LayoutGrid,
 	MemoryStick,
 	Minus,
@@ -333,70 +334,107 @@ export default function SmartPCSuggester() {
 				</div>
 
 				<aside className="space-y-6 lg:sticky lg:top-8">
-					<div className="bg-[#0F172A] rounded-2xl p-6 text-white shadow-xl overflow-hidden relative">
-						<div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl" />
-						<div className="relative z-10">
-							<p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-400 mb-2">
-								Hardware Requirements
-							</p>
-							<h3 className="text-2xl font-black mb-6">{buildSpecs.title}</h3>
+<div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-[0_20px_50px_rgba(59,130,246,0.12)] relative overflow-hidden group">
+    <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-50 rounded-full blur-3xl group-hover:bg-blue-100 transition-colors duration-500" />
+    
+    <div className="relative z-10">
+        <div className="flex items-center justify-between mb-8">
+            <div>
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-widest mb-2">
+                    Hardware Requirements
+                </span>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
+                    {buildSpecs.title}
+                </h3>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
+                <Rocket className="w-6 h-6 text-white" />
+            </div>
+        </div>
 
-							<div className="space-y-6">
-								<div className="p-4 bg-white/5 rounded-xl border border-white/10">
-									<p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest mb-4">
-										Recommended Build
-									</p>
-									<div className="grid grid-cols-1 gap-4">
-										<div className="flex items-center gap-3">
-											<Cpu className="w-4 h-4 text-slate-400" />
-											<p className="text-sm">
-												<span className="font-bold">
-													{buildSpecs.recommended.cores} Cores
-												</span>{" "}
-												/ {buildSpecs.recommended.threads} Threads
-											</p>
-										</div>
-										<div className="flex items-center gap-3">
-											<MemoryStick className="w-4 h-4 text-slate-400" />
-											<p className="text-sm font-bold">
-												{buildSpecs.recommended.ram}GB RAM
-											</p>
-										</div>
-										<div className="flex items-center gap-3">
-											<Monitor className="w-4 h-4 text-slate-400" />
-											<p className="text-sm font-bold">
-												{buildSpecs.recommended.vram}GB VRAM
-											</p>
-										</div>
-										<div className="flex items-center gap-3">
-											<HardDrive className="w-4 h-4 text-slate-400" />
-											<p className="text-sm font-bold">
-												{buildSpecs.recommended.ssd >= 1024
-													? `${buildSpecs.recommended.ssd / 1024}TB`
-													: `${buildSpecs.recommended.ssd}GB`}{" "}
-												SSD
-											</p>
-										</div>
-									</div>
-								</div>
+        <div className="space-y-6">
+            <div className="relative p-6 rounded-[2rem] bg-slate-50/50 border border-slate-100">
+                <div className="absolute top-4 right-6">
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-[10px] font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        RECOMMENDED
+                    </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-6">
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                            <Cpu className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Processor</p>
+                            <p className="text-sm font-black text-slate-900">
+                                {buildSpecs.recommended.cores}C / {buildSpecs.recommended.threads}T
+                            </p>
+                        </div>
+                    </div>
 
-								<div className="p-4 bg-white/5 rounded-xl border border-white/5 opacity-60">
-									<p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-2">
-										Entry Level Minimum
-									</p>
-									<p className="text-xs">
-										{buildSpecs.minimum.cores}C/{buildSpecs.minimum.threads}T •{" "}
-										{buildSpecs.minimum.ram}GB RAM • {buildSpecs.minimum.vram}GB
-										VRAM
-									</p>
-								</div>
-							</div>
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                            <MemoryStick className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Memory</p>
+                            <p className="text-sm font-black text-slate-900">{buildSpecs.recommended.ram}GB RAM</p>
+                        </div>
+                    </div>
 
-							<div className="mt-8 p-4 bg-white/5 rounded-xl border border-white/10 text-[11px] leading-relaxed text-white/60 italic">
-								"{buildSpecs.reason}"
-							</div>
-						</div>
-					</div>
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                            <Monitor className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Graphics</p>
+                            <p className="text-sm font-black text-slate-900">{buildSpecs.recommended.vram}GB VRAM</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                        <div className="mt-1 p-2.5 bg-white rounded-xl shadow-sm border border-slate-100">
+                            <HardDrive className="w-4 h-4 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Storage</p>
+                            <p className="text-sm font-black text-slate-900">
+                                {buildSpecs.recommended.ssd >= 1024 
+                                    ? `${buildSpecs.recommended.ssd / 1024}TB` 
+                                    : `${buildSpecs.recommended.ssd}GB`} SSD
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="group/min p-5 rounded-2xl bg-white border border-slate-100 hover:border-blue-100 transition-all">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Entry Level Minimum</span>
+                    <span className="text-[10px] font-black text-blue-500 opacity-0 group-hover/min:opacity-100 transition-opacity">BASIC WORKLOAD</span>
+                </div>
+                <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                    <span>{buildSpecs.minimum.cores}C/{buildSpecs.minimum.threads}T</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                    <span>{buildSpecs.minimum.ram}GB RAM</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300" />
+                    <span>{buildSpecs.minimum.vram}GB VRAM</span>
+                </div>
+            </div>
+        </div>
+
+        <div className="mt-8 flex gap-4 p-5 rounded-2xl bg-blue-50/50 border border-blue-100/50">
+            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+                <Info className="w-4 h-4 text-blue-500" />
+            </div>
+            <p className="text-xs font-medium text-blue-900/70 leading-relaxed italic">
+                "{buildSpecs.reason}"
+            </p>
+        </div>
+    </div>
+</div>
 
 					<div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6">
 						<h3 className="font-bold text-slate-900 mb-4">
