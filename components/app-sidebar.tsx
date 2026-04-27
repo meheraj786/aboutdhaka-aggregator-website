@@ -4,6 +4,7 @@ import {
 	BriefcaseMedical,
 	Building,
 	Bus,
+	BusIcon,
 	CameraIcon,
 	CircleHelpIcon,
 	CookingPot,
@@ -91,6 +92,11 @@ const data = {
 			title: "Bus",
 			url: "/dashboard/bus",
 			icon: <Bus />,
+		},
+		{
+			title: "Bus Stops",
+			url: "/dashboard/bus-stops",
+			icon: <BusIcon />,
 		},
 		{
 			title: "Freelancers",

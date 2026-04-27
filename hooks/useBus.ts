@@ -1,5 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { findBusRoutes } from "@/actions/bus.action";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+	createBus,
+	deleteBus,
+	findBusRoutes,
+	type GetBusesParams,
+	getBuses,
+} from "@/actions/bus.action";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function useFindBusRoutes(
@@ -18,3 +25,34 @@ export function useFindBusRoutes(
 export type UseFindBusRoutesResponse = Awaited<
 	ReturnType<typeof findBusRoutes>
 >;
+
+export function useFetchBuses(params: GetBusesParams) {
+	return useQuery({
+		queryKey: ["buses", params],
+		queryFn: () => getBuses(params),
+	});
+}
+
+export function useCreateBus() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: createBus,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["buses"] });
+			toast.success("Bus created successfully");
+		},
+		onError: (error: { message: string }) => toast.error(error.message),
+	});
+}
+
+export function useDeleteBus() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: deleteBus,
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["buses"] });
+			toast.success("Bus deleted");
+		},
+		onError: (error: { message: string }) => toast.error(error.message),
+	});
+}

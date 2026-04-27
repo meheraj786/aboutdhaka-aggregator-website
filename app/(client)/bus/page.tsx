@@ -61,6 +61,9 @@ function BusRouteContent() {
 		searchParams?.dep || "",
 		searchParams?.dest || "",
 	);
+	console.log(areaData, "areaData");
+
+	console.log(routeResults, "routeResults");
 
 	const selectedDepartureArea = useMemo(
 		() => areas.find((a) => a._id === departureAreaId),
@@ -72,8 +75,8 @@ function BusRouteContent() {
 	);
 
 	const departureCoords = useMemo(() => {
-		const stopData = selectedDepartureArea?.stops.find(
-			(s) => s.stop._id === departureStopId,
+		const stopData = selectedDepartureArea?.stops?.find(
+			(s) => s?.stop?._id === departureStopId,
 		);
 		if (stopData?.stop?.location?.coordinates) {
 			const [lng, lat] = stopData.stop.location.coordinates;

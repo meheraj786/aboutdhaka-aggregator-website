@@ -1,7 +1,9 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Bus } from "@/models/buses.model";
+import type { CreateBusInput } from "@/validators/buses";
 
 export interface IBusStop {
 	_id: string;
@@ -106,5 +108,73 @@ export async function findBusRoutes(
 	} catch (error) {
 		console.error("Error finding routes:", error);
 		throw new Error("Failed to find routes");
+	}
+}
+
+export type GetBusesParams = {
+	page: number;
+	pageSize: number;
+	search?: string;
+};
+
+export async function createBus(data: CreateBusInput) {
+	try {
+		await dbConnect();
+
+		const newBus = await Bus.create({
+			busName: data.busName,
+			stops: data.stops,
+		});
+
+		revalidatePath("/dashboard/buses");
+		revalidatePath("/bus");
+
+		return JSON.parse(JSON.stringify(newBus));
+	} catch (_error) {
+		throw new Error(error.message);
+	}
+}
+
+export async function getBuses(params: GetBusesParams) {
+	try {
+		await dbConnect();
+		const skip = (params.page - 1) * params.pageSize;
+		const query = params.search
+			? { busName: { $regex: params.search, $options: "i" } }
+			: {};
+
+		const [items, totalCount] = await Promise.all([
+			Bus.find(query)
+				.populate("stops")
+				.sort({ createdAt: -1 })
+				.skip(skip)
+				.limit(params.pageSize)
+				.lean(),
+			Bus.countDocuments(query),
+		]);
+
+		return {
+			items: JSON.parse(JSON.stringify(items)),
+			totalCount,
+			currentPage: params.page,
+			totalPages: Math.ceil(totalCount / params.pageSize),
+		};
+	} catch (_error) {
+		throw new Error("Failed to fetch buses");
+	}
+}
+
+export async function deleteBus(id: string) {
+	try {
+		await dbConnect();
+
+		await Bus.findByIdAndDelete(id);
+
+		revalidatePath("/dashboard/buses");
+		revalidatePath("/bus");
+
+		return { success: true };
+	} catch (_error) {
+		throw new Error("Failed to delete bus");
 	}
 }
