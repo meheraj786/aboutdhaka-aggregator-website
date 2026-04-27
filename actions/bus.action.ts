@@ -131,7 +131,7 @@ export async function createBus(data: CreateBusInput) {
 
 		return JSON.parse(JSON.stringify(newBus));
 	} catch (_error) {
-		throw new Error(error.message);
+		throw new Error("Failed to create bus");
 	}
 }
 
