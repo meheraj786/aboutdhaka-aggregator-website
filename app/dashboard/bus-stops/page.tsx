@@ -23,7 +23,7 @@ interface IBusStop {
 	area: string;
 	location: {
 		type: "Point";
-		coordinates: [number, number]; 
+		coordinates: [number, number];
 	};
 	createdAt?: string;
 	updatedAt?: string;
