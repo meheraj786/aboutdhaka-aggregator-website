@@ -11,6 +11,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { usePathname } from "next/navigation";
 
 export function NavMain({
 	items,
@@ -21,7 +22,7 @@ export function NavMain({
 		icon?: React.ReactNode;
 	}[];
 }) {
-	// const path = usePathname();
+	const path = usePathname();
 	return (
 		<SidebarGroup>
 			<SidebarGroupContent className="flex flex-col gap-2">
@@ -46,7 +47,7 @@ export function NavMain({
 				</SidebarMenu>
 				<SidebarMenu>
 					{items.map((item) => (
-						<Link href={item.url} key={item.title}>
+						<Link href={item.url} className={path === item.url ? "bg-primary text-white rounded-lg" : ""} key={item.title}>
 							<SidebarMenuItem>
 								<SidebarMenuButton tooltip={item.title}>
 									{item.icon}
