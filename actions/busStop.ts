@@ -7,172 +7,172 @@ import { BusStop } from "@/models/stop.model";
 import type { CreateBusStopInput } from "@/validators/busStops";
 
 export type GetBusStopsParams = {
-  page: number;
-  pageSize: number;
-  search?: string;
+	page: number;
+	pageSize: number;
+	search?: string;
 };
 
 export async function createBusStop(data: CreateBusStopInput) {
-  try {
-    await dbConnect();
+	try {
+		await dbConnect();
 
-    // Step 1: Create the BusStop document
-    const newStop = await BusStop.create({
-      stopName: data.stopName,
-      area: data.area,
-      location: {
-        type: "Point",
-        coordinates: [Number(data.longitude), Number(data.latitude)],
-      },
-    });
+		// Step 1: Create the BusStop document
+		const newStop = await BusStop.create({
+			stopName: data.stopName,
+			area: data.area,
+			location: {
+				type: "Point",
+				coordinates: [Number(data.longitude), Number(data.latitude)],
+			},
+		});
 
-    // Step 2: Find the Area by name and update its stops array
-    await Area.findOneAndUpdate(
-      { name: data.area },
-      {
-        $push: {
-          stops: {
-            stop: newStop._id,
-            buses: [],
-          },
-        },
-      },
-      { new: true },
-    );
+		// Step 2: Find the Area by name and update its stops array
+		await Area.findOneAndUpdate(
+			{ name: data.area },
+			{
+				$push: {
+					stops: {
+						stop: newStop._id,
+						buses: [],
+					},
+				},
+			},
+			{ new: true },
+		);
 
-    // Step 3: Revalidate both paths
-    revalidatePath("/dashboard/bus-stops");
-    revalidatePath("/bus");
+		// Step 3: Revalidate both paths
+		revalidatePath("/dashboard/bus-stops");
+		revalidatePath("/bus");
 
-    return JSON.parse(JSON.stringify(newStop));
-  } catch (_error) {
-    throw new Error("Failed to create bus stop");
-  }
+		return JSON.parse(JSON.stringify(newStop));
+	} catch (_error) {
+		throw new Error("Failed to create bus stop");
+	}
 }
 
 export async function getBusStops(params: GetBusStopsParams) {
-  try {
-    await dbConnect();
-    const skip = (params.page - 1) * params.pageSize;
-    const query = params.search
-      ? { stopName: { $regex: params.search, $options: "i" } }
-      : {};
+	try {
+		await dbConnect();
+		const skip = (params.page - 1) * params.pageSize;
+		const query = params.search
+			? { stopName: { $regex: params.search, $options: "i" } }
+			: {};
 
-    const [items, totalCount] = await Promise.all([
-      BusStop.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(params.pageSize)
-        .lean(),
-      BusStop.countDocuments(query),
-    ]);
+		const [items, totalCount] = await Promise.all([
+			BusStop.find(query)
+				.sort({ createdAt: -1 })
+				.skip(skip)
+				.limit(params.pageSize)
+				.lean(),
+			BusStop.countDocuments(query),
+		]);
 
-    return {
-      items: JSON.parse(JSON.stringify(items)),
-      totalCount,
-      currentPage: params.page,
-      totalPages: Math.ceil(totalCount / params.pageSize),
-    };
-  } catch (_error) {
-    throw new Error("Failed to fetch bus stops");
-  }
+		return {
+			items: JSON.parse(JSON.stringify(items)),
+			totalCount,
+			currentPage: params.page,
+			totalPages: Math.ceil(totalCount / params.pageSize),
+		};
+	} catch (_error) {
+		throw new Error("Failed to fetch bus stops");
+	}
 }
 
 export async function updateBusStop(id: string, data: CreateBusStopInput) {
-  try {
-    await dbConnect();
+	try {
+		await dbConnect();
 
-    // Step 1: Get the old BusStop to check if area changed
-    const oldStop = await BusStop.findById(id);
-    if (!oldStop) {
-      throw new Error("Bus stop not found");
-    }
+		// Step 1: Get the old BusStop to check if area changed
+		const oldStop = await BusStop.findById(id);
+		if (!oldStop) {
+			throw new Error("Bus stop not found");
+		}
 
-    // Step 2: Update the BusStop document
-    const updatedStop = await BusStop.findByIdAndUpdate(
-      id,
-      {
-        stopName: data.stopName,
-        area: data.area,
-        location: {
-          type: "Point",
-          coordinates: [Number(data.longitude), Number(data.latitude)],
-        },
-      },
-      { new: true },
-    );
+		// Step 2: Update the BusStop document
+		const updatedStop = await BusStop.findByIdAndUpdate(
+			id,
+			{
+				stopName: data.stopName,
+				area: data.area,
+				location: {
+					type: "Point",
+					coordinates: [Number(data.longitude), Number(data.latitude)],
+				},
+			},
+			{ new: true },
+		);
 
-    // Step 3: If area changed, update both old and new areas
-    if (oldStop.area !== data.area) {
-      // Remove from old area
-      await Area.findOneAndUpdate(
-        { name: oldStop.area },
-        {
-          $pull: {
-            stops: {
-              stop: id,
-            },
-          },
-        },
-        { new: true },
-      );
+		// Step 3: If area changed, update both old and new areas
+		if (oldStop.area !== data.area) {
+			// Remove from old area
+			await Area.findOneAndUpdate(
+				{ name: oldStop.area },
+				{
+					$pull: {
+						stops: {
+							stop: id,
+						},
+					},
+				},
+				{ new: true },
+			);
 
-      // Add to new area
-      await Area.findOneAndUpdate(
-        { name: data.area },
-        {
-          $push: {
-            stops: {
-              stop: id,
-              buses: [],
-            },
-          },
-        },
-        { new: true },
-      );
-    }
+			// Add to new area
+			await Area.findOneAndUpdate(
+				{ name: data.area },
+				{
+					$push: {
+						stops: {
+							stop: id,
+							buses: [],
+						},
+					},
+				},
+				{ new: true },
+			);
+		}
 
-    revalidatePath("/dashboard/bus-stops");
-    revalidatePath("/bus");
+		revalidatePath("/dashboard/bus-stops");
+		revalidatePath("/bus");
 
-    return JSON.parse(JSON.stringify(updatedStop));
-  } catch (_error) {
-    throw new Error("Failed to update bus stop");
-  }
+		return JSON.parse(JSON.stringify(updatedStop));
+	} catch (_error) {
+		throw new Error("Failed to update bus stop");
+	}
 }
 
 export async function deleteBusStop(id: string) {
-  try {
-    await dbConnect();
+	try {
+		await dbConnect();
 
-    // Step 1: Get the BusStop to find which Area it belongs to
-    const busStop = await BusStop.findById(id);
-    if (!busStop) {
-      throw new Error("Bus stop not found");
-    }
+		// Step 1: Get the BusStop to find which Area it belongs to
+		const busStop = await BusStop.findById(id);
+		if (!busStop) {
+			throw new Error("Bus stop not found");
+		}
 
-    // Step 2: Delete the BusStop document
-    await BusStop.findByIdAndDelete(id);
+		// Step 2: Delete the BusStop document
+		await BusStop.findByIdAndDelete(id);
 
-    // Step 3: Remove the stop from the Area's stops array
-    await Area.findOneAndUpdate(
-      { name: busStop.area },
-      {
-        $pull: {
-          stops: {
-            stop: busStop._id,
-          },
-        },
-      },
-      { new: true },
-    );
+		// Step 3: Remove the stop from the Area's stops array
+		await Area.findOneAndUpdate(
+			{ name: busStop.area },
+			{
+				$pull: {
+					stops: {
+						stop: busStop._id,
+					},
+				},
+			},
+			{ new: true },
+		);
 
-    // Step 4: Revalidate both paths
-    revalidatePath("/dashboard/bus-stops");
-    revalidatePath("/bus");
+		// Step 4: Revalidate both paths
+		revalidatePath("/dashboard/bus-stops");
+		revalidatePath("/bus");
 
-    return { success: true };
-  } catch (_error) {
-    throw new Error("Failed to delete bus stop");
-  }
+		return { success: true };
+	} catch (_error) {
+		throw new Error("Failed to delete bus stop");
+	}
 }
