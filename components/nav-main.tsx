@@ -2,7 +2,7 @@
 
 import { CirclePlusIcon, MailIcon } from "lucide-react";
 import Link from "next/link";
-// import { usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
 	SidebarGroup,
@@ -11,7 +11,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { usePathname } from "next/navigation";
 
 export function NavMain({
 	items,
@@ -47,7 +46,13 @@ export function NavMain({
 				</SidebarMenu>
 				<SidebarMenu>
 					{items.map((item) => (
-						<Link href={item.url} className={path === item.url ? "bg-primary text-white rounded-lg" : ""} key={item.title}>
+						<Link
+							href={item.url}
+							className={
+								path === item.url ? "bg-primary text-white rounded-lg" : ""
+							}
+							key={item.title}
+						>
 							<SidebarMenuItem>
 								<SidebarMenuButton tooltip={item.title}>
 									{item.icon}
