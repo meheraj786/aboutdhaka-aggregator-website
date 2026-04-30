@@ -168,8 +168,6 @@ function PlacesColumns(
 	];
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
 export default function PlacesDashboardPage() {
 	const [params, setParams] = useState<GetPlacesParams>({
 		page: 1,
@@ -204,7 +202,6 @@ export default function PlacesDashboardPage() {
 
 	const handlePaginationChange = useCallback((p: PaginationParams) => {
 		setParams((prev) => {
-			// Check if anything actually changed to avoid redundant updates
 			if (
 				prev.page === p.page &&
 				prev.pageSize === p.pageSize &&
@@ -228,7 +225,6 @@ export default function PlacesDashboardPage() {
 
 	return (
 		<div className="p-6 space-y-6">
-			{/* ── Page header ──────────────────────────────────────────────────── */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold tracking-tight">Places</h1>
@@ -246,12 +242,10 @@ export default function PlacesDashboardPage() {
 					>
 						{isSeeding ? "Seeding..." : "Seed Areas"}
 					</Button>
-					{/* Add Place button → opens dialog */}
 					<PlaceFormDialog />
 				</div>
 			</div>
 
-			{/* ── Table ────────────────────────────────────────────────────────── */}
 			<DataTable<GetPlaceByIdReturn, unknown>
 				columns={columns || []}
 				data={(data?.items as GetPlaceByIdReturn[]) ?? []}

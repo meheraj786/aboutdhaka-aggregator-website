@@ -49,8 +49,6 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface PaginationParams {
 	page: number;
 	pageSize: number;
@@ -67,15 +65,12 @@ export interface BackendPaginatedResponse<TData> {
 
 interface DataTableProps<TData, TValue> {
 	columns: ColumnDef<TData, TValue>[];
-	// ── Backend data ──────────────────────────────────────────────────────────
 	data: TData[];
 	totalCount: number;
 	currentPage: number;
-	// ── Pagination control (parent must update these via onPaginationChange) ──
 	pageSize?: number;
 	pageSizeOptions?: number[];
 	onPaginationChange: (params: PaginationParams) => void;
-	// ── Optional features ─────────────────────────────────────────────────────
 	title?: string;
 	searchPlaceholder?: string;
 	enableColumnVisibility?: boolean;
@@ -85,8 +80,6 @@ interface DataTableProps<TData, TValue> {
 	emptyMessage?: string;
 	className?: string;
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export default function DataTable<TData, TValue>({
 	columns,
@@ -105,7 +98,6 @@ export default function DataTable<TData, TValue>({
 	emptyMessage = "No results found.",
 	className,
 }: DataTableProps<TData, TValue>) {
-	// ── Local UI state ─────────────────────────────────────────────────────────
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
@@ -114,16 +106,20 @@ export default function DataTable<TData, TValue>({
 		React.useState<VisibilityState>({});
 	const [rowSelection, setRowSelection] = React.useState({});
 
-	// Search is debounced so we don't fire an API call on every keystroke
 	const [searchInput, setSearchInput] = React.useState("");
 	const [debouncedSearch, setDebouncedSearch] = React.useState("");
 
-	// Internal page size mirror — kept in sync with the prop
 	const [internalPageSize, setInternalPageSize] = React.useState(pageSize);
 
 	const pageCount = Math.ceil(totalCount / internalPageSize);
 
-	// ── Debounce search ────────────────────────────────────────────────────────
+	const skeletonIds = React.useMemo(() => {
+		return Array.from(
+			{ length: 5 },
+			(_, _i) => `skeleton-${crypto.randomUUID()}`,
+		);
+	}, []);
+
 	React.useEffect(() => {
 		const timer = setTimeout(() => {
 			setDebouncedSearch(searchInput);
@@ -131,12 +127,10 @@ export default function DataTable<TData, TValue>({
 		return () => clearTimeout(timer);
 	}, [searchInput]);
 
-	// ── Notify parent whenever search, sort, or page size changes ─────────────
-	// We handle page changes separately via goToPage to avoid infinite loops
 	React.useEffect(() => {
 		const sortItem = sorting[0];
 		onPaginationChange({
-			page: 1, // Reset to page 1 on search/sort/size change
+			page: 1,
 			pageSize: internalPageSize,
 			search: debouncedSearch || undefined,
 			sortBy: sortItem?.id,
@@ -144,11 +138,9 @@ export default function DataTable<TData, TValue>({
 		});
 	}, [debouncedSearch, sorting, internalPageSize, onPaginationChange]);
 
-	// ── TanStack table (manual mode for pagination) ────────────────────────────
 	const table = useReactTable({
 		data,
 		columns,
-		// Tell TanStack that pagination / filtering / sorting are handled externally
 		manualPagination: true,
 		manualFiltering: true,
 		manualSorting: true,
@@ -165,13 +157,12 @@ export default function DataTable<TData, TValue>({
 			columnVisibility,
 			rowSelection,
 			pagination: {
-				pageIndex: currentPage - 1, // TanStack is 0-indexed
+				pageIndex: currentPage - 1,
 				pageSize: internalPageSize,
 			},
 		},
 	});
 
-	// ── Page navigation helpers ────────────────────────────────────────────────
 	const goToPage = (page: number) => {
 		const sortItem = sorting[0];
 		onPaginationChange({
@@ -187,7 +178,7 @@ export default function DataTable<TData, TValue>({
 		setInternalPageSize(newSize);
 		const sortItem = sorting[0];
 		onPaginationChange({
-			page: 1, // reset to first page whenever page size changes
+			page: 1,
 			pageSize: newSize,
 			search: debouncedSearch || undefined,
 			sortBy: sortItem?.id,
@@ -195,7 +186,6 @@ export default function DataTable<TData, TValue>({
 		});
 	};
 
-	// ── Export helpers (work on currently loaded page data) ───────────────────
 	const getExportData = () => {
 		const headers = table.getVisibleFlatColumns().map((col) => col.id);
 		const rows = data.map((row) =>
@@ -274,7 +264,6 @@ export default function DataTable<TData, TValue>({
 		doc.save(`${title || "data"}.pdf`);
 	};
 
-	// ── Loading skeleton ───────────────────────────────────────────────────────
 	if (loading) {
 		return (
 			<Card className={className}>
@@ -285,9 +274,9 @@ export default function DataTable<TData, TValue>({
 				)}
 				<CardContent>
 					<div className="space-y-3">
-						{Array.from({ length: 5 }).map((_, i) => (
+						{skeletonIds.map((skeletonId) => (
 							<div
-								key={`skeleton-${i}`}
+								key={skeletonId}
 								className="h-8 animate-pulse rounded bg-muted"
 							/>
 						))}
@@ -297,7 +286,6 @@ export default function DataTable<TData, TValue>({
 		);
 	}
 
-	// ── Render ─────────────────────────────────────────────────────────────────
 	return (
 		<Card className={className}>
 			{title && (
@@ -306,10 +294,8 @@ export default function DataTable<TData, TValue>({
 				</CardHeader>
 			)}
 			<CardContent className="p-0">
-				{/* Toolbar */}
 				<div className="flex items-center justify-between p-4 border-b">
 					<div className="flex items-center space-x-2">
-						{/* Search — value sent to backend via onPaginationChange */}
 						<div className="relative">
 							<Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
 							<Input
@@ -377,7 +363,6 @@ export default function DataTable<TData, TValue>({
 					</div>
 				</div>
 
-				{/* Table */}
 				<div className="border">
 					<div className="overflow-x-auto">
 						<Table className="border-collapse min-w-max">
@@ -438,10 +423,8 @@ export default function DataTable<TData, TValue>({
 					</div>
 				</div>
 
-				{/* Pagination */}
 				{enablePagination && (
 					<div className="flex items-center justify-between px-4 py-3 border-t flex-wrap gap-2">
-						{/* Result info */}
 						<div className="text-sm text-muted-foreground">
 							Showing{" "}
 							<span className="font-medium">
@@ -455,7 +438,6 @@ export default function DataTable<TData, TValue>({
 						</div>
 
 						<div className="flex items-center gap-4 flex-wrap">
-							{/* Page size selector */}
 							<div className="flex items-center space-x-2">
 								<p className="text-sm text-muted-foreground">Rows per page</p>
 								<Select
@@ -475,7 +457,6 @@ export default function DataTable<TData, TValue>({
 								</Select>
 							</div>
 
-							{/* Page navigation */}
 							<div className="flex items-center space-x-1">
 								<Button
 									variant="outline"
@@ -494,7 +475,6 @@ export default function DataTable<TData, TValue>({
 									Previous
 								</Button>
 
-								{/* Page number chips */}
 								{Array.from({ length: Math.min(5, pageCount) }, (_, i) => {
 									let page: number;
 									if (pageCount <= 5) {
@@ -543,8 +523,6 @@ export default function DataTable<TData, TValue>({
 		</Card>
 	);
 }
-
-// ─── Sortable column header helper ────────────────────────────────────────────
 
 export function createSortableHeader<TData, TValue>(title: string) {
 	const SortableHeader = (props: HeaderContext<TData, TValue>) => (
