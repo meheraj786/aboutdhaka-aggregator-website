@@ -18,12 +18,6 @@ export interface IHospitalAddress {
 	coordinates?: IHospitalCoordinates;
 }
 
-export interface IHospitalOpenHours {
-	open?: string;
-	close?: string;
-	isOpen24Hours?: boolean;
-}
-
 export interface IHospitalReview {
 	reviewer?: string;
 	comment?: string;
@@ -57,7 +51,6 @@ export interface IHospital extends Document {
 	facilities?: string[];
 	totalBeds?: number;
 	established?: number;
-	openHours?: IHospitalOpenHours;
 	reviews?: IHospitalReview[];
 	googleMapReviewLink?: string;
 	isVerified: boolean;
@@ -115,11 +108,6 @@ const hospitalSchema: Schema<IHospital> = new Schema(
 		facilities: [{ type: String }],
 		totalBeds: { type: Number },
 		established: { type: Number },
-		openHours: {
-			open: { type: String },
-			close: { type: String },
-			isOpen24Hours: { type: Boolean, default: false },
-		},
 		reviews: [
 			{
 				reviewer: { type: String },

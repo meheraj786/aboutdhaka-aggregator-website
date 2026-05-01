@@ -21,7 +21,6 @@ import { toast } from "sonner";
 import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -145,11 +144,6 @@ const DEFAULT_VALUES: CreateHospitalInput = {
 	facilities: [],
 	totalBeds: 0,
 	established: 0,
-	openHours: {
-		open: "",
-		close: "",
-		isOpen24Hours: false,
-	},
 	reviews: [],
 	googleMapReviewLink: "",
 	isVerified: false,
@@ -336,8 +330,6 @@ export function HospitalFormDialog() {
 			},
 		});
 	};
-
-	const isOpen24Hours = form.watch("openHours.isOpen24Hours");
 
 	return (
 		<Dialog
@@ -1070,100 +1062,6 @@ export function HospitalFormDialog() {
 								/>
 							)}
 						/>
-
-						<div className="grid grid-cols-2 gap-4">
-							<Controller
-								name="openHours.open"
-								control={form.control}
-								render={({ field }) => (
-									<Field>
-										<FieldLabel>Open Time (optional)</FieldLabel>
-										<Input
-											{...field}
-											placeholder="09:00 AM"
-											disabled={isOpen24Hours}
-										/>
-									</Field>
-								)}
-							/>
-							<Controller
-								name="openHours.close"
-								control={form.control}
-								render={({ field }) => (
-									<Field>
-										<FieldLabel>Close Time (optional)</FieldLabel>
-										<Input
-											{...field}
-											placeholder="10:00 PM"
-											disabled={isOpen24Hours}
-										/>
-									</Field>
-								)}
-							/>
-						</div>
-
-						<div className="flex items-center gap-4">
-							<Controller
-								name="openHours.isOpen24Hours"
-								control={form.control}
-								render={({ field }) => (
-									<label
-										htmlFor="hospital-open-24-hours"
-										className="flex items-center gap-2 text-sm"
-									>
-										<Checkbox
-											id="hospital-open-24-hours"
-											checked={field.value}
-											onCheckedChange={(value) =>
-												field.onChange(Boolean(value))
-											}
-										/>
-										Open 24 Hours
-									</label>
-								)}
-							/>
-
-							<Controller
-								name="isVerified"
-								control={form.control}
-								render={({ field }) => (
-									<label
-										htmlFor="hospital-is-verified"
-										className="flex items-center gap-2 text-sm"
-									>
-										<Checkbox
-											id="hospital-is-verified"
-											checked={field.value}
-											onCheckedChange={(value) =>
-												field.onChange(Boolean(value))
-											}
-										/>
-										Verified
-									</label>
-								)}
-							/>
-
-							<Controller
-								name="isActive"
-								control={form.control}
-								render={({ field }) => (
-									<label
-										htmlFor="hospital-is-active"
-										className="flex items-center gap-2 text-sm"
-									>
-										<Checkbox
-											id="hospital-is-active"
-											checked={field.value}
-											onCheckedChange={(value) =>
-												field.onChange(Boolean(value))
-											}
-										/>
-										Active
-									</label>
-								)}
-							/>
-						</div>
-
 						<Controller
 							name="googleMapReviewLink"
 							control={form.control}
