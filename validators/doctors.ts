@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DOCTOR_DEPARTMENTS } from "@/lib/doctorDepartments";
 
 const qualificationSchema = z.object({
 	degree: z.string().min(1, "Degree is required"),
@@ -19,7 +20,7 @@ export const createDoctorSchema = z.object({
 	name: z.string().min(2, "Name must be at least 2 characters"),
 	slug: z.string().optional(),
 	departments: z
-		.array(z.string())
+		.array(z.enum(DOCTOR_DEPARTMENTS))
 		.min(1, "At least one department is required"),
 	qualifications: z
 		.array(qualificationSchema)
@@ -28,7 +29,16 @@ export const createDoctorSchema = z.object({
 	experience: z.number().min(0, "Experience cannot be negative").optional(),
 	bio: z.string().min(1, "Bio is required"),
 	contact: contactSchema,
-	profileImage: z.string().url("Invalid image URL").optional(),
+	profileImage: z
+		.string()
+		.trim()
+		.optional()
+		.transform((value) => (value === "" ? undefined : value))
+		.refine(
+			(value) =>
+				value === undefined || z.string().url().safeParse(value).success,
+			"Invalid image URL",
+		),
 	gender: z.enum(["male", "female", "other"]).optional(),
 	bmdc: z.string().min(1, "BMDC registration is required"),
 	speciality: z.array(z.string()).optional().default([]),

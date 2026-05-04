@@ -18,7 +18,6 @@ import {
 	useForm,
 } from "react-hook-form";
 import { toast } from "sonner";
-import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,14 +50,12 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetchAreas } from "@/hooks/useAreas";
-import { useCreateHospital } from "@/hooks/useHospitals";
-import { useFetchMedicalCategories } from "@/hooks/useMedicalCategories";
+import { useCreateHospital, useUpdateHospital } from "@/hooks/useHospitals";
+import { HOSPITAL_TYPES } from "@/lib/hospitalTypes";
 import {
 	type CreateHospitalInput,
 	createHospitalSchema,
 } from "@/validators/hospitals";
-
-type MedicalCategoryItem = GetMedicalCategoriesReturn["items"][number];
 
 // Separate component for facilities field to avoid hooks in render function
 function FacilitiesField({
@@ -151,30 +148,93 @@ const DEFAULT_VALUES: CreateHospitalInput = {
 	rating: 0,
 };
 
-export function HospitalFormDialog() {
+interface HospitalFormDialogProps {
+	mode?: "create" | "edit";
+	hospitalId?: string;
+	initialData?: Partial<CreateHospitalInput>;
+	trigger?: React.ReactNode;
+}
+
+const toDateTimeLocal = (value?: string) => {
+	if (!value) return "";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+	const pad = (n: number) => n.toString().padStart(2, "0");
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const buildDefaultValues = (
+	initialData?: Partial<CreateHospitalInput>,
+): CreateHospitalInput => ({
+	name: initialData?.name ?? DEFAULT_VALUES.name,
+	types: initialData?.types ?? DEFAULT_VALUES.types,
+	address: {
+		area: initialData?.address?.area ?? DEFAULT_VALUES.address.area,
+		district: initialData?.address?.district ?? DEFAULT_VALUES.address.district,
+		division: initialData?.address?.division ?? DEFAULT_VALUES.address.division,
+		coordinates: {
+			lat:
+				initialData?.address?.coordinates?.lat ??
+				DEFAULT_VALUES.address.coordinates.lat,
+			lng:
+				initialData?.address?.coordinates?.lng ??
+				DEFAULT_VALUES.address.coordinates.lng,
+		},
+	},
+	contact: {
+		phone:
+			initialData?.contact?.phone && initialData.contact.phone.length > 0
+				? initialData.contact.phone
+				: DEFAULT_VALUES.contact.phone,
+		email: initialData?.contact?.email ?? DEFAULT_VALUES.contact.email,
+		website: initialData?.contact?.website ?? DEFAULT_VALUES.contact.website,
+	},
+	services: initialData?.services ?? DEFAULT_VALUES.services,
+	testPrices: initialData?.testPrices ?? DEFAULT_VALUES.testPrices,
+	images: initialData?.images ?? DEFAULT_VALUES.images,
+	thumbnail: initialData?.thumbnail ?? DEFAULT_VALUES.thumbnail,
+	facilities: initialData?.facilities ?? DEFAULT_VALUES.facilities,
+	totalBeds: initialData?.totalBeds ?? DEFAULT_VALUES.totalBeds,
+	established: initialData?.established ?? DEFAULT_VALUES.established,
+	reviews:
+		initialData?.reviews?.map((review) => ({
+			reviewer: review.reviewer ?? "",
+			comment: review.comment ?? "",
+			time: toDateTimeLocal(review.time as string),
+			initial: review.initial ?? "",
+			rating: review.rating ?? 0,
+		})) ?? DEFAULT_VALUES.reviews,
+	googleMapReviewLink:
+		initialData?.googleMapReviewLink ?? DEFAULT_VALUES.googleMapReviewLink,
+	isVerified: initialData?.isVerified ?? DEFAULT_VALUES.isVerified,
+	isActive: initialData?.isActive ?? DEFAULT_VALUES.isActive,
+	rating: initialData?.rating ?? DEFAULT_VALUES.rating,
+	slug: initialData?.slug,
+});
+
+export function HospitalFormDialog({
+	mode = "create",
+	hospitalId,
+	initialData,
+	trigger,
+}: HospitalFormDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [isUploading, setIsUploading] = useState(false);
 	const [isUploadingThumbnail, setIsUploadingThumbnail] = useState(false);
 	const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 	const [uploadedThumbnail, setUploadedThumbnail] = useState("");
 	const { data: areasData = [] } = useFetchAreas();
-	const { data: categoriesData } = useFetchMedicalCategories({
-		type: "hospital",
-		isActive: true,
-	});
-	const { mutate: createHosp, isPending } = useCreateHospital();
+	const { mutate: createHosp, isPending: isCreating } = useCreateHospital();
+	const { mutate: updateHosp, isPending: isUpdating } = useUpdateHospital();
+	const isPending = isCreating || isUpdating;
 
 	const areas = useMemo(() => areasData, [areasData]);
-	const categories = useMemo(
-		() => categoriesData?.items ?? [],
-		[categoriesData],
-	);
 
 	const form = useForm<CreateHospitalInput>({
 		resolver: zodResolver(
 			createHospitalSchema,
 		) as Resolver<CreateHospitalInput>,
-		defaultValues: DEFAULT_VALUES,
+		defaultValues: buildDefaultValues(initialData),
 		mode: "onTouched",
 		reValidateMode: "onChange",
 	});
@@ -218,6 +278,15 @@ export function HospitalFormDialog() {
 	});
 
 	const phoneValues = form.watch("contact.phone") || [""];
+
+	useEffect(() => {
+		if (!open) {
+			const nextValues = buildDefaultValues(initialData);
+			form.reset(nextValues);
+			setUploadedImages(nextValues.images || []);
+			setUploadedThumbnail(nextValues.thumbnail || "");
+		}
+	}, [open, initialData, form]);
 
 	const appendPhone = () => {
 		form.setValue("contact.phone", [...phoneValues, ""], {
@@ -320,37 +389,46 @@ export function HospitalFormDialog() {
 	};
 
 	const onSubmit = (values: CreateHospitalInput) => {
+		if (mode === "edit" && hospitalId) {
+			updateHosp(
+				{ id: hospitalId, data: values },
+				{
+					onSuccess: () => {
+						setOpen(false);
+						toast.success("Hospital updated successfully!");
+					},
+				},
+			);
+			return;
+		}
+
 		createHosp(values, {
 			onSuccess: () => {
 				setOpen(false);
-				form.reset(DEFAULT_VALUES);
-				setUploadedImages([]);
-				setUploadedThumbnail("");
 				toast.success("Hospital added successfully!");
 			},
 		});
 	};
+
+	const defaultTrigger = (
+		<Button className="gap-2">
+			<Plus className="h-4 w-4" /> Add Hospital
+		</Button>
+	);
 
 	return (
 		<Dialog
 			open={open}
 			onOpenChange={(val) => {
 				setOpen(val);
-				if (!val) {
-					form.reset(DEFAULT_VALUES);
-					setUploadedImages([]);
-					setUploadedThumbnail("");
-				}
 			}}
 		>
-			<DialogTrigger asChild>
-				<Button className="gap-2">
-					<Plus className="h-4 w-4" /> Add Hospital
-				</Button>
-			</DialogTrigger>
+			<DialogTrigger asChild>{trigger ?? defaultTrigger}</DialogTrigger>
 			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-175">
 				<DialogHeader>
-					<DialogTitle>Add New Hospital</DialogTitle>
+					<DialogTitle>
+						{mode === "edit" ? "Edit Hospital" : "Add New Hospital"}
+					</DialogTitle>
 				</DialogHeader>
 
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-2">
@@ -376,10 +454,6 @@ export function HospitalFormDialog() {
 							control={form.control}
 							render={({ field, fieldState }) => {
 								const selectedTypes = field.value || [];
-								const selectedCategories = categories.filter(
-									(cat: MedicalCategoryItem) =>
-										selectedTypes.includes(String(cat._id)),
-								);
 								return (
 									<Field>
 										<FieldLabel>Categories *</FieldLabel>
@@ -396,57 +470,48 @@ export function HospitalFormDialog() {
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent className="w-75 max-h-75 overflow-y-auto">
-												{categories.length === 0 ? (
-													<p className="text-sm text-muted-foreground p-2">
-														No categories available
-													</p>
-												) : (
-													categories.map((category: MedicalCategoryItem) => {
-														const categoryId = String(category._id);
-														const isChecked =
-															selectedTypes.includes(categoryId);
+												{HOSPITAL_TYPES.map((hospitalType) => {
+													const isChecked =
+														selectedTypes.includes(hospitalType);
 
-														return (
-															<DropdownMenuCheckboxItem
-																key={categoryId}
-																checked={isChecked}
-																onCheckedChange={(checked) => {
-																	if (checked) {
-																		field.onChange([
-																			...selectedTypes,
-																			categoryId,
-																		]);
-																	} else {
-																		field.onChange(
-																			selectedTypes.filter(
-																				(id: string) => id !== categoryId,
-																			),
-																		);
-																	}
-																}}
-															>
-																{category.name}
-															</DropdownMenuCheckboxItem>
-														);
-													})
-												)}
+													return (
+														<DropdownMenuCheckboxItem
+															key={hospitalType}
+															checked={isChecked}
+															onCheckedChange={(checked) => {
+																if (checked) {
+																	field.onChange([
+																		...selectedTypes,
+																		hospitalType,
+																	]);
+																} else {
+																	field.onChange(
+																		selectedTypes.filter(
+																			(type: string) => type !== hospitalType,
+																		),
+																	);
+																}
+															}}
+														>
+															{hospitalType}
+														</DropdownMenuCheckboxItem>
+													);
+												})}
 											</DropdownMenuContent>
 										</DropdownMenu>
 
 										{/* Display selected categories as badges */}
-										{selectedCategories.length > 0 && (
+										{selectedTypes.length > 0 && (
 											<div className="flex flex-wrap gap-1 mt-2">
-												{selectedCategories.map(
-													(category: MedicalCategoryItem) => (
-														<Badge
-															key={String(category._id)}
-															variant="secondary"
-															className="text-xs"
-														>
-															{category.name}
-														</Badge>
-													),
-												)}
+												{selectedTypes.map((typeValue: string) => (
+													<Badge
+														key={typeValue}
+														variant="secondary"
+														className="text-xs"
+													>
+														{typeValue}
+													</Badge>
+												))}
 											</div>
 										)}
 

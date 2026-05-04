@@ -6,6 +6,7 @@ import {
 	type GetHospitalsParams,
 	getHospitalById,
 	getHospitals,
+	updateHospital,
 } from "@/actions/hospital.action";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -56,6 +57,21 @@ export function useDeleteHospital() {
 		},
 		onError: (error) => {
 			toast.error(error.message || "Failed to delete hospital");
+		},
+	});
+}
+
+export function useUpdateHospital() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: unknown }) =>
+			updateHospital(id, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: [queryKeys.hospitals] });
+		},
+		onError: (error) => {
+			toast.error(error.message || "Failed to update hospital");
 		},
 	});
 }

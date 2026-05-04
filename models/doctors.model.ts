@@ -1,4 +1,8 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
+import {
+	DOCTOR_DEPARTMENTS,
+	type DoctorDepartment,
+} from "@/lib/doctorDepartments";
 
 export type DoctorGender = "male" | "female" | "other";
 
@@ -16,7 +20,7 @@ export interface IDoctorContact {
 export interface IDoctor extends Document {
 	name: string;
 	slug?: string;
-	departments: mongoose.Types.ObjectId[];
+	departments: DoctorDepartment[];
 	qualifications: IDoctorQualification[];
 	designation: string;
 	experience?: number;
@@ -40,10 +44,10 @@ const doctorSchema: Schema<IDoctor> = new Schema(
 		name: { type: String, required: true, trim: true },
 		slug: { type: String, unique: true, trim: true },
 		departments: {
-			type: [{ type: Schema.Types.ObjectId, ref: "MedicalCategory" }],
+			type: [{ type: String, enum: DOCTOR_DEPARTMENTS, trim: true }],
 			required: true,
 			validate: {
-				validator: (value: mongoose.Types.ObjectId[]) => value.length > 0,
+				validator: (value: DoctorDepartment[]) => value.length > 0,
 				message: "At least one department is required",
 			},
 		},
@@ -93,8 +97,12 @@ const doctorSchema: Schema<IDoctor> = new Schema(
 
 doctorSchema.index({ name: "text" });
 
+if (process.env.NODE_ENV !== "production" && mongoose.models[modelName]) {
+	delete mongoose.models[modelName];
+}
+
 export const Doctor: Model<IDoctor> =
-	mongoose.models[modelName] ||
+	(mongoose.models[modelName] as Model<IDoctor>) ||
 	mongoose.model<IDoctor>(modelName, doctorSchema);
 
 export default Doctor;

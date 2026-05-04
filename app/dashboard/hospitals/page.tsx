@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { GetHospitalsReturn } from "@/actions/hospital.action";
@@ -16,11 +16,83 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteHospital, useFetchHospitals } from "@/hooks/useHospitals";
+import type { CreateHospitalInput } from "@/validators/hospitals";
 
 type HospitalItem = GetHospitalsReturn["items"][number];
+
+const toDateTimeLocal = (value?: string | Date) => {
+	if (!value) return "";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+	const pad = (n: number) => n.toString().padStart(2, "0");
+	return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const mapHospitalToFormInput = (
+	hospital: HospitalItem,
+): CreateHospitalInput => ({
+	name: hospital.name ?? "",
+	types: (hospital.types ?? []) as unknown as CreateHospitalInput["types"],
+	address: {
+		area: hospital.address?.area ?? "",
+		district: hospital.address?.district ?? "Dhaka",
+		division: hospital.address?.division ?? "Dhaka",
+		coordinates: {
+			lat: hospital.address?.coordinates?.lat ?? 0,
+			lng: hospital.address?.coordinates?.lng ?? 0,
+		},
+	},
+	contact: {
+		phone:
+			hospital.contact?.phone && hospital.contact.phone.length > 0
+				? hospital.contact.phone
+				: [""],
+		email: hospital.contact?.email ?? "",
+		website: hospital.contact?.website ?? "",
+	},
+	services: hospital.services ?? [],
+	testPrices: hospital.testPrices ?? [],
+	images: hospital.images ?? [],
+	thumbnail: hospital.thumbnail ?? "",
+	facilities: hospital.facilities ?? [],
+	totalBeds: hospital.totalBeds ?? 0,
+	established: hospital.established ?? 0,
+	reviews:
+		(
+			hospital.reviews as
+				| Array<{
+						reviewer?: string;
+						comment?: string;
+						time?: string | Date;
+						initial?: string;
+						rating?: number;
+				  }>
+				| undefined
+		)?.map(
+			(review: {
+				reviewer?: string;
+				comment?: string;
+				time?: string | Date;
+				initial?: string;
+				rating?: number;
+			}) => ({
+				reviewer: review.reviewer ?? "",
+				comment: review.comment ?? "",
+				time: toDateTimeLocal(review.time as string | Date),
+				initial: review.initial ?? "",
+				rating: review.rating ?? 0,
+			}),
+		) ?? [],
+	googleMapReviewLink: hospital.googleMapReviewLink ?? "",
+	isVerified: hospital.isVerified ?? false,
+	isActive: hospital.isActive ?? true,
+	rating: hospital.rating ?? 0,
+	slug: hospital.slug,
+});
 
 export type GetHospitalsParams = {
 	page: number;
@@ -73,15 +145,12 @@ export default function HospitalsPage() {
 				id: "categories",
 				header: "Categories",
 				cell: ({ row }) => {
-					const types = row.original.types as Array<{
-						_id: string;
-						name: string;
-					}>;
+					const types = (row.original.types ?? []) as string[];
 					return types && types.length > 0 ? (
 						<div className="flex flex-wrap gap-1">
 							{types.map((type) => (
-								<Badge key={type._id} variant="secondary" className="text-xs">
-									{type.name}
+								<Badge key={type} variant="secondary" className="text-xs">
+									{type}
 								</Badge>
 							))}
 						</div>
@@ -133,6 +202,17 @@ export default function HospitalsPage() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
+							<HospitalFormDialog
+								mode="edit"
+								hospitalId={String(row.original._id)}
+								initialData={mapHospitalToFormInput(row.original)}
+								trigger={
+									<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+										<Pencil className="mr-2 h-4 w-4" /> Edit
+									</DropdownMenuItem>
+								}
+							/>
+							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								onClick={() => {
 									if (

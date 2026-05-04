@@ -21,7 +21,6 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import type { GetHospitalsReturn } from "@/actions/hospital.action";
-import type { GetMedicalCategoriesReturn } from "@/actions/medicalCategories.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,14 +56,13 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateDoctor, useUpdateDoctor } from "@/hooks/useDoctors";
 import { useFetchHospitals } from "@/hooks/useHospitals";
-import { useFetchMedicalCategories } from "@/hooks/useMedicalCategories";
+import { DOCTOR_DEPARTMENTS } from "@/lib/doctorDepartments";
 import {
 	type CreateDoctorInput,
 	createDoctorSchema,
 	type UpdateDoctorInput,
 } from "@/validators/doctors";
 
-type MedicalCategoryItem = GetMedicalCategoriesReturn["items"][number];
 type HospitalItem = GetHospitalsReturn["items"][number];
 
 const DEFAULT_VALUES: CreateDoctorInput = {
@@ -186,14 +184,6 @@ export function DoctorFormDialog({
 	const [specialityInput, setSpecialityInput] = useState("");
 	const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-	const { data: categoriesData } = useFetchMedicalCategories({
-		page: 1,
-		pageSize: 200,
-		type: "doctor",
-		isActive: true,
-		sortBy: "name",
-		sortOrder: "asc",
-	});
 	const { data: hospitalsData } = useFetchHospitals({
 		page: 1,
 		pageSize: 200,
@@ -203,10 +193,6 @@ export function DoctorFormDialog({
 
 	const isPending = isCreating || isUpdating;
 
-	const categories = useMemo(
-		() => categoriesData?.items ?? [],
-		[categoriesData],
-	);
 	const hospitals = useMemo(() => hospitalsData?.items ?? [], [hospitalsData]);
 
 	const form = useForm<CreateDoctorInput>({
@@ -622,54 +608,43 @@ export function DoctorFormDialog({
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent className="w-72 max-h-72 overflow-y-auto">
-												{categories.length === 0 ? (
-													<p className="p-2 text-sm text-muted-foreground">
-														No departments available
-													</p>
-												) : (
-													categories.map((category: MedicalCategoryItem) => {
-														const categoryId = String(category._id);
-														const checked =
-															selectedDepartments.includes(categoryId);
+												{DOCTOR_DEPARTMENTS.map((department) => {
+													const checked =
+														selectedDepartments.includes(department);
 
-														return (
-															<DropdownMenuCheckboxItem
-																key={categoryId}
-																checked={checked}
-																onCheckedChange={(isChecked) => {
-																	if (isChecked) {
-																		field.onChange([
-																			...selectedDepartments,
-																			categoryId,
-																		]);
-																	} else {
-																		field.onChange(
-																			selectedDepartments.filter(
-																				(id) => id !== categoryId,
-																			),
-																		);
-																	}
-																}}
-															>
-																{category.name}
-															</DropdownMenuCheckboxItem>
-														);
-													})
-												)}
+													return (
+														<DropdownMenuCheckboxItem
+															key={department}
+															checked={checked}
+															onCheckedChange={(isChecked) => {
+																if (isChecked) {
+																	field.onChange([
+																		...selectedDepartments,
+																		department,
+																	]);
+																} else {
+																	field.onChange(
+																		selectedDepartments.filter(
+																			(id) => id !== department,
+																		),
+																	);
+																}
+															}}
+														>
+															{department}
+														</DropdownMenuCheckboxItem>
+													);
+												})}
 											</DropdownMenuContent>
 										</DropdownMenu>
 
 										{selectedDepartments.length > 0 && (
 											<div className="mt-2 flex flex-wrap gap-1">
-												{categories
-													.filter((c: MedicalCategoryItem) =>
-														selectedDepartments.includes(String(c._id)),
-													)
-													.map((c: MedicalCategoryItem) => (
-														<Badge key={String(c._id)} variant="secondary">
-															{c.name}
-														</Badge>
-													))}
+												{selectedDepartments.map((department) => (
+													<Badge key={department} variant="secondary">
+														{department}
+													</Badge>
+												))}
 											</div>
 										)}
 

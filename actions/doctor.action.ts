@@ -6,7 +6,6 @@ import { dbConnect } from "@/lib/db";
 import { Doctor } from "@/models/doctors.model";
 import { createDoctorSchema, updateDoctorSchema } from "@/validators/doctors";
 import "@/models/hospitals.model";
-import "@/models/medicalCategory.model";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -103,7 +102,6 @@ export async function getDoctors(params: GetDoctorsParams = {}) {
 
 		const [items, totalCount] = await Promise.all([
 			Doctor.find(filter)
-				.populate("departments", "name slug")
 				.populate("chamber", "name slug")
 				.sort({ [sortField]: sortDirection })
 				.skip(skip)
@@ -134,7 +132,6 @@ export async function getDoctorById(id: string) {
 		await dbConnect();
 
 		const doctor = await Doctor.findById(id)
-			.populate("departments", "name slug")
 			.populate("chamber", "name slug")
 			.lean();
 

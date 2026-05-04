@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreVertical, Pencil, Star, Trash2 } from "lucide-react";
+import { Hospital, Pencil, Star, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type {
@@ -13,6 +13,7 @@ import DataTable, {
 	type PaginationParams,
 } from "@/components/dashboardComponents/DataTable";
 import { DoctorFormDialog } from "@/components/dashboardComponents/DoctorFormDialog";
+import { DoctorHospitalsModal } from "@/components/dashboardComponents/DoctorHospitalsModal";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -26,14 +27,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { useDeleteDoctor, useFetchDoctors } from "@/hooks/useDoctors";
+import type { CreateDoctorInput } from "@/validators/doctors";
 
 type DoctorItem = GetDoctorsReturn["items"][number];
 
@@ -190,91 +186,103 @@ export default function DoctorsPage() {
 						typeof department === "string"
 							? department
 							: String(department._id),
-					);
+					) as unknown as CreateDoctorInput["departments"];
 
 					const chamberIds = chambers.map((hospital) =>
 						typeof hospital === "string" ? hospital : String(hospital._id),
 					);
 
 					return (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="outline" className="h-8 w-8 p-0">
-									<MoreVertical className="h-4 w-4" />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DoctorFormDialog
-									mode="edit"
-									doctorId={id}
-									initialData={{
-										name: doctor.name,
-										slug: doctor.slug,
-										departments: departmentIds,
-										qualifications: doctor.qualifications ?? [],
-										designation: doctor.designation,
-										experience: doctor.experience,
-										bio: doctor.bio,
-										contact: {
-											phone: doctor.contact?.phone,
-											email: doctor.contact?.email,
-										},
-										profileImage: doctor.profileImage,
-										gender: doctor.gender,
-										bmdc: doctor.bmdc,
-										speciality: doctor.speciality ?? [],
-										chamber: chamberIds,
-										isVerified: doctor.isVerified,
-										isActive: doctor.isActive,
-										rating: doctor.rating,
-										reviewCount: doctor.reviewCount,
-									}}
-									trigger={
-										<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-											<Pencil className="mr-2 h-4 w-4" />
-											Edit
-										</DropdownMenuItem>
-									}
-								/>
+						<div className="flex items-center gap-2">
+							{/* Hospital Assignments */}
+							<DoctorHospitalsModal
+								doctorId={id}
+								doctorName={doctor.name}
+								trigger={
+									<Button
+										variant="outline"
+										size="icon"
+										className="h-8 w-8"
+										title="Hospital Assignments"
+									>
+										<Hospital className="h-4 w-4" />
+									</Button>
+								}
+							/>
 
-								<DropdownMenuSeparator />
+							{/* Edit */}
+							<DoctorFormDialog
+								mode="edit"
+								doctorId={id}
+								initialData={{
+									name: doctor.name,
+									slug: doctor.slug,
+									departments: departmentIds,
+									qualifications: doctor.qualifications ?? [],
+									designation: doctor.designation,
+									experience: doctor.experience,
+									bio: doctor.bio,
+									contact: {
+										phone: doctor.contact?.phone,
+										email: doctor.contact?.email,
+									},
+									profileImage: doctor.profileImage,
+									gender: doctor.gender,
+									bmdc: doctor.bmdc,
+									speciality: doctor.speciality ?? [],
+									chamber: chamberIds,
+									isVerified: doctor.isVerified,
+									isActive: doctor.isActive,
+									rating: doctor.rating,
+									reviewCount: doctor.reviewCount,
+								}}
+								trigger={
+									<Button
+										variant="outline"
+										size="icon"
+										className="h-8 w-8"
+										title="Edit"
+									>
+										<Pencil className="h-4 w-4" />
+									</Button>
+								}
+							/>
 
-								<DropdownMenuItem
-									onSelect={(e) => e.preventDefault()}
-									className="text-destructive focus:text-destructive"
-								>
-									<AlertDialog>
-										<AlertDialogTrigger asChild>
-											<div className="flex items-center w-full cursor-default">
-												<Trash2 className="mr-2 h-4 w-4" />
-												Delete
-											</div>
-										</AlertDialogTrigger>
-										<AlertDialogContent>
-											<AlertDialogHeader>
-												<AlertDialogTitle>Are you sure?</AlertDialogTitle>
-												<AlertDialogDescription>
-													This will permanently delete this doctor profile.
-												</AlertDialogDescription>
-											</AlertDialogHeader>
-											<AlertDialogFooter>
-												<AlertDialogCancel>Cancel</AlertDialogCancel>
-												<AlertDialogAction
-													className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-													onClick={() =>
-														deleteDoctor(id, {
-															onSuccess: () => toast.success("Doctor deleted"),
-														})
-													}
-												>
-													Delete
-												</AlertDialogAction>
-											</AlertDialogFooter>
-										</AlertDialogContent>
-									</AlertDialog>
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
+							{/* Delete */}
+							<AlertDialog>
+								<AlertDialogTrigger asChild>
+									<Button
+										variant="outline"
+										size="icon"
+										className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+										title="Delete"
+									>
+										<Trash2 className="h-4 w-4" />
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+										<AlertDialogDescription>
+											This will permanently delete this doctor profile.
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel>Cancel</AlertDialogCancel>
+										<AlertDialogAction
+											className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+											onClick={() =>
+												deleteDoctor(id, {
+													onSuccess: () => toast.success("Doctor deleted"),
+												})
+											}
+										>
+											Delete
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
+						</div>
 					);
 				},
 			},

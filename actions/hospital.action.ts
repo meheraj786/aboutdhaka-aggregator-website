@@ -6,7 +6,6 @@ import { dbConnect } from "@/lib/db";
 import { ensureHospitalIndexes, Hospital } from "@/models/hospitals.model";
 import { createHospitalSchema } from "@/validators/hospitals";
 import "@/models/area.model";
-import "@/models/medicalCategory.model";
 
 const slugify = (value: string) =>
 	value
@@ -24,12 +23,22 @@ const isMongoDuplicateKeyError = (
 	"code" in error &&
 	(error as { code?: unknown }).code === 11000;
 
-const buildUniqueHospitalSlug = async (name: string, providedSlug?: string) => {
+const buildUniqueHospitalSlug = async (
+	name: string,
+	providedSlug?: string,
+	excludeId?: string,
+) => {
 	const baseSlug = slugify(providedSlug || name) || `hospital-${Date.now()}`;
 	let candidateSlug = baseSlug;
 	let suffix = 1;
 
-	while (await Hospital.exists({ slug: candidateSlug })) {
+	while (
+		await Hospital.exists(
+			excludeId
+				? { slug: candidateSlug, _id: { $ne: excludeId } }
+				: { slug: candidateSlug },
+		)
+	) {
 		candidateSlug = `${baseSlug}-${suffix}`;
 		suffix += 1;
 	}
@@ -88,7 +97,6 @@ export async function getHospitals(params: GetHospitalsParams = {}) {
 
 		const [items, totalCount] = await Promise.all([
 			Hospital.find(filter)
-				.populate("types", "name slug type")
 				.sort({ createdAt: -1 })
 				.skip(skip)
 				.limit(pageSize)
@@ -166,7 +174,91 @@ export async function createHospital(payload: unknown) {
 				"A hospital with the same unique details already exists.",
 			);
 		}
+		if (error instanceof Error) {
+			console.error("Create hospital error:", error);
+			throw new Error(error.message || "Failed to create hospital");
+		}
 		throw new Error("Failed to create hospital");
+	}
+}
+
+export async function updateHospital(id: string, payload: unknown) {
+	try {
+		const data = createHospitalSchema.parse(payload);
+
+		await dbConnect();
+		await ensureHospitalIndexes();
+
+		const generatedSlug = await buildUniqueHospitalSlug(
+			data.name,
+			data.slug,
+			id,
+		);
+
+		const hospitalData = {
+			name: data.name,
+			slug: generatedSlug,
+			types: data.types || [],
+			rating: data.rating,
+			services: data.services || [],
+			testPrices: data.testPrices || [],
+			contact: {
+				phone: data.contact.phone.filter((p) => p.trim()),
+				email: data.contact.email || undefined,
+				website: data.contact.website || undefined,
+			},
+			address: {
+				area: data.address.area,
+				district: data.address.district,
+				division: data.address.division,
+				coordinates: data.address.coordinates,
+			},
+			thumbnail: data.thumbnail || data.images?.[0],
+			images: data.images || [],
+			facilities: data.facilities || [],
+			totalBeds: data.totalBeds,
+			established: data.established,
+			openHours: data.openHours,
+			reviews: (data.reviews || []).map((review) => ({
+				reviewer: review.reviewer,
+				comment: review.comment,
+				time: review.time ? new Date(review.time) : undefined,
+				initial: review.initial,
+				rating: review.rating,
+			})),
+			googleMapReviewLink: data.googleMapReviewLink,
+			isVerified: data.isVerified,
+			isActive: data.isActive,
+		};
+
+		const res = await Hospital.findByIdAndUpdate(id, hospitalData, {
+			new: true,
+			runValidators: true,
+		});
+
+		if (!res) {
+			throw new Error("Hospital not found");
+		}
+
+		return { success: true, data: JSON.parse(JSON.stringify(res)) };
+	} catch (error) {
+		if (error instanceof z.ZodError) throw new Error(error.issues[0].message);
+		if (isMongoDuplicateKeyError(error)) {
+			if (error.keyPattern?.slug) {
+				throw new Error(
+					"A hospital with a similar name already exists. Please change the hospital name.",
+				);
+			}
+
+			throw new Error(
+				"A hospital with the same unique details already exists.",
+			);
+		}
+		if (error instanceof Error) {
+			console.error("Update hospital error:", error);
+			throw new Error(error.message || "Failed to update hospital");
+		}
+		throw new Error("Failed to update hospital");
 	}
 }
 
@@ -213,9 +305,7 @@ export async function deleteHospital(id: string) {
 export async function getHospitalById(id: string) {
 	try {
 		await dbConnect();
-		const res = await Hospital.findById(id)
-			.populate("types", "name slug type")
-			.lean();
+		const res = await Hospital.findById(id).lean();
 		return { success: true, data: JSON.parse(JSON.stringify(res)) };
 	} catch {
 		throw new Error("Failed to fetch hospital");
