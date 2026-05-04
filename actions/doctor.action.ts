@@ -3,6 +3,7 @@
 import { z } from "zod";
 import cloudinary from "@/lib/cloudinary";
 import { dbConnect } from "@/lib/db";
+import { DoctorHospital } from "@/models/doctorhospital.model";
 import { Doctor } from "@/models/doctors.model";
 import { createDoctorSchema, updateDoctorSchema } from "@/validators/doctors";
 import "@/models/hospitals.model";
@@ -294,6 +295,7 @@ export async function deleteDoctor(id: string) {
 		}
 
 		await Doctor.findByIdAndDelete(id);
+		await DoctorHospital.deleteMany({ doctor: id });
 
 		return { success: true };
 	} catch (error) {
