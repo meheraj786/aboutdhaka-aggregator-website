@@ -1,4 +1,5 @@
 import mongoose, { type Document, type Model, Schema } from "mongoose";
+import { HOSPITAL_TYPES, type HospitalType } from "@/lib/hospitalTypes";
 
 export interface IHospitalContact {
 	phone?: string[];
@@ -16,12 +17,6 @@ export interface IHospitalAddress {
 	district?: string;
 	division?: string;
 	coordinates?: IHospitalCoordinates;
-}
-
-export interface IHospitalOpenHours {
-	open?: string;
-	close?: string;
-	isOpen24Hours?: boolean;
 }
 
 export interface IHospitalReview {
@@ -47,7 +42,7 @@ export interface IHospitalTestPrice {
 export interface IHospital extends Document {
 	name: string;
 	slug?: string;
-	types?: mongoose.Types.ObjectId[];
+	types?: HospitalType[];
 	services?: IHospitalService[];
 	testPrices?: IHospitalTestPrice[];
 	contact?: IHospitalContact;
@@ -57,7 +52,6 @@ export interface IHospital extends Document {
 	facilities?: string[];
 	totalBeds?: number;
 	established?: number;
-	openHours?: IHospitalOpenHours;
 	reviews?: IHospitalReview[];
 	googleMapReviewLink?: string;
 	isVerified: boolean;
@@ -81,7 +75,7 @@ const hospitalSchema: Schema<IHospital> = new Schema(
 	{
 		name: { type: String, required: true, trim: true },
 		slug: { type: String, unique: true, trim: true },
-		types: [{ type: Schema.Types.ObjectId, ref: "MedicalCategory" }],
+		types: [{ type: String, enum: HOSPITAL_TYPES, trim: true }],
 		services: [
 			{
 				name: { type: String, required: true, trim: true },
@@ -115,11 +109,6 @@ const hospitalSchema: Schema<IHospital> = new Schema(
 		facilities: [{ type: String }],
 		totalBeds: { type: Number },
 		established: { type: Number },
-		openHours: {
-			open: { type: String },
-			close: { type: String },
-			isOpen24Hours: { type: Boolean, default: false },
-		},
 		reviews: [
 			{
 				reviewer: { type: String },
@@ -139,8 +128,12 @@ const hospitalSchema: Schema<IHospital> = new Schema(
 
 hospitalSchema.index({ name: "text", "address.area": "text" });
 
+if (process.env.NODE_ENV !== "production" && mongoose.models[modelName]) {
+	delete mongoose.models[modelName];
+}
+
 export const Hospital: Model<IHospital> =
-	mongoose.models[modelName] ||
+	(mongoose.models[modelName] as Model<IHospital>) ||
 	mongoose.model<IHospital>(modelName, hospitalSchema);
 
 async function backfillMissingHospitalSlugs() {

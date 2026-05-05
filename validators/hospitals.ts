@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { HOSPITAL_TYPES } from "@/lib/hospitalTypes";
 
 const serviceSchema = z.object({
 	name: z.string().min(1, "Service name is required"),
@@ -56,7 +57,7 @@ const reviewSchema = z.object({
 export const createHospitalSchema = z.object({
 	name: z.string().min(2, "Hospital name is required"),
 	types: z
-		.array(z.string())
+		.array(z.enum(HOSPITAL_TYPES))
 		.min(1, "At least one category is required")
 		.default([]),
 	address: addressSchema,
