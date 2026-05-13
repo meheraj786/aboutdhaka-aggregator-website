@@ -108,7 +108,7 @@ const data = {
 			url: "/dashboard/blogs",
 			icon: <Paperclip />,
 		},
-				{
+		{
 			title: "Area",
 			url: "/dashboard/areas",
 			icon: <MapPinIcon />,
