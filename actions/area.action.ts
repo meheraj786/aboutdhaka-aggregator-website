@@ -1,8 +1,10 @@
 "use server";
 
 import type { AnyBulkWriteOperation } from "mongodb";
+import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { Area } from "@/models/area.model";
+import type { CreateAreaInput } from "@/validators/areas";
 
 export interface IBus {
 	_id: string;
@@ -77,17 +79,43 @@ function serializeData<T>(data: T): T {
 	return data;
 }
 
-export async function getAreas(): Promise<IAreaPopulated[]> {
+export async function getAreas(params?: GetAreasParams) {
 	try {
 		await dbConnect();
-		const areas = await Area.find({})
-			.sort({ name: 1 })
-			.populate("buses")
-			.populate("stops.buses")
-			.populate("stops.stop")
-			.lean();
 
-		return serializeData(areas as unknown as IAreaPopulated[]);
+		if (!params) {
+			const areas = await Area.find({})
+				.sort({ name: 1 })
+				.populate("buses")
+				.populate("stops.buses")
+				.populate("stops.stop")
+				.lean();
+			return serializeData(areas as unknown as IAreaPopulated[]);
+		}
+
+		const skip = (params.page - 1) * params.pageSize;
+		const query = params.search
+			? { name: { $regex: params.search, $options: "i" } }
+			: {};
+
+		const [items, totalCount] = await Promise.all([
+			Area.find(query)
+				.sort({ name: 1 })
+				.skip(skip)
+				.limit(params.pageSize)
+				.populate("buses")
+				.populate("stops.buses")
+				.populate("stops.stop")
+				.lean(),
+			Area.countDocuments(query),
+		]);
+
+		return {
+			items: serializeData(items as unknown as IAreaPopulated[]),
+			totalCount,
+			currentPage: params.page,
+			totalPages: Math.ceil(totalCount / params.pageSize),
+		};
 	} catch (error) {
 		console.error("Error fetching areas:", error);
 		throw new Error("Failed to fetch areas");
@@ -251,5 +279,44 @@ export async function seedAreas(): Promise<{
 	} catch (error) {
 		console.error("Error seeding areas:", error);
 		return { success: false, message: "Failed to seed areas." };
+	}
+}
+
+export async function createArea(data: CreateAreaInput) {
+	try {
+		await dbConnect();
+		const area = await Area.create(data);
+
+		revalidatePath("/dashboard/areas");
+		return serializeData(area.toObject());
+	} catch (error) {
+		console.error("Error creating area:", error);
+		throw new Error("Failed to create area");
+	}
+}
+
+export async function updateArea(id: string, data: CreateAreaInput) {
+	try {
+		await dbConnect();
+		const area = await Area.findByIdAndUpdate(id, data, { new: true });
+
+		revalidatePath("/dashboard/areas");
+		return serializeData(area.toObject());
+	} catch (error) {
+		console.error("Error updating area:", error);
+		throw new Error("Failed to update area");
+	}
+}
+
+export async function deleteArea(id: string) {
+	try {
+		await dbConnect();
+		await Area.findByIdAndDelete(id);
+
+		revalidatePath("/dashboard/areas");
+		return { success: true };
+	} catch (error) {
+		console.error("Error deleting area:", error);
+		throw new Error("Failed to delete area");
 	}
 }
