@@ -45,6 +45,12 @@ interface ISeedData {
 	}[];
 }
 
+export type GetAreasParams = {
+	page: number;
+	pageSize: number;
+	search?: string;
+};
+
 function serializeData<T>(data: T): T {
 	if (data === null || data === undefined) {
 		return data;
@@ -299,6 +305,10 @@ export async function updateArea(id: string, data: CreateAreaInput) {
 	try {
 		await dbConnect();
 		const area = await Area.findByIdAndUpdate(id, data, { new: true });
+
+		if (!area) {
+			throw new Error("Area not found");
+		}
 
 		revalidatePath("/dashboard/areas");
 		return serializeData(area.toObject());
