@@ -38,6 +38,9 @@ importers:
       '@vercel/analytics':
         specifier: ^2.0.1
         version: 2.0.1(next@16.2.4(@babel/core@7.29.0)(react-dom@19.2.5(react@19.2.5))(react@19.2.5))(react@19.2.5)
+      analytics:
+        specifier: link:@types/vercel/analytics
+        version: link:@types/vercel/analytics
       axios:
         specifier: ^1.15.1
         version: 1.15.1
