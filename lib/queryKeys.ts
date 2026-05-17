@@ -9,4 +9,5 @@ export const queryKeys = {
 	busRoutes: "busRoutes",
 	medicalCategories: "medicalCategories",
 	doctorHospitals: "doctorHospitals",
+	blogs: "blogs",
 };

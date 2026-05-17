@@ -248,3 +248,31 @@
 			"Noto Sans", sans-serif;
 	}
 }
+/* Tiptap editor content styles */
+.tiptap h1 {
+	@apply text-2xl font-bold mt-4 mb-2;
+}
+.tiptap h2 {
+	@apply text-xl font-semibold mt-3 mb-2;
+}
+.tiptap h3 {
+	@apply text-lg font-medium mt-3 mb-1;
+}
+.tiptap ul {
+	@apply list-disc ml-5 my-2;
+}
+.tiptap ol {
+	@apply list-decimal ml-5 my-2;
+}
+.tiptap blockquote {
+	@apply border-l-4 border-muted-foreground pl-4 italic my-3 text-muted-foreground;
+}
+.tiptap hr {
+	@apply my-4 border-border;
+}
+.tiptap a {
+	@apply text-primary underline cursor-pointer;
+}
+.tiptap p {
+	@apply my-1;
+}
