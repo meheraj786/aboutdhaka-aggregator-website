@@ -238,9 +238,10 @@ export function HospitalFormDialog({
 		reValidateMode: "onChange",
 	});
 
-	const {
-		formState: { _errors },
-	} = form;
+	// const {
+	// 	formState: { errors },
+	// } = form;
+
 
 	const watchedName = form.watch("name");
 
