@@ -44,6 +44,7 @@ export interface IHospital extends Document {
 	slug?: string;
 	types?: HospitalType[];
 	services?: IHospitalService[];
+	about?: string;
 	testPrices?: IHospitalTestPrice[];
 	contact?: IHospitalContact;
 	address?: IHospitalAddress;
@@ -76,6 +77,7 @@ const hospitalSchema: Schema<IHospital> = new Schema(
 		name: { type: String, required: true, trim: true },
 		slug: { type: String, unique: true, trim: true },
 		types: [{ type: String, enum: HOSPITAL_TYPES, trim: true }],
+		about: { type: String },
 		services: [
 			{
 				name: { type: String, required: true, trim: true },

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Activity,
 	FileUp,
+	Info,
 	Loader2,
 	Plus,
 	Stethoscope,
@@ -57,7 +58,6 @@ import {
 	createHospitalSchema,
 } from "@/validators/hospitals";
 
-// Separate component for facilities field to avoid hooks in render function
 function FacilitiesField({
 	value,
 	onChange,
@@ -69,21 +69,17 @@ function FacilitiesField({
 }) {
 	const [localValue, setLocalValue] = useState(value?.join(", ") || "");
 
-	// Sync local value when field value changes externally
 	useEffect(() => {
 		setLocalValue(value?.join(", ") || "");
 	}, [value]);
 
 	return (
 		<Field>
-			<FieldLabel>Facilities (comma-separated) *</FieldLabel>
+			<FieldLabel>Facilities (comma-separated)</FieldLabel>
 			<Textarea
 				value={localValue}
-				onChange={(e) => {
-					setLocalValue(e.target.value);
-				}}
+				onChange={(e) => setLocalValue(e.target.value)}
 				onBlur={() => {
-					// Convert to array when user leaves the field
 					const cleanedArray = localValue
 						.split(",")
 						.map((f) => f.trim())
@@ -120,17 +116,18 @@ const slugify = (value: string) =>
 const DEFAULT_VALUES: CreateHospitalInput = {
 	name: "",
 	types: [],
+	about: "",
 	address: {
 		area: "",
 		district: "Dhaka",
 		division: "Dhaka",
 		coordinates: {
-			lat: 0,
-			lng: 0,
+			lat: undefined,
+			lng: undefined,
 		},
 	},
 	contact: {
-		phone: [""],
+		phone: [],
 		email: "",
 		website: "",
 	},
@@ -139,13 +136,14 @@ const DEFAULT_VALUES: CreateHospitalInput = {
 	images: [],
 	thumbnail: "",
 	facilities: [],
-	totalBeds: 0,
-	established: 0,
+	totalBeds: undefined,
+	established: undefined,
 	reviews: [],
 	googleMapReviewLink: "",
 	isVerified: false,
 	isActive: true,
 	rating: 0,
+	slug: "",
 };
 
 interface HospitalFormDialogProps {
@@ -168,6 +166,7 @@ const buildDefaultValues = (
 ): CreateHospitalInput => ({
 	name: initialData?.name ?? DEFAULT_VALUES.name,
 	types: initialData?.types ?? DEFAULT_VALUES.types,
+	about: initialData?.about ?? DEFAULT_VALUES.about,
 	address: {
 		area: initialData?.address?.area ?? DEFAULT_VALUES.address.area,
 		district: initialData?.address?.district ?? DEFAULT_VALUES.address.district,
@@ -175,10 +174,10 @@ const buildDefaultValues = (
 		coordinates: {
 			lat:
 				initialData?.address?.coordinates?.lat ??
-				DEFAULT_VALUES.address.coordinates.lat,
+				DEFAULT_VALUES.address.coordinates?.lat,
 			lng:
 				initialData?.address?.coordinates?.lng ??
-				DEFAULT_VALUES.address.coordinates.lng,
+				DEFAULT_VALUES.address.coordinates?.lng,
 		},
 	},
 	contact: {
@@ -240,7 +239,7 @@ export function HospitalFormDialog({
 	});
 
 	const {
-		formState: { errors },
+		formState: { _errors },
 	} = form;
 
 	const watchedName = form.watch("name");
@@ -277,7 +276,7 @@ export function HospitalFormDialog({
 		name: "reviews",
 	});
 
-	const phoneValues = form.watch("contact.phone") || [""];
+	const phoneValues = form.watch("contact.phone") || [];
 
 	useEffect(() => {
 		if (!open) {
@@ -296,13 +295,9 @@ export function HospitalFormDialog({
 
 	const removePhone = (index: number) => {
 		const updatedPhones = phoneValues.filter((_, i) => i !== index);
-		form.setValue(
-			"contact.phone",
-			updatedPhones.length ? updatedPhones : [""],
-			{
-				shouldDirty: true,
-			},
-		);
+		form.setValue("contact.phone", updatedPhones.length ? updatedPhones : [], {
+			shouldDirty: true,
+		});
 	};
 
 	const uploadToCloudinary = async (files: FileList) => {
@@ -336,10 +331,7 @@ export function HospitalFormDialog({
 			setUploadedImages([...uploadedImages, ...data.urls]);
 			toast.success(`${data.urls.length} image(s) uploaded successfully`);
 
-			// Reset file input
-			if (event.target) {
-				event.target.value = "";
-			}
+			if (event.target) event.target.value = "";
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : "Failed to upload images";
@@ -359,17 +351,13 @@ export function HospitalFormDialog({
 		try {
 			const data = await uploadToCloudinary(files);
 			const thumbnailUrl = data.urls[0];
-			if (!thumbnailUrl) {
-				throw new Error("Thumbnail upload did not return a URL");
-			}
+			if (!thumbnailUrl) throw new Error("Thumbnail upload failed");
 
 			form.setValue("thumbnail", thumbnailUrl);
 			setUploadedThumbnail(thumbnailUrl);
 			toast.success("Thumbnail uploaded successfully");
 
-			if (event.target) {
-				event.target.value = "";
-			}
+			if (event.target) event.target.value = "";
 		} catch (error) {
 			const message =
 				error instanceof Error ? error.message : "Failed to upload thumbnail";
@@ -417,12 +405,7 @@ export function HospitalFormDialog({
 	);
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={(val) => {
-				setOpen(val);
-			}}
-		>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>{trigger ?? defaultTrigger}</DialogTrigger>
 			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-175">
 				<DialogHeader>
@@ -432,7 +415,6 @@ export function HospitalFormDialog({
 				</DialogHeader>
 
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-2">
-					{/* Basic Information Section */}
 					<FieldGroup>
 						<Controller
 							name="name"
@@ -448,7 +430,6 @@ export function HospitalFormDialog({
 							)}
 						/>
 
-						{/* Categories Field */}
 						<Controller
 							name="types"
 							control={form.control}
@@ -456,7 +437,7 @@ export function HospitalFormDialog({
 								const selectedTypes = field.value || [];
 								return (
 									<Field>
-										<FieldLabel>Categories *</FieldLabel>
+										<FieldLabel>Categories</FieldLabel>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
 												<Button
@@ -470,40 +451,34 @@ export function HospitalFormDialog({
 												</Button>
 											</DropdownMenuTrigger>
 											<DropdownMenuContent className="w-75 max-h-75 overflow-y-auto">
-												{HOSPITAL_TYPES.map((hospitalType) => {
-													const isChecked =
-														selectedTypes.includes(hospitalType);
-
-													return (
-														<DropdownMenuCheckboxItem
-															key={hospitalType}
-															checked={isChecked}
-															onCheckedChange={(checked) => {
-																if (checked) {
-																	field.onChange([
-																		...selectedTypes,
-																		hospitalType,
-																	]);
-																} else {
-																	field.onChange(
-																		selectedTypes.filter(
-																			(type: string) => type !== hospitalType,
-																		),
-																	);
-																}
-															}}
-														>
-															{hospitalType}
-														</DropdownMenuCheckboxItem>
-													);
-												})}
+												{HOSPITAL_TYPES.map((hospitalType) => (
+													<DropdownMenuCheckboxItem
+														key={hospitalType}
+														checked={selectedTypes.includes(hospitalType)}
+														onCheckedChange={(checked) => {
+															if (checked) {
+																field.onChange([
+																	...selectedTypes,
+																	hospitalType,
+																]);
+															} else {
+																field.onChange(
+																	selectedTypes.filter(
+																		(type) => type !== hospitalType,
+																	),
+																);
+															}
+														}}
+													>
+														{hospitalType}
+													</DropdownMenuCheckboxItem>
+												))}
 											</DropdownMenuContent>
 										</DropdownMenu>
 
-										{/* Display selected categories as badges */}
 										{selectedTypes.length > 0 && (
 											<div className="flex flex-wrap gap-1 mt-2">
-												{selectedTypes.map((typeValue: string) => (
+												{selectedTypes.map((typeValue) => (
 													<Badge
 														key={typeValue}
 														variant="secondary"
@@ -529,28 +504,19 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Rating (0-5) *</FieldLabel>
+										<FieldLabel>Rating (0-5)</FieldLabel>
 										<Input
 											{...field}
 											type="text"
 											inputMode="numeric"
-											min="0"
-											max="5"
 											placeholder="e.g. 4"
 											value={field.value?.toString() ?? ""}
 											onChange={(e) => {
 												const sanitized = e.target.value.replace(/[^0-9]/g, "");
 												const latestDigit = sanitized.slice(-1);
-
-												if (latestDigit === "") {
-													field.onChange(undefined);
-													return;
-												}
-
-												const numeric = Number(latestDigit);
-												if (numeric >= 0 && numeric <= 5) {
-													field.onChange(numeric);
-												}
+												field.onChange(
+													latestDigit === "" ? undefined : Number(latestDigit),
+												);
 											}}
 										/>
 										{fieldState.error && (
@@ -574,10 +540,9 @@ export function HospitalFormDialog({
 
 					<Separator />
 
-					{/* Address Section */}
 					<section className="space-y-3">
 						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-							Address Information *
+							Address Information
 						</FieldLabel>
 
 						<Controller
@@ -585,7 +550,7 @@ export function HospitalFormDialog({
 							control={form.control}
 							render={({ field, fieldState }) => (
 								<Field>
-									<FieldLabel>Area *</FieldLabel>
+									<FieldLabel>Area</FieldLabel>
 									<Select onValueChange={field.onChange} value={field.value}>
 										<SelectTrigger>
 											<SelectValue placeholder="Select Area" />
@@ -611,7 +576,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>District *</FieldLabel>
+										<FieldLabel>District</FieldLabel>
 										<Select onValueChange={field.onChange} value={field.value}>
 											<SelectTrigger>
 												<SelectValue placeholder="Select District" />
@@ -635,7 +600,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Division *</FieldLabel>
+										<FieldLabel>Division</FieldLabel>
 										<Input {...field} placeholder="Division" />
 										{fieldState.error && (
 											<FieldError errors={[fieldState.error]} />
@@ -651,7 +616,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Latitude *</FieldLabel>
+										<FieldLabel>Latitude</FieldLabel>
 										<Input
 											type="number"
 											step="any"
@@ -676,7 +641,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Longitude *</FieldLabel>
+										<FieldLabel>Longitude</FieldLabel>
 										<Input
 											type="number"
 											step="any"
@@ -701,10 +666,9 @@ export function HospitalFormDialog({
 
 					<Separator />
 
-					{/* Contact Section */}
 					<section className="space-y-3">
 						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-							Contact Information *
+							Contact Information
 						</FieldLabel>
 
 						<div className="space-y-2">
@@ -713,7 +677,7 @@ export function HospitalFormDialog({
 									<div className="flex-1">
 										<Input
 											{...form.register(`contact.phone.${index}`)}
-											placeholder="Phone number *"
+											placeholder="Phone number"
 										/>
 									</div>
 									{phoneValues.length > 1 && (
@@ -728,28 +692,11 @@ export function HospitalFormDialog({
 									)}
 								</div>
 							))}
-							{errors.contact?.phone?.message && (
-								<p className="text-sm text-destructive">
-									{errors.contact.phone.message}
-								</p>
-							)}
-							{phoneValues.map((_, index) => {
-								const phoneError = errors.contact?.phone?.[index];
-								if (!phoneError) return null;
-								return (
-									<p
-										key={`phone-error-${index}`}
-										className="text-sm text-destructive"
-									>
-										{phoneError.message}
-									</p>
-								);
-							})}
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
-								onClick={() => appendPhone()}
+								onClick={appendPhone}
 							>
 								<Plus className="h-3 w-3 mr-1" /> Add Phone
 							</Button>
@@ -760,7 +707,7 @@ export function HospitalFormDialog({
 							control={form.control}
 							render={({ field, fieldState }) => (
 								<Field>
-									<FieldLabel>Email *</FieldLabel>
+									<FieldLabel>Email</FieldLabel>
 									<Input
 										{...field}
 										type="email"
@@ -778,7 +725,7 @@ export function HospitalFormDialog({
 							control={form.control}
 							render={({ field, fieldState }) => (
 								<Field>
-									<FieldLabel>Website *</FieldLabel>
+									<FieldLabel>Website</FieldLabel>
 									<Input {...field} placeholder="https://hospital.com" />
 									{fieldState.error && (
 										<FieldError errors={[fieldState.error]} />
@@ -790,10 +737,9 @@ export function HospitalFormDialog({
 
 					<Separator />
 
-					{/* Images Upload Section */}
 					<section className="space-y-3">
 						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-							<FileUp className="h-4 w-4" /> Hospital Images ( optional )
+							<FileUp className="h-4 w-4" /> Hospital Images
 						</FieldLabel>
 						<div className="border-2 border-dashed rounded-lg p-4">
 							<input
@@ -812,9 +758,6 @@ export function HospitalFormDialog({
 								<FileUp className="h-8 w-8 text-muted-foreground mb-2" />
 								<span className="text-sm font-medium">
 									{isUploading ? "Uploading..." : "Click to upload images"}
-								</span>
-								<span className="text-xs text-muted-foreground">
-									JPG, PNG, WEBP (Max 5MB each)
 								</span>
 							</label>
 						</div>
@@ -848,10 +791,9 @@ export function HospitalFormDialog({
 
 						<div className="space-y-2">
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<FileUp className="h-4 w-4" /> Thumbnail Upload *
+								<FileUp className="h-4 w-4" /> Thumbnail
 							</FieldLabel>
 
-							{/* Show upload button only when no thumbnail is uploaded */}
 							{!uploadedThumbnail && !form.watch("thumbnail") ? (
 								<div className="border rounded-lg p-3">
 									<input
@@ -868,7 +810,7 @@ export function HospitalFormDialog({
 									>
 										<span className="text-sm font-medium">
 											{isUploadingThumbnail
-												? "Uploading thumbnail..."
+												? "Uploading..."
 												: "Upload Thumbnail"}
 										</span>
 									</label>
@@ -878,7 +820,7 @@ export function HospitalFormDialog({
 									<div className="relative inline-block">
 										<Image
 											src={uploadedThumbnail || form.watch("thumbnail") || ""}
-											alt="Thumbnail preview"
+											alt="Thumbnail"
 											width={144}
 											height={96}
 											className="h-24 w-36 object-cover rounded-md border"
@@ -899,21 +841,27 @@ export function HospitalFormDialog({
 									</Button>
 								</div>
 							)}
-							{errors.thumbnail?.message && (
-								<p className="text-sm text-destructive">
-									{errors.thumbnail.message}
-								</p>
-							)}
 						</div>
 					</section>
 
 					<Separator />
+					<label htmlFor="about">
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground mb-2 flex items-center gap-2">
+							<Info className="h-4 w-4" /> About the Hospital
+						</FieldLabel>
+					</label>
+					<Textarea
+						{...form.register("about")}
+						placeholder="About the Hospital"
+						className="min-h-20 resize-none"
+					/>
 
-					{/* Services Section */}
+					<Separator />
+
 					<section className="space-y-3">
 						<div className="flex items-center justify-between">
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<Activity className="h-4 w-4" /> Services *
+								<Activity className="h-4 w-4" /> Services
 							</FieldLabel>
 							<Button
 								type="button"
@@ -936,31 +884,17 @@ export function HospitalFormDialog({
 							{serviceFields.map((field, index) => (
 								<div key={field.id} className="space-y-2 p-3 border rounded-md">
 									<div className="grid grid-cols-2 gap-2">
-										<div>
-											<Input
-												{...form.register(`services.${index}.name`)}
-												placeholder="Service name (e.g., ICU)"
-											/>
-											{errors.services?.[index]?.name?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.services[index]?.name?.message}
-												</p>
-											)}
-										</div>
-										<div>
-											<Input
-												{...form.register(`services.${index}.averageCost`, {
-													valueAsNumber: true,
-												})}
-												type="number"
-												placeholder="Avg Cost (₳)"
-											/>
-											{errors.services?.[index]?.averageCost?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.services[index]?.averageCost?.message}
-												</p>
-											)}
-										</div>
+										<Input
+											{...form.register(`services.${index}.name`)}
+											placeholder="Service name (e.g., ICU)"
+										/>
+										<Input
+											{...form.register(`services.${index}.averageCost`, {
+												valueAsNumber: true,
+											})}
+											type="number"
+											placeholder="Avg Cost"
+										/>
 									</div>
 									<div className="flex gap-2">
 										<Input
@@ -979,21 +913,15 @@ export function HospitalFormDialog({
 									</div>
 								</div>
 							))}
-							{errors.services?.message && (
-								<p className="text-sm text-destructive">
-									{errors.services.message}
-								</p>
-							)}
 						</div>
 					</section>
 
 					<Separator />
 
-					{/* Diagnostic Tests Section */}
 					<section className="space-y-3">
 						<div className="flex items-center justify-between">
 							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<Stethoscope className="h-4 w-4" /> Diagnostic Tests *
+								<Stethoscope className="h-4 w-4" /> Diagnostic Tests
 							</FieldLabel>
 							<Button
 								type="button"
@@ -1012,55 +940,33 @@ export function HospitalFormDialog({
 									<div className="flex-1">
 										<Input
 											{...form.register(`testPrices.${index}.name`)}
-											placeholder="Test Name (e.g., MRI)"
+											placeholder="Test Name"
 										/>
-										{errors.testPrices?.[index]?.name?.message && (
-											<p className="text-sm text-destructive mt-1">
-												{errors.testPrices[index]?.name?.message}
-											</p>
-										)}
 									</div>
 									<div className="w-24">
 										<Input
 											{...form.register(`testPrices.${index}.price`)}
-											placeholder="Price (₳)"
+											placeholder="Price"
 										/>
-										{errors.testPrices?.[index]?.price?.message && (
-											<p className="text-sm text-destructive mt-1">
-												{errors.testPrices[index]?.price?.message}
-											</p>
-										)}
 									</div>
 									<Button
 										type="button"
 										variant="ghost"
 										size="icon"
-										className="text-muted-foreground hover:text-destructive"
 										onClick={() => removeTestPrice(index)}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>
 								</div>
 							))}
-							{testPriceFields.length === 0 && (
-								<p className="text-xs text-center text-muted-foreground py-2 border border-dashed rounded-md">
-									No diagnostic tests added yet.
-								</p>
-							)}
-							{errors.testPrices?.message && (
-								<p className="text-sm text-destructive">
-									{errors.testPrices.message}
-								</p>
-							)}
 						</div>
 					</section>
 
 					<Separator />
 
-					{/* Additional Info Section */}
 					<section className="space-y-3">
 						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-							Additional Information *
+							Additional Information
 						</FieldLabel>
 
 						<div className="grid grid-cols-2 gap-4">
@@ -1069,7 +975,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Total Beds *</FieldLabel>
+										<FieldLabel>Total Beds</FieldLabel>
 										<Input
 											{...field}
 											type="number"
@@ -1094,7 +1000,7 @@ export function HospitalFormDialog({
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Established Year *</FieldLabel>
+										<FieldLabel>Established Year</FieldLabel>
 										<Input
 											{...field}
 											type="number"
@@ -1127,12 +1033,13 @@ export function HospitalFormDialog({
 								/>
 							)}
 						/>
+
 						<Controller
 							name="googleMapReviewLink"
 							control={form.control}
 							render={({ field, fieldState }) => (
 								<Field>
-									<FieldLabel>Google Map Review Link *</FieldLabel>
+									<FieldLabel>Google Map Review Link</FieldLabel>
 									<Input {...field} placeholder="https://maps.google.com/..." />
 									{fieldState.error && (
 										<FieldError errors={[fieldState.error]} />
@@ -1144,7 +1051,7 @@ export function HospitalFormDialog({
 						<div className="space-y-3">
 							<div className="flex items-center justify-between">
 								<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-									Reviews (at least 2) *
+									Reviews
 								</FieldLabel>
 								<Button
 									type="button"
@@ -1167,69 +1074,36 @@ export function HospitalFormDialog({
 							{reviewFields.map((field, index) => (
 								<div key={field.id} className="space-y-2 p-3 border rounded-md">
 									<div className="grid grid-cols-2 gap-2">
-										<div>
-											<Input
-												{...form.register(`reviews.${index}.reviewer`)}
-												placeholder="Reviewer name"
-											/>
-											{errors.reviews?.[index]?.reviewer?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.reviews[index]?.reviewer?.message}
-												</p>
-											)}
-										</div>
-										<div>
-											<Input
-												{...form.register(`reviews.${index}.initial`)}
-												placeholder="Initial"
-											/>
-											{errors.reviews?.[index]?.initial?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.reviews[index]?.initial?.message}
-												</p>
-											)}
-										</div>
+										<Input
+											{...form.register(`reviews.${index}.reviewer`)}
+											placeholder="Reviewer name"
+										/>
+										<Input
+											{...form.register(`reviews.${index}.initial`)}
+											placeholder="Initial"
+										/>
 									</div>
 									<div className="grid grid-cols-2 gap-2">
-										<div>
-											<Input
-												{...form.register(`reviews.${index}.time`)}
-												type="datetime-local"
-											/>
-											{errors.reviews?.[index]?.time?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.reviews[index]?.time?.message}
-												</p>
-											)}
-										</div>
-										<div>
-											<Input
-												{...form.register(`reviews.${index}.rating`, {
-													valueAsNumber: true,
-												})}
-												type="number"
-												min="0"
-												max="5"
-												step="0.1"
-												placeholder="Rating"
-											/>
-											{errors.reviews?.[index]?.rating?.message && (
-												<p className="text-sm text-destructive mt-1">
-													{errors.reviews[index]?.rating?.message}
-												</p>
-											)}
-										</div>
+										<Input
+											{...form.register(`reviews.${index}.time`)}
+											type="datetime-local"
+										/>
+										<Input
+											{...form.register(`reviews.${index}.rating`, {
+												valueAsNumber: true,
+											})}
+											type="number"
+											min="0"
+											max="5"
+											step="0.1"
+											placeholder="Rating"
+										/>
 									</div>
 									<Textarea
 										{...form.register(`reviews.${index}.comment`)}
 										placeholder="Comment"
 										className="min-h-20 resize-none"
 									/>
-									{errors.reviews?.[index]?.comment?.message && (
-										<p className="text-sm text-destructive mt-1">
-											{errors.reviews[index]?.comment?.message}
-										</p>
-									)}
 									<Button
 										type="button"
 										variant="ghost"
@@ -1240,11 +1114,6 @@ export function HospitalFormDialog({
 									</Button>
 								</div>
 							))}
-							{errors.reviews?.message && (
-								<p className="text-sm text-destructive">
-									{errors.reviews.message}
-								</p>
-							)}
 						</div>
 					</section>
 

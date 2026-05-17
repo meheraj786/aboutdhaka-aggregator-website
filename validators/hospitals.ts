@@ -5,10 +5,7 @@ const serviceSchema = z.object({
 	name: z.string().min(1, "Service name is required"),
 	description: z.string().optional(),
 	icon: z.string().optional(),
-	averageCost: z.coerce
-		.number()
-		.min(0, "Average cost must be positive")
-		.optional(),
+	averageCost: z.coerce.number().min(0).optional(),
 });
 
 const testPriceSchema = z.object({
@@ -17,87 +14,78 @@ const testPriceSchema = z.object({
 });
 
 const addressSchema = z.object({
-	area: z.string().min(1, "Area is required"),
-	district: z.string().min(1, "District is required"),
-	division: z.string().min(1, "Division is required"),
-	coordinates: z.object({
-		lat: z
-			.number()
-			.min(-90, "Latitude must be at least -90")
-			.max(90, "Latitude must be at most 90"),
-		lng: z
-			.number()
-			.min(-180, "Longitude must be at least -180")
-			.max(180, "Longitude must be at most 180"),
-	}),
+	area: z.string().min(1, "Area is required").optional(),
+	district: z.string().default("Dhaka"),
+	division: z.string().default("Dhaka"),
+	coordinates: z
+		.object({
+			lat: z.number().min(-90).max(90).optional(),
+			lng: z.number().min(-180).max(180).optional(),
+		})
+		.optional(),
 });
 
 const contactSchema = z.object({
-	phone: z
-		.array(z.string().min(1, "Phone number required"))
-		.min(1, "At least one phone number is required"),
-	email: z.string().min(1, "Email is required").email("Invalid email"),
-	website: z.string().min(1, "Website is required").url("Invalid URL"),
-});
-
-const openHoursSchema = z.object({
-	open: z.string().optional(),
-	close: z.string().optional(),
-	isOpen24Hours: z.boolean().default(false),
+	phone: z.array(z.string().trim()).optional().default([]),
+	email: z.string().email("Invalid email").optional().or(z.literal("")),
+	website: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
 const reviewSchema = z.object({
-	reviewer: z.string().min(1, "Reviewer name is required"),
-	comment: z.string().min(1, "Review comment is required"),
-	time: z.string().min(1, "Review time is required"),
-	initial: z.string().min(1, "Initial is required"),
-	rating: z.number().min(0).max(5),
+	reviewer: z.string().optional(),
+	comment: z.string().optional(),
+	time: z.string().optional(),
+	initial: z.string().optional(),
+	rating: z.number().min(0).max(5).optional(),
 });
 
 export const createHospitalSchema = z.object({
 	name: z.string().min(2, "Hospital name is required"),
-	types: z
-		.array(z.enum(HOSPITAL_TYPES))
-		.min(1, "At least one category is required")
-		.default([]),
-	address: addressSchema,
-	contact: contactSchema,
-	services: z
-		.array(serviceSchema)
-		.min(1, "At least one service is required")
-		.default([]),
-	testPrices: z
-		.array(testPriceSchema)
-		.min(1, "At least one diagnostic test is required")
-		.default([]),
-	images: z.array(z.string().url("Invalid image URL")).optional().default([]),
+	slug: z.string().optional(),
+
+	types: z.array(z.enum(HOSPITAL_TYPES)).optional().default([]),
+
+	address: addressSchema.optional().default({
+		area: "",
+		district: "Dhaka",
+		division: "Dhaka",
+	}),
+
+	contact: contactSchema.optional().default({
+		phone: [],
+		email: "",
+		website: "",
+	}),
+
+	services: z.array(serviceSchema).optional().default([]),
+	testPrices: z.array(testPriceSchema).optional().default([]),
+
+	about: z.string().optional().default(""),
+
+	images: z.array(z.string().url()).optional().default([]),
 	thumbnail: z
 		.string()
-		.min(1, "Thumbnail is required")
-		.url("Invalid thumbnail URL"),
-	facilities: z
-		.array(z.string().min(1, "Facility is required"))
-		.min(1, "At least one facility is required")
-		.default([]),
-	totalBeds: z.number().int().positive(),
+		.url("Invalid thumbnail URL")
+		.optional()
+		.or(z.literal("")),
+
+	facilities: z.array(z.string().trim()).optional().default([]),
+
+	totalBeds: z.number().int().nonnegative().optional(),
 	established: z
 		.number()
 		.int()
-		.min(1800, "Established year is invalid")
-		.max(new Date().getFullYear(), "Established year is invalid"),
-	openHours: openHoursSchema.optional(),
-	reviews: z
-		.array(reviewSchema)
-		.min(2, "At least 2 reviews are required")
-		.default([]),
-	googleMapReviewLink: z
-		.string()
-		.min(1, "Google map review link is required")
-		.url("Invalid review link"),
+		.min(1800)
+		.max(new Date().getFullYear())
+		.optional(),
+
+	googleMapReviewLink: z.string().url().optional().or(z.literal("")),
+
+	reviews: z.array(reviewSchema).optional().default([]),
+
 	isVerified: z.boolean().default(false),
 	isActive: z.boolean().default(true),
-	rating: z.number().min(0).max(5),
-	slug: z.string().optional(),
+	rating: z.number().min(0).max(5).default(0),
 });
 
 export type CreateHospitalInput = z.infer<typeof createHospitalSchema>;
