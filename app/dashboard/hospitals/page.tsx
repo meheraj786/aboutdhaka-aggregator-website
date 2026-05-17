@@ -37,6 +37,7 @@ const mapHospitalToFormInput = (
 ): CreateHospitalInput => ({
 	name: hospital.name ?? "",
 	types: (hospital.types ?? []) as unknown as CreateHospitalInput["types"],
+	about: hospital.about ?? "",
 	address: {
 		area: hospital.address?.area ?? "",
 		district: hospital.address?.district ?? "Dhaka",
