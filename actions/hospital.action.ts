@@ -146,7 +146,7 @@ export async function createHospital(payload: unknown) {
 			facilities: data.facilities || [],
 			totalBeds: data.totalBeds,
 			established: data.established,
-			openHours: data.openHours,
+			// openHours: data.openHours,
 			reviews: (data.reviews || []).map((review) => ({
 				reviewer: review.reviewer,
 				comment: review.comment,
@@ -218,7 +218,7 @@ export async function updateHospital(id: string, payload: unknown) {
 			facilities: data.facilities || [],
 			totalBeds: data.totalBeds,
 			established: data.established,
-			openHours: data.openHours,
+			// openHours: data.openHours,minor
 			reviews: (data.reviews || []).map((review) => ({
 				reviewer: review.reviewer,
 				comment: review.comment,
