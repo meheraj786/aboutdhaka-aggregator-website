@@ -964,7 +964,10 @@ export function HospitalFormDialog({
 											name={`services.${index}.name`}
 											control={form.control}
 											render={({ field }) => (
-												<Select onValueChange={field.onChange} value={field.value}>
+												<Select
+													onValueChange={field.onChange}
+													value={field.value}
+												>
 													<SelectTrigger className="w-full">
 														<SelectValue placeholder="Select Service" />
 													</SelectTrigger>
