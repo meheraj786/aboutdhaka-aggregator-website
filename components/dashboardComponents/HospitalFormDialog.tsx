@@ -104,6 +104,82 @@ const DISTRICTS = [
 	"Rangpur",
 	"Mymensingh",
 ];
+const HospitalServices = [
+	"Medicine",
+	"General Surgery",
+	"Cardiology",
+	"Cardiac Surgery",
+	"Orthopedics",
+	"Neurology",
+	"Neurosurgery",
+	"Gynecology & Obstetrics",
+	"Pediatrics",
+	"NICU / Neonatal",
+	"Urology",
+	"Nephrology",
+	"Dialysis Unit",
+	"ENT",
+	"Ophthalmology",
+	"Dental",
+	"Dermatology / Skin",
+	"Oncology / Cancer",
+	"Gastroenterology",
+	"Pulmonology",
+	"Endocrinology / Diabetes",
+	"Psychiatry",
+	"Physiotherapy & Rehabilitation",
+	"Radiology & Imaging",
+	"Pathology / Laboratory",
+	"ICU",
+	"CCU",
+	"PICU",
+	"Emergency Department",
+	"Anesthesia",
+	"Blood Bank",
+	"Burn & Plastic Surgery",
+	"Spine Center",
+	"Heart Institute",
+	"Mother & Child Care",
+	"IVF / Fertility Center",
+
+	"Ambulance Service",
+	"24/7 Emergency Service",
+	"Pharmacy",
+	"Diagnostic Center",
+	"Operation Theater (OT)",
+	"Cabin & Ward Service",
+	"Health Checkup Package",
+	"Home Sample Collection",
+	"Vaccination Service",
+	"Telemedicine",
+	"Corporate Healthcare",
+	"Online Appointment",
+	"Health Screening",
+	"ICU Support",
+	"Patient Counseling",
+	"Nutrition & Diet Consultation",
+	"Housekeeping",
+	"Security Department",
+	"Administration",
+
+	"General Veterinary Clinic",
+	"Pet Hospital",
+	"Emergency Vet Clinic",
+	"Pet Diagnostic Center",
+	"Pet Surgery Center",
+	"Pet Vaccination Center",
+	"Pet Grooming Clinic",
+	"Pet Dental Clinic",
+	"Exotic Animal Clinic",
+	"Livestock Veterinary Clinic",
+	"Animal Rehabilitation Center",
+	"Pet Boarding & Daycare Center",
+	"Mobile Veterinary Service",
+	"Online Vet Consultation Platform",
+	"Pet Pharmacy & Supply Store",
+	"Breeding & Fertility Center",
+	"Wildlife & Rescue Animal Center",
+];
 
 const slugify = (value: string) =>
 	value
@@ -884,10 +960,26 @@ export function HospitalFormDialog({
 							{serviceFields.map((field, index) => (
 								<div key={field.id} className="space-y-2 p-3 border rounded-md">
 									<div className="grid grid-cols-2 gap-2">
-										<Input
-											{...form.register(`services.${index}.name`)}
-											placeholder="Service name (e.g., ICU)"
+										<Controller
+											name={`services.${index}.name`}
+											control={form.control}
+											render={({ field }) => (
+												<Select onValueChange={field.onChange} value={field.value}>
+													<SelectTrigger className="w-full">
+														<SelectValue placeholder="Select Service" />
+													</SelectTrigger>
+
+													<SelectContent className="max-h-80">
+														{HospitalServices.map((service) => (
+															<SelectItem key={service} value={service}>
+																{service}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											)}
 										/>
+
 										<Input
 											{...form.register(`services.${index}.averageCost`, {
 												valueAsNumber: true,
