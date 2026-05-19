@@ -3,12 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
 	Activity,
+	CheckIcon,
+	ChevronsUpDownIcon,
 	FileUp,
 	Info,
 	Loader2,
 	Plus,
 	Stethoscope,
 	Trash2,
+	XIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
@@ -21,6 +24,14 @@ import {
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+} from "@/components/ui/command";
 import {
 	Dialog,
 	DialogContent,
@@ -41,6 +52,11 @@ import {
 	FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
 import {
 	Select,
 	SelectContent,
@@ -104,7 +120,7 @@ const DISTRICTS = [
 	"Rangpur",
 	"Mymensingh",
 ];
-const HospitalServices = [
+const MEDICAL_DEPARTMENTS = [
 	"Medicine",
 	"General Surgery",
 	"Cardiology",
@@ -141,7 +157,9 @@ const HospitalServices = [
 	"Heart Institute",
 	"Mother & Child Care",
 	"IVF / Fertility Center",
+];
 
+const OPD_SERVICES = [
 	"Ambulance Service",
 	"24/7 Emergency Service",
 	"Pharmacy",
@@ -161,7 +179,9 @@ const HospitalServices = [
 	"Housekeeping",
 	"Security Department",
 	"Administration",
+];
 
+const VETERINARY_SERVICES = [
 	"General Veterinary Clinic",
 	"Pet Hospital",
 	"Emergency Vet Clinic",
@@ -181,6 +201,29 @@ const HospitalServices = [
 	"Wildlife & Rescue Animal Center",
 ];
 
+const HospitalServices = [
+	{
+		label: "All Medical Department",
+		value: "__all_medical__",
+		items: MEDICAL_DEPARTMENTS,
+	},
+	{
+		label: "All OPD Services",
+		value: "__all_opd__",
+		items: OPD_SERVICES,
+	},
+	{
+		label: "All Veterinary Services",
+		value: "__all_veterinary__",
+		items: VETERINARY_SERVICES,
+	},
+];
+
+const ALL_SERVICES = [
+	...MEDICAL_DEPARTMENTS,
+	...OPD_SERVICES,
+	...VETERINARY_SERVICES,
+];
 const slugify = (value: string) =>
 	value
 		.toLowerCase()
@@ -332,15 +375,6 @@ export function HospitalFormDialog({
 	} = useFieldArray({
 		control: form.control,
 		name: "testPrices",
-	});
-
-	const {
-		fields: serviceFields,
-		append: appendService,
-		remove: removeService,
-	} = useFieldArray({
-		control: form.control,
-		name: "services",
 	});
 
 	const {
@@ -935,80 +969,173 @@ export function HospitalFormDialog({
 					<Separator />
 
 					<section className="space-y-3">
-						<div className="flex items-center justify-between">
-							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<Activity className="h-4 w-4" /> Services
-							</FieldLabel>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								className="h-7 text-xs"
-								onClick={() =>
-									appendService({
-										name: "",
-										description: "",
-										averageCost: undefined,
-									})
-								}
-							>
-								<Plus className="h-3 w-3 mr-1" /> Add Service
-							</Button>
-						</div>
+						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+							<Activity className="h-4 w-4" />
+							Services
+						</FieldLabel>
 
-						<div className="space-y-3">
-							{serviceFields.map((field, index) => (
-								<div key={field.id} className="space-y-2 p-3 border rounded-md">
-									<div className="grid grid-cols-2 gap-2">
-										<Controller
-											name={`services.${index}.name`}
-											control={form.control}
-											render={({ field }) => (
-												<Select
-													onValueChange={field.onChange}
-													value={field.value}
-												>
-													<SelectTrigger className="w-full">
-														<SelectValue placeholder="Select Service" />
-													</SelectTrigger>
+						<Controller
+							name="services"
+							control={form.control}
+							render={({ field }) => {
+								const selectedValues =
+									field.value?.map((service) => service.name) || [];
 
-													<SelectContent className="max-h-80">
-														{HospitalServices.map((service) => (
-															<SelectItem key={service} value={service}>
-																{service}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-										/>
+								const toggleSelection = (value: string) => {
+									if (value === "__all_medical__") {
+										const merged = [
+											...new Set([...selectedValues, ...MEDICAL_DEPARTMENTS]),
+										];
 
-										<Input
-											{...form.register(`services.${index}.averageCost`, {
-												valueAsNumber: true,
-											})}
-											type="number"
-											placeholder="Avg Cost"
-										/>
-									</div>
-									<div className="flex gap-2">
-										<Input
-											{...form.register(`services.${index}.description`)}
-											placeholder="Description (optional)"
-											className="flex-1"
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="icon"
-											onClick={() => removeService(index)}
+										field.onChange(
+											merged.map((name) => ({
+												name,
+											})),
+										);
+
+										return;
+									}
+
+									if (value === "__all_opd__") {
+										const merged = [
+											...new Set([...selectedValues, ...OPD_SERVICES]),
+										];
+
+										field.onChange(
+											merged.map((name) => ({
+												name,
+											})),
+										);
+
+										return;
+									}
+
+									if (value === "__all_veterinary__") {
+										const merged = [
+											...new Set([...selectedValues, ...VETERINARY_SERVICES]),
+										];
+
+										field.onChange(
+											merged.map((name) => ({
+												name,
+											})),
+										);
+
+										return;
+									}
+
+									const updated = selectedValues.includes(value)
+										? selectedValues.filter((v) => v !== value)
+										: [...selectedValues, value];
+
+									field.onChange(
+										updated.map((name) => ({
+											name,
+										})),
+									);
+								};
+
+								const removeSelection = (value: string) => {
+									field.onChange(
+										selectedValues
+											.filter((v) => v !== value)
+											.map((name) => ({
+												name,
+											})),
+									);
+								};
+
+								return (
+									<Popover>
+										<PopoverTrigger asChild>
+											<Button
+												type="button"
+												variant="outline"
+												className="h-auto min-h-11 w-full justify-between"
+											>
+												<div className="flex flex-wrap items-center gap-1">
+													{selectedValues.length > 0 ? (
+														selectedValues.map((value) => (
+															<Badge
+																key={value}
+																variant="secondary"
+																className="gap-1 pr-1"
+															>
+																{value}
+
+																<button
+																	type="button"
+																	onClick={(e) => {
+																		e.stopPropagation();
+
+																		removeSelection(value);
+																	}}
+																>
+																	<XIcon className="h-3 w-3" />
+																</button>
+															</Badge>
+														))
+													) : (
+														<span className="text-muted-foreground">
+															Select Services
+														</span>
+													)}
+												</div>
+
+												<ChevronsUpDownIcon className="h-4 w-4 opacity-50" />
+											</Button>
+										</PopoverTrigger>
+
+										<PopoverContent
+											align="start"
+											side="bottom"
+											className="w-[460px] p-0 border shadow-2xl z-[60]"
+											avoidCollisions={true}
+											onWheel={(e) => e.stopPropagation()}
 										>
-											<Trash2 className="h-4 w-4" />
-										</Button>
-									</div>
-								</div>
-							))}
-						</div>
+											<Command>
+												<CommandInput
+													placeholder="Search services..."
+													className="border-b border-border h-12 px-3"
+												/>
+
+												{/* এখানে সবচেয়ে গুরুত্বপূর্ণ অংশ */}
+												<CommandList className="max-h-[300px] overflow-y-auto p-2">
+													<CommandEmpty>No service found.</CommandEmpty>
+
+													<CommandGroup heading="Quick Select">
+														{HospitalServices.map((service) => (
+															<CommandItem
+																key={service.value}
+																value={service.label}
+																onSelect={() => toggleSelection(service.value)}
+															>
+																{service.label}
+															</CommandItem>
+														))}
+													</CommandGroup>
+
+													<CommandGroup heading="All Services">
+														{ALL_SERVICES.map((service) => (
+															<CommandItem
+																key={service}
+																value={service}
+																onSelect={() => toggleSelection(service)}
+															>
+																<span>{service}</span>
+																{selectedValues.includes(service) && (
+																	<CheckIcon className="ml-auto h-4 w-4" />
+																)}
+															</CommandItem>
+														))}
+													</CommandGroup>
+												</CommandList>
+											</Command>
+										</PopoverContent>
+									</Popover>
+								);
+							}}
+						/>
 					</section>
 
 					<Separator />
