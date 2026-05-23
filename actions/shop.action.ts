@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
-import { Shop } from "@/models/shop.model";
+import { Shop, type IShop } from "@/models/shop.model";
 import type { ShopInput } from "@/validators/pcComponent";
 
 function serializeData<T>(data: T): T {
@@ -42,17 +42,19 @@ export async function getShops(): Promise<IShopPopulated[]> {
 
 export async function createShop(data: ShopInput) {
 	await dbConnect();
-	const shop = await Shop.create(data);
+	const shop = await Shop.create(data as unknown as IShop);
 	revalidatePath("/dashboard/shops");
-	return serializeData(shop.toObject());
+	return serializeData(shop.toObject() as unknown as IShopPopulated);
 }
 
 export async function updateShop(id: string, data: ShopInput) {
 	await dbConnect();
-	const shop = await Shop.findByIdAndUpdate(id, data, { new: true });
+	const shop = await Shop.findByIdAndUpdate(id, data as unknown as IShop, {
+		new: true,
+	});
 	if (!shop) throw new Error("Shop not found");
 	revalidatePath("/dashboard/shops");
-	return serializeData(shop.toObject());
+	return serializeData(shop.toObject() as unknown as IShopPopulated);
 }
 
 export async function deleteShop(id: string) {

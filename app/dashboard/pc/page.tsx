@@ -18,7 +18,6 @@ import {
 import { useState } from "react";
 import {
 	Controller,
-	type SubmitHandler,
 	useFieldArray,
 	useForm,
 } from "react-hook-form";
@@ -197,7 +196,7 @@ function ComponentFormDialog({
 					brand: editing.brand,
 					category: editing.category,
 					imageUrl: editing.imageUrl ?? "",
-					specs: editing.specs as Record<string, string | number | boolean>,
+					specs: editing.specs as PCComponentInput["specs"],
 					cores: editing.cores,
 					threads: editing.threads,
 					shopListings: editing.shopListings.map((l) => ({
@@ -243,7 +242,7 @@ function ComponentFormDialog({
 		setValue("specs", updated);
 	};
 
-	const onSubmit: SubmitHandler<PCComponentInput> = async (data) => {
+	const onSubmit = async (data: PCComponentInput) => {
 		if (editing) {
 			await updateMutation.mutateAsync({ id: editing._id, data });
 		} else {
@@ -558,7 +557,7 @@ function ShopFormDialog({
 				},
 	});
 
-	const onSubmit: SubmitHandler<ShopInput> = async (data) => {
+	const onSubmit = async (data: ShopInput) => {
 		if (editing) {
 			await updateMutation.mutateAsync({ id: editing._id, data });
 		} else {
@@ -579,7 +578,6 @@ function ShopFormDialog({
 
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 					<Field label="Shop Name" error={errors.name?.message}>
-
 						<Input placeholder="e.g. TechHub Dhaka" {...register("name")} />
 					</Field>
 

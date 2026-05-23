@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 // import { type ClassValue, clsx } from "clsx";
 import { Edit2, ExternalLink, MapPin, Plus, Star, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 // import { twMerge } from "tailwind-merge";
 import type { IShopPopulated } from "@/actions/shop.action";
 import {
@@ -103,7 +103,7 @@ function ShopFormDialog({
 				},
 	});
 
-	const onSubmit: SubmitHandler<ShopInput> = async (data) => {
+	const onSubmit = async (data: ShopInput) => {
 		if (editing) {
 			await updateMutation.mutateAsync({ id: editing._id, data });
 		} else {
@@ -124,7 +124,6 @@ function ShopFormDialog({
 
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 					<Field label="Shop Name" error={errors.name?.message}>
-
 						<Input placeholder="e.g. TechHub Dhaka" {...register("name")} />
 					</Field>
 

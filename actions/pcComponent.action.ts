@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import {
 	type ComponentCategory,
+	IPCComponent,
 	// type IPCComponent,
 	PCComponent,
 } from "@/models/pcComponent.model";
@@ -350,7 +351,9 @@ export async function getSuggestedBuild(
 // ---- Mutations ----
 export async function createComponent(data: PCComponentInput) {
 	await dbConnect();
-	const component = await PCComponent.create(data);
+	const component = await PCComponent.create(
+		data as unknown as IPCComponent,
+	);
 	revalidatePath("/dashboard/components");
 
 	return serializeData(
@@ -360,10 +363,14 @@ export async function createComponent(data: PCComponentInput) {
 
 export async function updateComponent(id: string, data: PCComponentInput) {
 	await dbConnect();
-	const component = await PCComponent.findByIdAndUpdate(id, data, {
-		new: true,
-		runValidators: true,
-	});
+	const component = await PCComponent.findByIdAndUpdate(
+		id,
+		data as unknown as IPCComponent,
+		{
+			new: true,
+			runValidators: true,
+		},
+	);
 
 	if (!component) throw new Error("Component not found");
 
