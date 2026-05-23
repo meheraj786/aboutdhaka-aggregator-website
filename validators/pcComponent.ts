@@ -24,7 +24,7 @@ const pcComponentSchema = z.object({
 		"Cooler",
 	]),
 	imageUrl: z.string().url().optional().or(z.literal("")),
-	specs: z.record(z.union([z.string(), z.number(), z.boolean()])),
+	specs: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])),
 	shopListings: z.array(shopListingSchema),
 	cores: z.number().int().positive("Cores must be positive").optional(),
 	threads: z.number().int().positive("Threads must be positive").optional(),
