@@ -197,7 +197,7 @@ function ComponentFormDialog({
 					brand: editing.brand,
 					category: editing.category,
 					imageUrl: editing.imageUrl ?? "",
-					specs: editing.specs as Record<string, string | number>,
+					specs: editing.specs as Record<string, string | number | boolean>,
 					cores: editing.cores,
 					threads: editing.threads,
 					shopListings: editing.shopListings.map((l) => ({
@@ -266,6 +266,7 @@ function ComponentFormDialog({
 
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 					{/* Basic info */}
+
 					<div className="grid grid-cols-2 gap-4">
 						<Field label="Name" error={errors.name?.message}>
 							<Input placeholder="e.g. Ryzen 7 7700X" {...register("name")} />
@@ -578,6 +579,7 @@ function ShopFormDialog({
 
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 					<Field label="Shop Name" error={errors.name?.message}>
+
 						<Input placeholder="e.g. TechHub Dhaka" {...register("name")} />
 					</Field>
 
@@ -594,7 +596,7 @@ function ShopFormDialog({
 								type="number"
 								step="any"
 								placeholder="23.8103"
-								{...register("lat")}
+								{...register("lat", { valueAsNumber: true })}
 							/>
 						</Field>
 						<Field label="Longitude" error={errors.long?.message}>
@@ -602,7 +604,7 @@ function ShopFormDialog({
 								type="number"
 								step="any"
 								placeholder="90.4125"
-								{...register("long")}
+								{...register("long", { valueAsNumber: true })}
 							/>
 						</Field>
 					</div>
@@ -614,7 +616,7 @@ function ShopFormDialog({
 							min="0"
 							max="5"
 							placeholder="4.5"
-							{...register("rating")}
+							{...register("rating", { valueAsNumber: true })}
 						/>
 					</Field>
 
