@@ -12,8 +12,8 @@ import {
 	Share2,
 	Star,
 } from "lucide-react";
-import Image from "next/image";
 import { useParams } from "next/navigation";
+import FindBusButton from "@/components/appComponents/FindBusButton";
 import { useFetchHospitalById } from "@/hooks/useHospitals";
 
 export default function HospitalDetailPage() {
@@ -30,13 +30,13 @@ export default function HospitalDetailPage() {
 		<div className="min-h-screen bg-slate-50/30 pb-20">
 			{/* Hero Section */}
 			<div className="relative h-[500px] w-full">
-				<Image
-					src={data?.data?.image || ""}
-					alt={data?.data?.name || ""}
-					fill
-					className="object-cover"
-					referrerPolicy="no-referrer"
-				/>
+				{/* <Image
+          src={data?.data?.image || ""}
+          alt={data?.data?.name || ""}
+          fill
+          className="object-cover"
+          referrerPolicy="no-referrer"
+        /> */}
 				<div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
 
 				<div className="absolute top-8 right-8 flex gap-3">
@@ -172,6 +172,7 @@ export default function HospitalDetailPage() {
           </section> */}
 
 					{/* Medical Services */}
+
 					<section>
 						<div className="flex items-center gap-3 mb-8">
 							<Activity className="w-6 h-6 text-blue-600" />
@@ -180,21 +181,21 @@ export default function HospitalDetailPage() {
 							</h2>
 						</div>
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-							{data?.data?.services?.map((service: string) => (
-								<div
-									key={service}
-									className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-blue-200 transition-all cursor-pointer"
-								>
+							{data?.data?.services?.map(
+								(service: { _id: string; name: string }) => (
 									<div
-										className={`w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform `}
+										key={service?._id || service?.name} // Better key
+										className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:border-blue-200 transition-all cursor-pointer"
 									>
-										<HospitalIcon className="w-6 h-6" />
+										<div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+											<HospitalIcon className="w-6 h-6" />
+										</div>
+										<span className="font-bold text-slate-900 text-sm">
+											{service?.name} {/* ← Fixed */}
+										</span>
 									</div>
-									<span className="font-bold text-slate-900 text-sm">
-										{service}
-									</span>
-								</div>
-							))}
+								),
+							)}
 						</div>
 					</section>
 
@@ -279,6 +280,7 @@ export default function HospitalDetailPage() {
 										/>
 									</svg>
 								</div>
+
 								<div className="relative z-10 flex flex-col items-center gap-4">
 									<div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-blue-600/30 group-hover:scale-110 transition-transform">
 										<MapPin className="w-6 h-6" />
@@ -295,7 +297,10 @@ export default function HospitalDetailPage() {
 							</div>
 						</div>
 					</section>
-
+					<FindBusButton
+						hospitalLat={data?.data?.address?.coordinates?.lat}
+						hospitalLng={data?.data?.address?.coordinates?.lng}
+					/>
 					{/* Reviews */}
 					<section>
 						<div className="flex items-center justify-between mb-8">

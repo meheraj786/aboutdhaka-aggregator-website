@@ -8,11 +8,11 @@ import { useFetchHospitals } from "@/hooks/useHospitals";
 
 export default function HospitalsPage() {
 	const { data, isLoading } = useFetchHospitals();
-	console.log(data, "Data");
+	console.log(data, "hospital data");
 
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
-			<main className="flex-grow py-12 px-6 md:px-12 lg:px-24">
+			<main className="grow py-12 px-6 md:px-12 lg:px-24">
 				<div className="max-w-7xl mx-auto">
 					<div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
 						<div>
