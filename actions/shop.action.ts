@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
-import { Shop, type IShop } from "@/models/shop.model";
+import { type IShop, Shop } from "@/models/shop.model";
 import type { ShopInput } from "@/validators/pcComponent";
 
 function serializeData<T>(data: T): T {

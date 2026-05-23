@@ -16,11 +16,7 @@ import {
 	X,
 } from "lucide-react";
 import { useState } from "react";
-import {
-	Controller,
-	useFieldArray,
-	useForm,
-} from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import type { IPCComponentPopulated } from "@/actions/pcComponent.action";
 import {

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import {
 	type ComponentCategory,
-	IPCComponent,
+	type IPCComponent,
 	// type IPCComponent,
 	PCComponent,
 } from "@/models/pcComponent.model";
@@ -351,9 +351,7 @@ export async function getSuggestedBuild(
 // ---- Mutations ----
 export async function createComponent(data: PCComponentInput) {
 	await dbConnect();
-	const component = await PCComponent.create(
-		data as unknown as IPCComponent,
-	);
+	const component = await PCComponent.create(data as unknown as IPCComponent);
 	revalidatePath("/dashboard/components");
 
 	return serializeData(

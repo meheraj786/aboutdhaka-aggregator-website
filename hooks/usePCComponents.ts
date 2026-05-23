@@ -40,7 +40,10 @@ export function useFetchPaginatedComponents(params: GetComponentsParams) {
 export function useSuggestedBuild(query: SuggestionQuery | null) {
 	return useQuery<SuggestedBuild[]>({
 		queryKey: [queryKeys.pcComponents, "suggestion", query],
-		queryFn: () => getSuggestedBuild(query),
+		queryFn: () => {
+			if (!query) return Promise.resolve([]);
+			return getSuggestedBuild(query);
+		},
 		enabled: !!query,
 		staleTime: 2 * 60 * 1000,
 	});
