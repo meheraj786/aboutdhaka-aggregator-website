@@ -10,4 +10,7 @@ export const queryKeys = {
 	medicalCategories: "medicalCategories",
 	doctorHospitals: "doctorHospitals",
 	blogs: "blogs",
+	blogCategories: "blogCategories",
+	pcComponents: "pcComponents",
+	shops: "shops",
 };

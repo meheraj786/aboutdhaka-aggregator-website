@@ -113,6 +113,11 @@ const data = {
 			url: "/dashboard/areas",
 			icon: <MapPinIcon />,
 		},
+		{
+			title: "PC Builder",
+			url: "/dashboard/pc",
+			icon: <LayoutDashboardIcon />,
+		},
 	],
 	navClouds: [
 		{
