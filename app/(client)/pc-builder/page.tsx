@@ -3,6 +3,7 @@
 import { type ClassValue, clsx } from "clsx";
 import {
 	Briefcase,
+	CheckCircle2,
 	Clapperboard,
 	Code2,
 	Cpu,
@@ -23,6 +24,7 @@ import {
 	Zap,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import type {
@@ -43,8 +45,6 @@ function formatPrice(price: number) {
 		maximumFractionDigits: 0,
 	}).format(price);
 }
-
-// ─── constants ────────────────────────────────────────────────────────────────
 
 const USAGE_OPTIONS = [
 	{
@@ -151,8 +151,6 @@ const CATEGORY_META: Record<
 	},
 };
 
-// ─── sub-components ───────────────────────────────────────────────────────────
-
 function StockPill({ stock }: { stock: string }) {
 	if (stock === "in_stock")
 		return (
@@ -199,7 +197,6 @@ function ComponentCard({
 				? "bg-blue-50 text-blue-700 border-blue-200"
 				: "bg-violet-50 text-violet-700 border-violet-200";
 
-	// Safe specs handling
 	const specs =
 		component.specs && typeof component.specs === "object"
 			? component.specs
@@ -207,7 +204,6 @@ function ComponentCard({
 
 	return (
 		<div className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-			{/* top bar */}
 			<div className="px-4 pt-4 pb-3 flex items-start gap-3">
 				<div
 					className={cn(
@@ -245,7 +241,6 @@ function ComponentCard({
 				)}
 			</div>
 
-			{/* specs chips - SAFE VERSION */}
 			{Object.keys(specs).length > 0 && (
 				<div className="px-4 pb-3 flex flex-wrap gap-1.5">
 					{Object.entries(specs)
@@ -261,10 +256,8 @@ function ComponentCard({
 				</div>
 			)}
 
-			{/* divider */}
 			<div className="border-t border-slate-100 mx-3" />
 
-			{/* shop listings */}
 			<div className="p-3 space-y-1">
 				{sortedListings.length === 0 ? (
 					<p className="text-xs text-slate-400 text-center py-3">
@@ -331,7 +324,6 @@ function CategoryBlock({ build }: { build: SuggestedBuild }) {
 				meta?.accent ?? "border-slate-100 bg-white",
 			)}
 		>
-			{/* category header */}
 			<div className="flex items-center justify-between mb-4">
 				<div className="flex items-center gap-2.5">
 					<div
@@ -357,7 +349,6 @@ function CategoryBlock({ build }: { build: SuggestedBuild }) {
 					</div>
 				</div>
 
-				{/* option switcher */}
 				{build.components.length > 1 && (
 					<div className="flex items-center gap-1 bg-white rounded-xl border border-slate-100 p-1">
 						{build.components.map((_, i) => (
@@ -408,8 +399,6 @@ function ResultsSkeleton() {
 	);
 }
 
-// ─── main ─────────────────────────────────────────────────────────────────────
-
 interface AppState {
 	mainUsage: SuggestionQuery["mainUsage"];
 	browserTabs: number;
@@ -427,6 +416,7 @@ export default function SmartPCSuggester() {
 		budgetTier: "mid",
 	});
 
+	const router = useRouter();
 	const [submittedQuery, setSubmittedQuery] = useState<SuggestionQuery | null>(
 		null,
 	);
@@ -437,24 +427,24 @@ export default function SmartPCSuggester() {
 		isError,
 	} = useSuggestedBuild(submittedQuery);
 
-	const handleSearch = () => {
-		setSubmittedQuery({ ...state });
+	const handleSearch = () => setSubmittedQuery({ ...state });
+	const handleReset = () => setSubmittedQuery(null);
+
+	const handleFinalize = () => {
+		if (!builds || builds.length === 0) return;
+		const params = new URLSearchParams({
+			usage: state.mainUsage,
+			budget: state.budgetTier,
+			storage: state.storageNeeds,
+			tabs: String(state.browserTabs),
+			software: state.software.join(","),
+		});
+		router.push(`/pc-builder/build-result?${params.toString()}`);
 	};
 
-	const handleReset = () => {
-		setSubmittedQuery(null);
-	};
+	const canFinalize =
+		!!submittedQuery && !!builds && builds.length > 0 && !isLoading;
 
-	const toggleSoftware = (item: string) => {
-		setState((prev) => ({
-			...prev,
-			software: prev.software.includes(item)
-				? prev.software.filter((s) => s !== item)
-				: [...prev.software, item],
-		}));
-	};
-
-	// estimated min build cost
 	const estimatedMin =
 		builds && builds.length > 0
 			? builds.reduce((sum, b) => {
@@ -466,9 +456,17 @@ export default function SmartPCSuggester() {
 				}, 0)
 			: null;
 
+	const toggleSoftware = (item: string) => {
+		setState((prev) => ({
+			...prev,
+			software: prev.software.includes(item)
+				? prev.software.filter((s) => s !== item)
+				: [...prev.software, item],
+		}));
+	};
+
 	return (
 		<div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans selection:bg-blue-100">
-			{/* ── header ── */}
 			<header className="max-w-7xl mx-auto px-6 pt-8 pb-4">
 				<nav className="flex items-center gap-2 text-sm text-slate-500 mb-4">
 					<Link href="/" className="hover:text-blue-600 transition-colors">
@@ -486,9 +484,7 @@ export default function SmartPCSuggester() {
 			</header>
 
 			<main className="max-w-7xl mx-auto px-6 pb-20 grid grid-cols-1 lg:grid-cols-[1fr_440px] gap-8 items-start">
-				{/* ── LEFT: configurator ── */}
 				<div className="space-y-6">
-					{/* primary usage */}
 					<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
 						<div className="flex items-center gap-3 mb-6">
 							<div className="p-2 bg-blue-50 rounded-lg">
@@ -504,8 +500,8 @@ export default function SmartPCSuggester() {
 								const active = state.mainUsage === option.id;
 								return (
 									<button
-										type="button"
 										key={option.id}
+										type="button"
 										onClick={() => {
 											setState((p) => ({ ...p, mainUsage: option.id }));
 											handleReset();
@@ -541,7 +537,6 @@ export default function SmartPCSuggester() {
 						</div>
 					</section>
 
-					{/* workflow details */}
 					<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
 						<div className="flex items-center gap-3 mb-6">
 							<div className="p-2 bg-blue-50 rounded-lg">
@@ -553,7 +548,6 @@ export default function SmartPCSuggester() {
 						</div>
 
 						<div className="space-y-8">
-							{/* browser tabs */}
 							<div>
 								<div className="flex items-center justify-between mb-3">
 									<span className="text-sm font-semibold text-slate-700">
@@ -605,7 +599,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* software */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Software Usage
@@ -629,7 +622,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* storage */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Storage Requirement
@@ -663,7 +655,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* budget */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Budget Tier
@@ -697,18 +688,14 @@ export default function SmartPCSuggester() {
 					</section>
 				</div>
 
-				{/* ── RIGHT: results ── */}
 				<aside className="space-y-5 lg:sticky lg:top-8">
-					{/* summary + search card */}
 					<div className="bg-white rounded-[2.5rem] p-7 border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
 						<div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-slate-50 blur-3xl" />
 						<div className="relative z-10">
-							{/* label */}
 							<span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-3 bg-blue-50 text-blue-600">
 								Your Build Summary
 							</span>
 
-							{/* usage + budget */}
 							<h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">
 								{state.mainUsage}
 							</h3>
@@ -717,7 +704,6 @@ export default function SmartPCSuggester() {
 								{state.browserTabs}+ tabs
 							</p>
 
-							{/* quick stat row */}
 							<div className="grid grid-cols-3 gap-2 mb-6">
 								{[
 									{
@@ -743,7 +729,6 @@ export default function SmartPCSuggester() {
 								))}
 							</div>
 
-							{/* minimum specs info */}
 							<div className="mb-5 p-4 rounded-2xl bg-emerald-50/60 border border-emerald-100">
 								<p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">
 									Recommended Specs
@@ -774,7 +759,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* estimated price if results exist */}
 							{estimatedMin !== null && estimatedMin > 0 && (
 								<div className="mb-5 p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
 									<p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">
@@ -789,7 +773,6 @@ export default function SmartPCSuggester() {
 								</div>
 							)}
 
-							{/* CTA */}
 							<button
 								type="button"
 								onClick={submittedQuery ? handleReset : handleSearch}
@@ -819,6 +802,21 @@ export default function SmartPCSuggester() {
 								)}
 							</button>
 
+							<button
+								type="button"
+								onClick={handleFinalize}
+								disabled={!canFinalize}
+								className={cn(
+									"w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all mt-3",
+									canFinalize
+										? "bg-slate-900 text-white hover:bg-blue-600 shadow-lg shadow-slate-200"
+										: "bg-slate-100 text-slate-400 cursor-not-allowed",
+								)}
+							>
+								<CheckCircle2 className="w-4 h-4" />
+								Finalize Build →
+							</button>
+
 							{!submittedQuery && (
 								<p className="text-center text-[11px] text-slate-400 mt-3">
 									Matches real components from local BD shops
@@ -827,7 +825,6 @@ export default function SmartPCSuggester() {
 						</div>
 					</div>
 
-					{/* ── results area ── */}
 					{isLoading && <ResultsSkeleton />}
 
 					{isError && (

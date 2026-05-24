@@ -1,6 +1,6 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
+// import { zodResolver } from "@hookform/resolvers/zod";
 import { type ClassValue, clsx } from "clsx";
 import {
 	Edit2,
@@ -13,12 +13,14 @@ import {
 	Store,
 	Tag,
 	Trash2,
-	X,
+	// X,
 } from "lucide-react";
 import { useState } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+// import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import type { IPCComponentPopulated } from "@/actions/pcComponent.action";
+import { ComponentFormDialog } from "@/components/dashboardComponents/ComponentFormDialog";
+import { ShopFormDialog } from "@/components/dashboardComponents/ShopFormDialog";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -35,12 +37,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
 	Dialog,
 	DialogContent,
-	DialogFooter,
+	// DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// import { Label } from "@/components/ui/label";
 import {
 	Select,
 	SelectContent,
@@ -58,25 +60,25 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import {
-	useCreateComponent,
+	// useCreateComponent,
 	useDeleteComponent,
 	useFetchPaginatedComponents,
-	useUpdateComponent,
+	// useUpdateComponent,
 } from "@/hooks/usePCComponents";
 import {
 	type IShopPopulated,
-	useCreateShop,
+	// useCreateShop,
 	useDeleteShop,
 	useFetchShops,
-	useUpdateShop,
+	// useUpdateShop,
 } from "@/hooks/useShops";
 import type { ComponentCategory } from "@/models/pcComponent.model";
-import {
-	type PCComponentInput,
-	pcComponentInputSchema,
-	type ShopInput,
-	shopInputSchema,
-} from "@/validators/pcComponent";
+// import {
+// 	type PCComponentInput,
+// 	pcComponentInputSchema,
+// 	type ShopInput,
+// 	shopInputSchema,
+// } from "@/validators/pcComponent";
 
 function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -106,11 +108,11 @@ const CATEGORIES = [
 // 	{ value: "high-end", label: "High-end" },
 // ] as const;
 
-const STOCK_OPTIONS = [
-	{ value: "in_stock", label: "In Stock" },
-	{ value: "out_of_stock", label: "Out of Stock" },
-	{ value: "limited", label: "Limited" },
-] as const;
+// const STOCK_OPTIONS = [
+// 	{ value: "in_stock", label: "In Stock" },
+// 	{ value: "out_of_stock", label: "Out of Stock" },
+// 	{ value: "limited", label: "Limited" },
+// ] as const;
 
 function formatPrice(price: number) {
 	return new Intl.NumberFormat("bn-BD", {
@@ -144,506 +146,23 @@ function StockBadge({ stock }: { stock: string }) {
 }
 
 // ── Field wrapper ─────────────────────────────────────────────────────────────
-function Field({
-	label,
-	error,
-	children,
-}: {
-	label: string;
-	error?: string;
-	children: React.ReactNode;
-}) {
-	return (
-		<div className="space-y-1.5">
-			<Label className="text-xs font-semibold text-slate-700">{label}</Label>
-			{children}
-			{error && <p className="text-[11px] text-red-500">{error}</p>}
-		</div>
-	);
-}
-
-// ── Component Form Dialog ─────────────────────────────────────────────────────
-function ComponentFormDialog({
-	open,
-	onOpenChange,
-	editing,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	editing: IPCComponentPopulated | null;
-}) {
-	const { data: shops = [] } = useFetchShops();
-	const createMutation = useCreateComponent();
-	const updateMutation = useUpdateComponent();
-
-	const {
-		register,
-		handleSubmit,
-		control,
-		watch,
-		setValue,
-		reset,
-		formState: { errors },
-	} = useForm<PCComponentInput>({
-		resolver: zodResolver(pcComponentInputSchema),
-		defaultValues: editing
-			? {
-					name: editing.name,
-					brand: editing.brand,
-					category: editing.category,
-					imageUrl: editing.imageUrl ?? "",
-					specs: editing.specs as PCComponentInput["specs"],
-					cores: editing.cores,
-					threads: editing.threads,
-					shopListings: editing.shopListings.map((l) => ({
-						shop: l.shop._id,
-						price: l.price,
-						stock: l.stock,
-						url: l.url ?? "",
-					})),
-				}
-			: {
-					name: "",
-					brand: "",
-					category: "CPU",
-					imageUrl: "",
-					specs: {},
-					cores: undefined,
-					threads: undefined,
-					shopListings: [],
-				},
-	});
-
-	const { fields, append, remove } = useFieldArray({
-		control,
-		name: "shopListings",
-	});
-
-	const currentSpecs = watch("specs");
-	const currentCategory = watch("category");
-
-	const [specKey, setSpecKey] = useState("");
-	const [specVal, setSpecVal] = useState("");
-
-	const addSpec = () => {
-		if (!specKey.trim()) return;
-		setValue("specs", { ...currentSpecs, [specKey.trim()]: specVal });
-		setSpecKey("");
-		setSpecVal("");
-	};
-
-	const removeSpec = (key: string) => {
-		const updated = { ...currentSpecs };
-		delete updated[key];
-		setValue("specs", updated);
-	};
-
-	const onSubmit = async (data: PCComponentInput) => {
-		if (editing) {
-			await updateMutation.mutateAsync({ id: editing._id, data });
-		} else {
-			await createMutation.mutateAsync(data);
-		}
-		onOpenChange(false);
-		reset();
-	};
-
-	const isPending = createMutation.isPending || updateMutation.isPending;
-
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>
-						{editing ? "Edit Component" : "Add New Component"}
-					</DialogTitle>
-				</DialogHeader>
-
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-					{/* Basic info */}
-
-					<div className="grid grid-cols-2 gap-4">
-						<Field label="Name" error={errors.name?.message}>
-							<Input placeholder="e.g. Ryzen 7 7700X" {...register("name")} />
-						</Field>
-						<Field label="Brand" error={errors.brand?.message}>
-							<Input placeholder="e.g. AMD" {...register("brand")} />
-						</Field>
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<Field label="Category" error={errors.category?.message}>
-							<Controller
-								control={control}
-								name="category"
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{CATEGORIES.map((c) => (
-												<SelectItem key={c} value={c}>
-													{c}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-							/>
-						</Field>
-						{currentCategory === "CPU" && (
-							<Field label="Cores" error={errors.cores?.message}>
-								<Input
-									type="number"
-									placeholder="e.g. 8"
-									{...register("cores", { valueAsNumber: true })}
-								/>
-							</Field>
-						)}
-					</div>
-
-					{currentCategory === "CPU" && (
-						<Field label="Threads" error={errors.threads?.message}>
-							<Input
-								type="number"
-								placeholder="e.g. 16"
-								{...register("threads", { valueAsNumber: true })}
-							/>
-						</Field>
-					)}
-
-					<Field label="Image URL (optional)" error={errors.imageUrl?.message}>
-						<Input placeholder="https://..." {...register("imageUrl")} />
-					</Field>
-
-					{/* Specs */}
-					<div className="space-y-2">
-						<Label className="text-xs font-semibold text-slate-700">
-							Specs
-						</Label>
-						<div className="flex gap-2">
-							<Input
-								placeholder="Key (e.g. Cores)"
-								value={specKey}
-								onChange={(e) => setSpecKey(e.target.value)}
-								className="flex-1"
-							/>
-							<Input
-								placeholder="Value (e.g. 8)"
-								value={specVal}
-								onChange={(e) => setSpecVal(e.target.value)}
-								className="flex-1"
-							/>
-							<Button type="button" variant="outline" onClick={addSpec}>
-								<Plus className="w-4 h-4" />
-							</Button>
-						</div>
-						{Object.keys(currentSpecs ?? {}).length > 0 && (
-							<div className="flex flex-wrap gap-2 mt-2">
-								{Object.entries(currentSpecs).map(([k, v]) => (
-									<span
-										key={k}
-										className="flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full"
-									>
-										{k}: {String(v)}
-										<button
-											type="button"
-											onClick={() => removeSpec(k)}
-											className="ml-1 text-slate-400 hover:text-red-500"
-										>
-											<X className="w-3 h-3" />
-										</button>
-									</span>
-								))}
-							</div>
-						)}
-					</div>
-
-					{/* Shop listings */}
-					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<Label className="text-xs font-semibold text-slate-700">
-								Shop Listings
-							</Label>
-							<Button
-								type="button"
-								variant="outline"
-								size="sm"
-								onClick={() =>
-									append({ shop: "", price: 0, stock: "in_stock", url: "" })
-								}
-								className="gap-1.5"
-							>
-								<Plus className="w-3.5 h-3.5" />
-								Add Shop
-							</Button>
-						</div>
-
-						{fields.length === 0 && (
-							<p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-xl">
-								No shop listings yet. Click "Add Shop" above.
-							</p>
-						)}
-
-						{fields.map((field, index) => (
-							<div
-								key={field.id}
-								className="p-4 rounded-xl border border-slate-100 bg-slate-50 space-y-3"
-							>
-								<div className="flex items-center justify-between">
-									<p className="text-xs font-semibold text-slate-600">
-										Listing #{index + 1}
-									</p>
-									<button
-										type="button"
-										onClick={() => remove(index)}
-										className="text-slate-400 hover:text-red-500 transition-colors"
-									>
-										<X className="w-4 h-4" />
-									</button>
-								</div>
-
-								<div className="grid grid-cols-2 gap-3">
-									<Field
-										label="Shop"
-										error={errors.shopListings?.[index]?.shop?.message}
-									>
-										<Controller
-											control={control}
-											name={`shopListings.${index}.shop`}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="bg-white">
-														<SelectValue placeholder="Select shop" />
-													</SelectTrigger>
-													<SelectContent>
-														{shops.map((s) => (
-															<SelectItem key={s._id} value={s._id}>
-																{s.name}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-										/>
-									</Field>
-
-									<Field
-										label="Price (BDT)"
-										error={errors.shopListings?.[index]?.price?.message}
-									>
-										<Input
-											type="number"
-											placeholder="0"
-											className="bg-white"
-											{...register(`shopListings.${index}.price`, {
-												valueAsNumber: true,
-											})}
-										/>
-									</Field>
-								</div>
-
-								<div className="grid grid-cols-2 gap-3">
-									<Field
-										label="Stock"
-										error={errors.shopListings?.[index]?.stock?.message}
-									>
-										<Controller
-											control={control}
-											name={`shopListings.${index}.stock`}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="bg-white">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														{STOCK_OPTIONS.map((s) => (
-															<SelectItem key={s.value} value={s.value}>
-																{s.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-										/>
-									</Field>
-
-									<Field
-										label="Product URL (optional)"
-										error={errors.shopListings?.[index]?.url?.message}
-									>
-										<Input
-											placeholder="https://..."
-											className="bg-white"
-											{...register(`shopListings.${index}.url`)}
-										/>
-									</Field>
-								</div>
-							</div>
-						))}
-					</div>
-
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={isPending}>
-							{isPending
-								? "Saving..."
-								: editing
-									? "Update Component"
-									: "Add Component"}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
-	);
-}
-
-// ── Shop Form Dialog ─────────────────────────────────────────────────────────
-function ShopFormDialog({
-	open,
-	onOpenChange,
-	editing,
-}: {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	editing: IShopPopulated | null;
-}) {
-	const createMutation = useCreateShop();
-	const updateMutation = useUpdateShop();
-
-	const {
-		register,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<ShopInput>({
-		resolver: zodResolver(shopInputSchema),
-		defaultValues: editing
-			? {
-					name: editing.name,
-					location: editing.location,
-					lat: editing.lat,
-					long: editing.long,
-					rating: editing.rating ?? 0,
-					website: editing.website ?? "",
-					phone: editing.phone ?? "",
-				}
-			: {
-					name: "",
-					location: "",
-					lat: undefined,
-					long: undefined,
-					rating: 0,
-					website: "",
-					phone: "",
-				},
-	});
-
-	const onSubmit = async (data: ShopInput) => {
-		if (editing) {
-			await updateMutation.mutateAsync({ id: editing._id, data });
-		} else {
-			await createMutation.mutateAsync(data);
-		}
-		onOpenChange(false);
-		reset();
-	};
-
-	const isPending = createMutation.isPending || updateMutation.isPending;
-
-	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-md">
-				<DialogHeader>
-					<DialogTitle>{editing ? "Edit Shop" : "Add New Shop"}</DialogTitle>
-				</DialogHeader>
-
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-					<Field label="Shop Name" error={errors.name?.message}>
-						<Input placeholder="e.g. TechHub Dhaka" {...register("name")} />
-					</Field>
-
-					<Field label="Location" error={errors.location?.message}>
-						<Input
-							placeholder="e.g. Bashundhara City, Dhaka"
-							{...register("location")}
-						/>
-					</Field>
-
-					<div className="grid grid-cols-2 gap-4">
-						<Field label="Latitude" error={errors.lat?.message}>
-							<Input
-								type="number"
-								step="any"
-								placeholder="23.8103"
-								{...register("lat", { valueAsNumber: true })}
-							/>
-						</Field>
-						<Field label="Longitude" error={errors.long?.message}>
-							<Input
-								type="number"
-								step="any"
-								placeholder="90.4125"
-								{...register("long", { valueAsNumber: true })}
-							/>
-						</Field>
-					</div>
-
-					<Field label="Rating (0-5)" error={errors.rating?.message}>
-						<Input
-							type="number"
-							step="0.1"
-							min="0"
-							max="5"
-							placeholder="4.5"
-							{...register("rating", { valueAsNumber: true })}
-						/>
-					</Field>
-
-					<Field label="Website (optional)" error={errors.website?.message}>
-						<Input
-							type="url"
-							placeholder="https://..."
-							{...register("website")}
-						/>
-					</Field>
-
-					<Field label="Phone (optional)" error={errors.phone?.message}>
-						<Input placeholder="+880 1XXX XXXXXX" {...register("phone")} />
-					</Field>
-
-					<div className="flex gap-2 pt-4">
-						<Button type="submit" disabled={isPending} className="flex-1">
-							{isPending ? "Saving..." : editing ? "Update" : "Add Shop"}
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-							className="flex-1"
-						>
-							Cancel
-						</Button>
-					</div>
-				</form>
-			</DialogContent>
-		</Dialog>
-	);
-}
+// function Field({
+// 	label,
+// 	error,
+// 	children,
+// }: {
+// 	label: string;
+// 	error?: string;
+// 	children: React.ReactNode;
+// }) {
+// 	return (
+// 		<div className="space-y-1.5">
+// 			<Label className="text-xs font-semibold text-slate-700">{label}</Label>
+// 			{children}
+// 			{error && <p className="text-[11px] text-red-500">{error}</p>}
+// 		</div>
+// 	);
+// }
 
 // ── Shops List Dialog ─────────────────────────────────────────────────────────
 function ShopsListDialog({
