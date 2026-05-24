@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { dbConnect } from "@/lib/db";
 import { type IShop, Shop } from "@/models/shop.model";
-import type { ShopInput } from "@/validators/pcComponent";
+import type { ShopInput } from "@/validators/shops";
 
 function serializeData<T>(data: T): T {
 	if (data === null || data === undefined) return data;

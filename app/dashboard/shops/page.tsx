@@ -41,7 +41,7 @@ import {
 	useFetchShops,
 	useUpdateShop,
 } from "@/hooks/useShops";
-import { type ShopInput, shopInputSchema } from "@/validators/pcComponent";
+import { type ShopInput, shopInputSchema } from "@/validators/shops";
 
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 function Field({

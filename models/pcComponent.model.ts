@@ -18,6 +18,15 @@ export interface IShopListing {
 	lastUpdated: Date;
 }
 
+// component.model.ts
+
+export type UsageTag =
+	| "Gaming"
+	| "Content Creation"
+	| "Development"
+	| "Office & Web";
+export type BudgetTier = "budget" | "mid" | "high-end";
+
 export interface IPCComponent extends mongoose.Document {
 	name: string;
 	brand: string;
@@ -26,10 +35,12 @@ export interface IPCComponent extends mongoose.Document {
 	specs: Record<string, string | number | boolean>;
 	shopListings: IShopListing[];
 
-	// CPU-specific fields
+	// New fields
+	usageTags: UsageTag[]; // not optional — matches .default([])
+	minBudgetTier: BudgetTier; // not optional — matches .default("mid")
+
 	cores?: number;
 	threads?: number;
-
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -67,7 +78,16 @@ const PCComponentSchema = new Schema<IPCComponent>(
 		imageUrl: { type: String },
 		specs: { type: Schema.Types.Mixed, default: {} },
 		shopListings: [ShopListingSchema],
-		// CPU-specific fields
+		usageTags: {
+			type: [String],
+			enum: ["Gaming", "Content Creation", "Development", "Office & Web"],
+			default: [],
+		},
+		minBudgetTier: {
+			type: String,
+			enum: ["budget", "mid", "high-end"],
+			default: "mid",
+		},
 		cores: { type: Number, sparse: true },
 		threads: { type: Number, sparse: true },
 	},

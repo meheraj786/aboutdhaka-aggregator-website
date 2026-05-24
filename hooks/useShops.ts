@@ -8,9 +8,18 @@ import {
 	updateShop,
 } from "@/actions/shop.action";
 import { queryKeys } from "@/lib/queryKeys";
-import type { ShopInput } from "@/validators/pcComponent";
+import type { ShopInput } from "@/validators/shops";
 
 export type { IShopPopulated };
+
+function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	if (typeof error === "object" && error !== null && "message" in error) {
+		const msg = (error as Record<string, unknown>).message;
+		return typeof msg === "string" ? msg : "An error occurred";
+	}
+	return "An error occurred";
+}
 
 export function useFetchShops() {
 	return useQuery<IShopPopulated[]>({
@@ -28,7 +37,7 @@ export function useCreateShop() {
 			qc.invalidateQueries({ queryKey: [queryKeys.shops] });
 			toast.success("Shop added");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -41,7 +50,7 @@ export function useUpdateShop() {
 			qc.invalidateQueries({ queryKey: [queryKeys.shops] });
 			toast.success("Shop updated");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -53,6 +62,6 @@ export function useDeleteShop() {
 			qc.invalidateQueries({ queryKey: [queryKeys.shops] });
 			toast.success("Shop deleted");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }

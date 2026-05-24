@@ -16,6 +16,15 @@ import {
 import { queryKeys } from "@/lib/queryKeys";
 import type { PCComponentInput } from "@/validators/pcComponent";
 
+function getErrorMessage(error: unknown): string {
+	if (error instanceof Error) return error.message;
+	if (typeof error === "object" && error !== null && "message" in error) {
+		const msg = (error as Record<string, unknown>).message;
+		return typeof msg === "string" ? msg : "An error occurred";
+	}
+	return "An error occurred";
+}
+
 export function useFetchComponents() {
 	return useQuery<IPCComponentPopulated[]>({
 		queryKey: [queryKeys.pcComponents],
@@ -57,7 +66,7 @@ export function useCreateComponent() {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });
 			toast.success("Component created");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -70,7 +79,7 @@ export function useUpdateComponent() {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });
 			toast.success("Component updated");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -82,7 +91,7 @@ export function useDeleteComponent() {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });
 			toast.success("Component deleted");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -100,7 +109,7 @@ export function useUpsertShopListing() {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });
 			toast.success("Shop listing updated");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }
 
@@ -118,6 +127,6 @@ export function useRemoveShopListing() {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });
 			toast.success("Shop listing removed");
 		},
-		onError: (e: { message: string }) => toast.error(e.message),
+		onError: (e: unknown) => toast.error(getErrorMessage(e)),
 	});
 }

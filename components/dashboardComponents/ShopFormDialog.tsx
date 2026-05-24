@@ -14,7 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateShop, useUpdateShop } from "@/hooks/useShops";
-import { type ShopInput, shopInputSchema } from "@/validators/pcComponent";
+import { type ShopInput, shopInputSchema } from "@/validators/shops";
+
+// function getErrorMessage(error: unknown): string {
+// 	if (error instanceof Error) return error.message;
+// 	if (typeof error === "object" && error !== null && "message" in error) {
+// 		const msg = (error as Record<string, unknown>).message;
+// 		return typeof msg === "string" ? msg : "An error occurred";
+// 	}
+// 	return "An error occurred";
+// }
 
 function Field({
 	label,
