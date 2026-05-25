@@ -82,6 +82,10 @@ export interface GetHospitalsParams {
 	page?: number;
 	pageSize?: number;
 	search?: string;
+	areas?: string[];
+	types?: string[];
+	minRating?: number;
+	sortBy?: "popular" | "rating_desc";
 }
 
 export async function getHospitals(params: GetHospitalsParams = {}) {
@@ -91,16 +95,29 @@ export async function getHospitals(params: GetHospitalsParams = {}) {
 		const pageSize = params.pageSize ?? 10;
 		const skip = (page - 1) * pageSize;
 
-		const filter = params.search
-			? { name: { $regex: params.search, $options: "i" } }
-			: {};
+		const filter: Record<string, unknown> = {};
+
+		if (params.search) {
+			filter.name = { $regex: params.search, $options: "i" };
+		}
+		if (params.areas?.length) {
+			filter["address.area"] = { $in: params.areas };
+		}
+		if (params.types?.length) {
+			filter.types = { $in: params.types };
+		}
+		if (params.minRating !== undefined) {
+			filter.rating = { $gte: params.minRating };
+		}
+
+		const sortOptions = {
+			popular: { rating: -1, reviewCount: -1 },
+			rating_desc: { rating: -1 },
+		} as const;
+		const sort = sortOptions[params.sortBy ?? "popular"];
 
 		const [items, totalCount] = await Promise.all([
-			Hospital.find(filter)
-				.sort({ createdAt: -1 })
-				.skip(skip)
-				.limit(pageSize)
-				.lean(),
+			Hospital.find(filter).sort(sort).skip(skip).limit(pageSize).lean(),
 			Hospital.countDocuments(filter),
 		]);
 

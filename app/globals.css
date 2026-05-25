@@ -212,6 +212,39 @@
 	--radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Hospital card shine sweep on hover */
+.card-shine {
+	position: relative;
+}
+
+.card-shine::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: -75%;
+	width: 50%;
+	height: 100%;
+	background: linear-gradient(
+		to right,
+		transparent 0%,
+		rgba(255, 255, 255, 0.32) 50%,
+		transparent 100%
+	);
+	transform: skewX(-15deg);
+	z-index: 10;
+	pointer-events: none;
+}
+
+.card-shine:hover::before {
+	animation: card-shine-sweep 0.65s ease-out forwards;
+}
+
+@keyframes card-shine-sweep {
+	to {
+		left: 130%;
+	}
+}
+
 @layer base {
 	* {
 		@apply border-border outline-ring/50;

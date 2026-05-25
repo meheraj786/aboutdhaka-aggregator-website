@@ -6,11 +6,11 @@ import Link from "next/link";
 export interface HospitalCardProps {
 	_id: string;
 	name: string;
-	area: {
-		name: string;
+	address?: {
+		area?: string;
 	};
 	location?: string;
-	category: string;
+	types?: string[];
 	detail?: string;
 	rating?: number;
 	phone?: string;
@@ -18,26 +18,33 @@ export interface HospitalCardProps {
 	services?: string[];
 	reviewsCount?: number;
 	doctors?: mongoose.Types.ObjectId[];
-	image?: string;
+	thumbnail?: string;
+	images?: string[];
 }
 
 const HospitalCard: React.FC<HospitalCardProps> = ({
 	_id,
 	name,
-	area,
-	category,
+	address,
+	types,
 	rating,
 	detail,
-	image,
+	thumbnail,
+	images,
 }) => {
+	const imageSrc = thumbnail || images?.[0] || "/placeholder.svg";
+	const category = types?.[0] || "Hospital";
+	const areaName = address?.area || "Dhaka";
+
 	return (
 		<Link href={`/hospitals/${_id}`}>
-			<div className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
+			<div className="card-shine bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col h-full">
 				<div className="relative h-48 w-full">
 					<Image
-						src={image || ""}
+						src={imageSrc}
 						alt={name || ""}
 						fill
+						loading="eager"
 						className="object-cover"
 						referrerPolicy="no-referrer"
 					/>
@@ -47,7 +54,7 @@ const HospitalCard: React.FC<HospitalCardProps> = ({
 					</div>
 				</div>
 
-				<div className="p-5 flex flex-col flex-grow">
+				<div className="p-5 flex flex-col grow">
 					<div className="flex justify-between items-start mb-2">
 						<h3 className="text-lg font-bold text-slate-900 leading-tight">
 							{name}
@@ -59,20 +66,15 @@ const HospitalCard: React.FC<HospitalCardProps> = ({
 
 					<div className="flex items-center gap-1 text-slate-400 mb-3">
 						<MapPin className="w-3 h-3" />
-						<span className="text-xs">{area?.name}</span>
+						<span className="text-xs">{areaName}</span>
 					</div>
 
-					<p className="text-slate-500 text-sm line-clamp-2 line-clamp-2 mb-6 flex-grow">
+					<p className="text-slate-500 text-sm line-clamp-2 mb-2 grow">
 						{detail}
 					</p>
-					<Link href={`/hospitals/${_id}`}>
-						<button
-							type="button"
-							className="w-full py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-900 font-semibold rounded-xl transition-colors text-sm"
-						>
-							View Details
-						</button>
-					</Link>
+					<span className="w-full py-2.5 bg-slate-50 hover:bg-blue-600 text-slate-900 hover:text-white font-semibold rounded-xl text-sm text-center transition-colors duration-200">
+						View Details
+					</span>
 				</div>
 			</div>
 		</Link>
