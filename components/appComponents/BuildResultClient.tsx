@@ -1,17 +1,19 @@
-// app/build-result/_components/BuildResultClient.tsx
 "use client";
 
 import { type ClassValue, clsx } from "clsx";
 import {
+	AlertTriangle,
 	ArrowLeft,
 	Bus,
 	CheckCircle2,
 	Cpu,
 	ExternalLink,
 	HardDrive,
+	Loader2,
 	MapPin,
 	MemoryStick,
 	Monitor,
+	ShieldCheck,
 	ShoppingCart,
 	Sparkles,
 	Store,
@@ -19,8 +21,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import {
+	type CompatibilityResult,
+	checkBuildCompatibility,
+} from "@/actions/ai.action";
 import type {
 	IPCComponentPopulated,
 	IShopListingPopulated,
@@ -42,7 +48,6 @@ function formatPrice(price: number) {
 	}).format(price);
 }
 
-// ─── category meta ────────────────────────────────────────────────────────────
 const CATEGORY_META: Record<
 	string,
 	{ icon: React.FC<{ className?: string }>; label: string; iconBg: string }
@@ -81,8 +86,6 @@ const CATEGORY_META: Record<
 	},
 };
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
-
 function getMinPrice(component: IPCComponentPopulated): number {
 	if (!component.shopListings || component.shopListings.length === 0) return 0;
 	return Math.min(...component.shopListings.map((l) => l.price));
@@ -95,7 +98,6 @@ function pickMinBuild(builds: SuggestedBuild[]): IPCComponentPopulated[] {
 				(c) => c.shopListings && c.shopListings.length > 0,
 			);
 			if (validComponents.length === 0) return null;
-
 			return validComponents.sort((a, b) => getMinPrice(a) - getMinPrice(b))[0];
 		})
 		.filter(Boolean) as IPCComponentPopulated[];
@@ -110,7 +112,6 @@ function pickRecommendedBuild(
 				(c) => c.shopListings && c.shopListings.length > 0,
 			);
 			if (validComponents.length === 0) return null;
-
 			const sorted = validComponents.sort(
 				(a, b) => getMinPrice(a) - getMinPrice(b),
 			);
@@ -121,12 +122,9 @@ function pickRecommendedBuild(
 }
 
 function totalCost(components: IPCComponentPopulated[]): number {
-	return components.reduce((sum, c) => {
-		return sum + getMinPrice(c);
-	}, 0);
+	return components.reduce((sum, c) => sum + getMinPrice(c), 0);
 }
 
-// ─── StockPill ────────────────────────────────────────────────────────────────
 function StockPill({ stock }: { stock: string }) {
 	if (stock === "in_stock")
 		return (
@@ -150,7 +148,108 @@ function StockPill({ stock }: { stock: string }) {
 	);
 }
 
-// ─── Shop Listing Row ─────────────────────────────────────────────────────────
+function CompatibilityCard({
+	result,
+	onClose,
+}: {
+	result: CompatibilityResult;
+	onClose: () => void;
+}) {
+	const hasErrors = result.issues.some((i) => i.severity === "error");
+	const hasWarnings = result.issues.some((i) => i.severity === "warning");
+
+	return (
+		<div
+			className={cn(
+				"rounded-2xl border p-5 space-y-4",
+				result.compatible && !hasWarnings
+					? "border-emerald-200 bg-emerald-50/40"
+					: hasErrors
+						? "border-red-200 bg-red-50/40"
+						: "border-amber-200 bg-amber-50/40",
+			)}
+		>
+			<div className="flex items-start justify-between gap-2">
+				<div className="flex items-center gap-2">
+					{result.compatible && !hasErrors ? (
+						<ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+					) : hasErrors ? (
+						<AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+					) : (
+						<AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+					)}
+					<p className="text-sm font-bold text-slate-900">
+						Compatibility Report
+					</p>
+				</div>
+				<button
+					type="button"
+					onClick={onClose}
+					className="text-[10px] text-slate-400 hover:text-slate-600 font-medium"
+				>
+					Dismiss
+				</button>
+			</div>
+
+			<p className="text-xs text-slate-700 leading-relaxed">{result.summary}</p>
+
+			{result.issues.length > 0 && (
+				<div className="space-y-2">
+					{result.issues.map((issue, i) => (
+						<div
+							key={i}
+							className={cn(
+								"rounded-xl p-3 border text-xs space-y-1",
+								issue.severity === "error"
+									? "bg-red-50 border-red-100"
+									: "bg-amber-50 border-amber-100",
+							)}
+						>
+							<div className="flex items-center gap-1.5">
+								<span
+									className={cn(
+										"text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full",
+										issue.severity === "error"
+											? "bg-red-200 text-red-700"
+											: "bg-amber-200 text-amber-700",
+									)}
+								>
+									{issue.severity}
+								</span>
+								<span className="font-bold text-slate-700">
+									{issue.component}
+								</span>
+							</div>
+							<p className="text-slate-600">{issue.issue}</p>
+							<p className="text-slate-500">
+								<span className="font-semibold">Fix:</span> {issue.fix}
+							</p>
+						</div>
+					))}
+				</div>
+			)}
+
+			{result.totalEstimatedWattage > 0 && (
+				<div className="flex items-center justify-between text-xs bg-white rounded-xl px-3 py-2 border border-slate-100">
+					<span className="text-slate-500">Estimated system power draw</span>
+					<span className="font-bold text-slate-900">
+						~{result.totalEstimatedWattage}W
+					</span>
+				</div>
+			)}
+
+			{result.psuRecommendedWattage > 0 && (
+				<div className="flex items-center justify-between text-xs bg-white rounded-xl px-3 py-2 border border-slate-100">
+					<span className="text-slate-500">Recommended PSU wattage</span>
+					<span className="font-bold text-blue-600">
+						{result.psuRecommendedWattage}W+
+					</span>
+				</div>
+			)}
+		</div>
+	);
+}
+
 function ShopListingRow({
 	listing,
 	isCheapest,
@@ -247,7 +346,6 @@ function ShopListingRow({
 	);
 }
 
-// ─── BuildComponentRow ────────────────────────────────────────────────────────
 function BuildComponentRow({
 	component,
 }: {
@@ -346,7 +444,6 @@ function BuildComponentRow({
 	);
 }
 
-// ─── BuildColumn ──────────────────────────────────────────────────────────────
 function BuildColumn({
 	title,
 	subtitle,
@@ -409,7 +506,6 @@ function BuildColumn({
 	);
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
 function PageSkeleton() {
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -433,7 +529,6 @@ function PageSkeleton() {
 	);
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
 export default function BuildResultClient() {
 	const params = useSearchParams();
 
@@ -452,6 +547,26 @@ export default function BuildResultClient() {
 	);
 
 	const { data: builds, isLoading, isError } = useSuggestedBuild(query);
+
+	const [compatibilityResult, setCompatibilityResult] =
+		useState<CompatibilityResult | null>(null);
+	const [compatibilityLoading, setCompatibilityLoading] = useState(false);
+
+	useEffect(() => {
+		if (!builds || builds.length === 0) return;
+
+		const pickedComponents: IPCComponentPopulated[] = builds
+			.map((b) => b.components[0])
+			.filter((c): c is IPCComponentPopulated => c !== undefined);
+
+		if (pickedComponents.length === 0) return;
+
+		setCompatibilityLoading(true);
+		setCompatibilityResult(null);
+		checkBuildCompatibility(pickedComponents)
+			.then(setCompatibilityResult)
+			.finally(() => setCompatibilityLoading(false));
+	}, [builds]);
 
 	const minBuild = useMemo(
 		() => (builds ? pickMinBuild(builds) : []),
@@ -555,6 +670,24 @@ export default function BuildResultClient() {
 								to find bus route.
 							</p>
 						</div>
+
+						{compatibilityLoading && (
+							<div className="mb-6 p-4 bg-violet-50 border border-violet-100 rounded-2xl flex items-center gap-3">
+								<Loader2 className="w-4 h-4 text-violet-500 animate-spin shrink-0" />
+								<p className="text-xs text-violet-700 font-medium">
+									Checking component compatibility...
+								</p>
+							</div>
+						)}
+
+						{compatibilityResult && (
+							<div className="mb-6">
+								<CompatibilityCard
+									result={compatibilityResult}
+									onClose={() => setCompatibilityResult(null)}
+								/>
+							</div>
+						)}
 
 						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 							<BuildColumn

@@ -1,20 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-	Controller,
-	type SubmitHandler,
-	useFieldArray,
-	useForm,
-} from "react-hook-form";
+import { Plus, Trash2 } from "lucide-react";
+import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import type { IPCComponentPopulated } from "@/actions/pcComponent.action";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
@@ -54,39 +49,62 @@ const USAGE_TAGS = [
 	"Development",
 	"Office & Web",
 ] as const;
-type UsageTag = (typeof USAGE_TAGS)[number];
 
 const BUDGET_TIERS = [
-	{ value: "budget" as const, label: "Budget" },
-	{ value: "mid" as const, label: "Mid-range" },
-	{ value: "high-end" as const, label: "High-end" },
+	{ value: "budget", label: "Budget" },
+	{ value: "mid", label: "Mid-range" },
+	{ value: "high-end", label: "High-end" },
+] as const;
+
+const SOCKET_OPTIONS = [
+	{ value: "AM4", label: "AM4 — AMD Ryzen 3000 / 5000" },
+	{ value: "AM5", label: "AM5 — AMD Ryzen 7000+" },
+	{ value: "LGA1700", label: "LGA1700 — Intel 12th / 13th / 14th Gen" },
+	{ value: "LGA1200", label: "LGA1200 — Intel 10th / 11th Gen" },
+	{ value: "LGA1151", label: "LGA1151 — Intel 8th / 9th Gen" },
+	{ value: "other", label: "Other" },
+] as const;
+
+const RAM_GEN_OPTIONS = [
+	{ value: "DDR3", label: "DDR3" },
+	{ value: "DDR4", label: "DDR4" },
+	{ value: "DDR5", label: "DDR5" },
+] as const;
+
+const STORAGE_INTERFACE_OPTIONS = [
+	{ value: "NVMe_Gen3", label: "NVMe Gen 3 (M.2 PCIe 3.0)" },
+	{ value: "NVMe_Gen4", label: "NVMe Gen 4 (M.2 PCIe 4.0)" },
+	{ value: "SATA", label: "SATA (SSD / HDD)" },
 ] as const;
 
 const STOCK_OPTIONS = [
-	{ value: "in_stock" as const, label: "In Stock" },
-	{ value: "out_of_stock" as const, label: "Out of Stock" },
-	{ value: "limited" as const, label: "Limited" },
+	{ value: "in_stock", label: "In Stock" },
+	{ value: "out_of_stock", label: "Out of Stock" },
+	{ value: "limited", label: "Limited" },
 ] as const;
 
 function Field({
 	label,
+	hint,
 	error,
 	children,
 }: {
 	label: string;
+	hint?: string;
 	error?: string;
 	children: React.ReactNode;
 }) {
 	return (
 		<div className="space-y-1.5">
 			<Label className="text-xs font-semibold text-slate-700">{label}</Label>
+			{hint && <p className="text-[10px] text-slate-400">{hint}</p>}
 			{children}
 			{error && <p className="text-[11px] text-red-500">{error}</p>}
 		</div>
 	);
 }
 
-function buildDefaultValues(
+function buildDefaults(
 	editing: IPCComponentPopulated | null,
 ): PCComponentInput {
 	if (!editing) {
@@ -94,55 +112,53 @@ function buildDefaultValues(
 			name: "",
 			brand: "",
 			category: "CPU",
-			imageUrl: undefined,
-			specs: {},
+			imageUrl: "",
 			usageTags: [],
 			minBudgetTier: "mid",
+			specs: {},
+			shopListings: [],
+			socket: undefined,
 			cores: undefined,
 			threads: undefined,
-			shopListings: [],
+			tdpWatt: undefined,
+			supportedRamGeneration: undefined,
+			supportedStorageInterfaces: undefined,
+			ramGeneration: undefined,
+			ramCapacityGb: undefined,
+			vramGb: undefined,
+			gpuTdpWatt: undefined,
+			storageInterface: undefined,
+			storageCapacityGb: undefined,
+			wattage: undefined,
 		};
 	}
-
-	const cleanedSpecs: Record<string, string | number | boolean> = {};
-	for (const [key, value] of Object.entries(editing.specs ?? {})) {
-		if (value !== null && value !== undefined) {
-			cleanedSpecs[key] = value;
-		}
-	}
-
 	return {
 		name: editing.name,
 		brand: editing.brand,
 		category: editing.category,
-		imageUrl: editing.imageUrl ?? undefined,
-		specs: cleanedSpecs,
-		usageTags: (editing.usageTags ?? []).map((tag) => {
-			if (
-				tag === "Gaming" ||
-				tag === "Content Creation" ||
-				tag === "Development" ||
-				tag === "Office & Web"
-			) {
-				return tag;
-			}
-			return "Gaming";
-		}),
-		minBudgetTier: editing.minBudgetTier ?? "mid",
+		imageUrl: editing.imageUrl ?? "",
+		usageTags: editing.usageTags as PCComponentInput["usageTags"],
+		minBudgetTier: editing.minBudgetTier,
+		specs: (editing.specs ?? {}) as Record<string, string | number | boolean>,
+		shopListings: editing.shopListings.map((l) => ({
+			shop: l.shop._id,
+			price: l.price,
+			stock: l.stock,
+			url: l.url ?? "",
+		})),
+		socket: editing.socket,
 		cores: editing.cores,
 		threads: editing.threads,
-		shopListings: (editing.shopListings ?? []).map((l) => {
-			const shopId =
-				typeof l.shop === "object" && l.shop !== null && "_id" in l.shop
-					? (l.shop as { _id: string })._id
-					: String(l.shop);
-			return {
-				shop: shopId,
-				price: l.price,
-				stock: l.stock,
-				url: l.url ?? "",
-			};
-		}),
+		tdpWatt: editing.tdpWatt,
+		supportedRamGeneration: editing.supportedRamGeneration,
+		supportedStorageInterfaces: editing.supportedStorageInterfaces,
+		ramGeneration: editing.ramGeneration,
+		ramCapacityGb: editing.ramCapacityGb,
+		vramGb: editing.vramGb,
+		gpuTdpWatt: editing.gpuTdpWatt,
+		storageInterface: editing.storageInterface,
+		storageCapacityGb: editing.storageCapacityGb,
+		wattage: editing.wattage,
 	};
 }
 
@@ -155,60 +171,63 @@ export function ComponentFormDialog({
 	onOpenChange: (open: boolean) => void;
 	editing: IPCComponentPopulated | null;
 }) {
-	const { data: shops = [] } = useFetchShops();
 	const createMutation = useCreateComponent();
 	const updateMutation = useUpdateComponent();
+	const { data: shops = [] } = useFetchShops();
 
 	const {
 		register,
 		handleSubmit,
-		control,
+		reset,
 		watch,
 		setValue,
-		reset,
+		control,
 		formState: { errors },
-	} = useForm({
+	} = useForm<PCComponentInput>({
 		resolver: zodResolver(pcComponentInputSchema),
-		defaultValues: buildDefaultValues(editing),
+		defaultValues: buildDefaults(editing),
 	});
-
-	useEffect(() => {
-		reset(buildDefaultValues(editing));
-	}, [editing, reset]);
 
 	const { fields, append, remove } = useFieldArray({
 		control,
 		name: "shopListings",
 	});
 
-	const currentSpecs = watch("specs") ?? {};
-	const currentTags = watch("usageTags") ?? [];
-	const currentCategory = watch("category");
+	useEffect(() => {
+		reset(buildDefaults(editing));
+	}, [editing, reset]);
 
-	const [specKey, setSpecKey] = useState("");
-	const [specVal, setSpecVal] = useState("");
+	const watchedCategory = watch("category");
+	const watchedUsageTags = watch("usageTags");
+	const watchedStorageInterfaces = watch("supportedStorageInterfaces") ?? [];
 
-	const addSpec = () => {
-		if (!specKey.trim()) return;
-		setValue("specs", { ...currentSpecs, [specKey.trim()]: specVal });
-		setSpecKey("");
-		setSpecVal("");
+	const toggleUsageTag = (tag: PCComponentInput["usageTags"][number]) => {
+		const current = watchedUsageTags ?? [];
+		if (current.includes(tag)) {
+			setValue(
+				"usageTags",
+				current.filter((t) => t !== tag),
+			);
+		} else {
+			setValue("usageTags", [...current, tag]);
+		}
 	};
 
-	const removeSpec = (key: string) => {
-		const updated = { ...currentSpecs };
-		delete updated[key];
-		setValue("specs", updated);
+	const toggleStorageInterface = (
+		iface: "NVMe_Gen3" | "NVMe_Gen4" | "SATA",
+	) => {
+		const current = watchedStorageInterfaces;
+		if (current.includes(iface)) {
+			setValue(
+				"supportedStorageInterfaces",
+				current.filter((i) => i !== iface),
+			);
+		} else {
+			setValue("supportedStorageInterfaces", [...current, iface]);
+		}
 	};
 
-	const toggleTag = (tag: UsageTag) => {
-		const next = currentTags.includes(tag)
-			? currentTags.filter((t) => t !== tag)
-			: [...currentTags, tag];
-		setValue("usageTags", next, { shouldValidate: true });
-	};
-
-	const onSubmit: SubmitHandler<PCComponentInput> = async (data) => {
+	const onSubmit = async (data: PCComponentInput) => {
 		if (editing) {
 			await updateMutation.mutateAsync({ id: editing._id, data });
 		} else {
@@ -218,6 +237,14 @@ export function ComponentFormDialog({
 	};
 
 	const isPending = createMutation.isPending || updateMutation.isPending;
+
+	const isCpu = watchedCategory === "CPU";
+	const isMotherboard = watchedCategory === "Motherboard";
+	const isRam = watchedCategory === "RAM";
+	const isGpu = watchedCategory === "GPU";
+	const isStorage = watchedCategory === "Storage";
+	const isPsu = watchedCategory === "PSU";
+	const showSocket = isCpu || isMotherboard;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -229,187 +256,417 @@ export function ComponentFormDialog({
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-					<div className="grid grid-cols-2 gap-4">
-						<Field label="Name" error={errors.name?.message}>
-							<Input placeholder="e.g. Ryzen 7 7700X" {...register("name")} />
-						</Field>
-						<Field label="Brand" error={errors.brand?.message}>
-							<Input placeholder="e.g. AMD" {...register("brand")} />
-						</Field>
-					</div>
+					{/* ── Basic Info ─────────────────────────────────────────────────── */}
+					<div className="space-y-4">
+						<p className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2">
+							Basic Info
+						</p>
 
-					<div className="grid grid-cols-2 gap-4">
-						<Field label="Category" error={errors.category?.message}>
-							<Controller
-								control={control}
-								name="category"
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{CATEGORIES.map((c) => (
-												<SelectItem key={c} value={c}>
-													{c}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-							/>
-						</Field>
-
-						<Field
-							label="Min Budget Tier"
-							error={errors.minBudgetTier?.message}
-						>
-							<Controller
-								control={control}
-								name="minBudgetTier"
-								render={({ field }) => (
-									<Select value={field.value} onValueChange={field.onChange}>
-										<SelectTrigger>
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											{BUDGET_TIERS.map((t) => (
-												<SelectItem key={t.value} value={t.value}>
-													{t.label}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-							/>
-						</Field>
-					</div>
-
-					{currentCategory === "CPU" && (
 						<div className="grid grid-cols-2 gap-4">
-							<Field label="Cores" error={errors.cores?.message}>
-								<Input
-									type="number"
-									{...register("cores", { valueAsNumber: true })}
-								/>
+							<Field label="Name" error={errors.name?.message}>
+								<Input placeholder="e.g. Ryzen 5 5600X" {...register("name")} />
 							</Field>
-							<Field label="Threads" error={errors.threads?.message}>
-								<Input
-									type="number"
-									{...register("threads", { valueAsNumber: true })}
-								/>
+							<Field label="Brand" error={errors.brand?.message}>
+								<Input placeholder="e.g. AMD" {...register("brand")} />
 							</Field>
 						</div>
-					)}
 
-					<Field label="Image URL (optional)" error={errors.imageUrl?.message}>
-						<Input placeholder="https://..." {...register("imageUrl")} />
-					</Field>
-
-					<div className="space-y-2">
-						<Label className="text-xs font-semibold text-slate-700">
-							Usage Tags
-						</Label>
-						<div className="flex flex-wrap gap-2">
-							{USAGE_TAGS.map((tag) => (
-								<button
-									key={tag}
-									type="button"
-									onClick={() => toggleTag(tag)}
-									className={
-										currentTags.includes(tag)
-											? "px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white border border-blue-600"
-											: "px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 hover:border-slate-300"
+						<div className="grid grid-cols-2 gap-4">
+							<Field label="Category" error={errors.category?.message}>
+								<Select
+									value={watchedCategory}
+									onValueChange={(v) =>
+										setValue("category", v as PCComponentInput["category"])
 									}
 								>
-									{tag}
-								</button>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{CATEGORIES.map((c) => (
+											<SelectItem key={c} value={c}>
+												{c}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</Field>
+
+							<Field label="Budget Tier" error={errors.minBudgetTier?.message}>
+								<Select
+									value={watch("minBudgetTier")}
+									onValueChange={(v) =>
+										setValue(
+											"minBudgetTier",
+											v as PCComponentInput["minBudgetTier"],
+										)
+									}
+								>
+									<SelectTrigger>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{BUDGET_TIERS.map((t) => (
+											<SelectItem key={t.value} value={t.value}>
+												{t.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</Field>
+						</div>
+
+						<Field
+							label="Image URL (optional)"
+							error={errors.imageUrl?.message}
+						>
+							<Input placeholder="https://..." {...register("imageUrl")} />
+						</Field>
+					</div>
+
+					{/* ── Usage Tags ─────────────────────────────────────────────────── */}
+					<div className="space-y-3">
+						<p className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2">
+							Usage Tags
+						</p>
+						<div className="flex flex-wrap gap-3">
+							{USAGE_TAGS.map((tag) => (
+								<label
+									htmlFor={tag}
+									key={tag}
+									className="flex items-center gap-2 cursor-pointer"
+								>
+									<Checkbox
+										checked={(watchedUsageTags ?? []).includes(tag)}
+										onCheckedChange={() => toggleUsageTag(tag)}
+									/>
+									<span className="text-sm text-slate-700">{tag}</span>
+								</label>
 							))}
 						</div>
 					</div>
 
-					<div className="space-y-2">
-						<Label className="text-xs font-semibold text-slate-700">
-							Specs
-						</Label>
-						<div className="flex gap-2">
-							<Input
-								placeholder="Key"
-								value={specKey}
-								onChange={(e) => setSpecKey(e.target.value)}
-								className="flex-1"
-							/>
-							<Input
-								placeholder="Value"
-								value={specVal}
-								onChange={(e) => setSpecVal(e.target.value)}
-								className="flex-1"
-							/>
-							<Button type="button" variant="outline" onClick={addSpec}>
-								<Plus className="w-4 h-4" />
-							</Button>
-						</div>
+					{/* ── Compatibility Fields ────────────────────────────────────────── */}
+					{(showSocket ||
+						isCpu ||
+						isMotherboard ||
+						isRam ||
+						isGpu ||
+						isStorage ||
+						isPsu) && (
+						<div className="space-y-4">
+							<p className="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-2">
+								Compatibility & Specs
+								<span className="ml-2 text-[10px] font-normal normal-case text-slate-400">
+									Used for smart filtering
+								</span>
+							</p>
 
-						{Object.keys(currentSpecs).length > 0 && (
-							<div className="flex flex-wrap gap-2 mt-2">
-								{Object.entries(currentSpecs).map(([k, v]) => (
-									<span
-										key={k}
-										className="flex items-center gap-1 text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full"
+							{/* Socket — CPU and Motherboard */}
+							{showSocket && (
+								<Field
+									label="Socket Type"
+									hint={
+										isCpu
+											? "The physical socket this CPU fits into"
+											: "The socket this motherboard supports"
+									}
+									error={errors.socket?.message}
+								>
+									<Select
+										value={watch("socket") ?? ""}
+										onValueChange={(v) =>
+											setValue(
+												"socket",
+												v === ""
+													? undefined
+													: (v as PCComponentInput["socket"]),
+											)
+										}
 									>
-										{k}: {String(v)}
-										<button
-											type="button"
-											onClick={() => removeSpec(k)}
-											className="ml-1 text-red-400 hover:text-red-600"
-										>
-											<X className="w-3 h-3" />
-										</button>
-									</span>
-								))}
-							</div>
-						)}
-					</div>
+										<SelectTrigger>
+											<SelectValue placeholder="Select socket" />
+										</SelectTrigger>
+										<SelectContent>
+											{SOCKET_OPTIONS.map((s) => (
+												<SelectItem key={s.value} value={s.value}>
+													{s.label}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</Field>
+							)}
 
+							{/* CPU specific */}
+							{isCpu && (
+								<div className="grid grid-cols-3 gap-3">
+									<Field label="Cores" error={errors.cores?.message}>
+										<Input
+											type="number"
+											placeholder="6"
+											{...register("cores", { valueAsNumber: true })}
+										/>
+									</Field>
+									<Field label="Threads" error={errors.threads?.message}>
+										<Input
+											type="number"
+											placeholder="12"
+											{...register("threads", { valueAsNumber: true })}
+										/>
+									</Field>
+									<Field
+										label="TDP (Watt)"
+										hint="CPU heat output"
+										error={errors.tdpWatt?.message}
+									>
+										<Input
+											type="number"
+											placeholder="65"
+											{...register("tdpWatt", { valueAsNumber: true })}
+										/>
+									</Field>
+								</div>
+							)}
+
+							{/* Motherboard specific */}
+							{isMotherboard && (
+								<>
+									<Field
+										label="Supported RAM Generation"
+										hint="DDR generation this motherboard supports"
+										error={errors.supportedRamGeneration?.message}
+									>
+										<Select
+											value={watch("supportedRamGeneration") ?? ""}
+											onValueChange={(v) =>
+												setValue(
+													"supportedRamGeneration",
+													v === ""
+														? undefined
+														: (v as PCComponentInput["supportedRamGeneration"]),
+												)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select DDR generation" />
+											</SelectTrigger>
+											<SelectContent>
+												{RAM_GEN_OPTIONS.map((r) => (
+													<SelectItem key={r.value} value={r.value}>
+														{r.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</Field>
+
+									<Field
+										label="Supported Storage Interfaces"
+										hint="Check all storage types this motherboard supports"
+									>
+										<div className="flex flex-wrap gap-3 mt-1">
+											{STORAGE_INTERFACE_OPTIONS.map((iface) => (
+												<label
+													htmlFor={iface.value}
+													key={iface.value}
+													className="flex items-center gap-2 cursor-pointer"
+												>
+													<Checkbox
+														checked={watchedStorageInterfaces.includes(
+															iface.value,
+														)}
+														onCheckedChange={() =>
+															toggleStorageInterface(iface.value)
+														}
+													/>
+													<span className="text-sm text-slate-700">
+														{iface.label}
+													</span>
+												</label>
+											))}
+										</div>
+									</Field>
+								</>
+							)}
+
+							{/* RAM specific */}
+							{isRam && (
+								<div className="grid grid-cols-2 gap-4">
+									<Field
+										label="RAM Generation"
+										hint="Must match motherboard's supported DDR gen"
+										error={errors.ramGeneration?.message}
+									>
+										<Select
+											value={watch("ramGeneration") ?? ""}
+											onValueChange={(v) =>
+												setValue(
+													"ramGeneration",
+													v === ""
+														? undefined
+														: (v as PCComponentInput["ramGeneration"]),
+												)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select generation" />
+											</SelectTrigger>
+											<SelectContent>
+												{RAM_GEN_OPTIONS.map((r) => (
+													<SelectItem key={r.value} value={r.value}>
+														{r.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</Field>
+
+									<Field
+										label="Capacity (GB)"
+										error={errors.ramCapacityGb?.message}
+									>
+										<Input
+											type="number"
+											placeholder="16"
+											{...register("ramCapacityGb", { valueAsNumber: true })}
+										/>
+									</Field>
+								</div>
+							)}
+
+							{/* GPU specific */}
+							{isGpu && (
+								<div className="grid grid-cols-2 gap-4">
+									<Field label="VRAM (GB)" error={errors.vramGb?.message}>
+										<Input
+											type="number"
+											placeholder="8"
+											{...register("vramGb", { valueAsNumber: true })}
+										/>
+									</Field>
+									<Field
+										label="GPU TDP (Watt)"
+										hint="Power draw under load"
+										error={errors.gpuTdpWatt?.message}
+									>
+										<Input
+											type="number"
+											placeholder="200"
+											{...register("gpuTdpWatt", { valueAsNumber: true })}
+										/>
+									</Field>
+								</div>
+							)}
+
+							{/* Storage specific */}
+							{isStorage && (
+								<div className="grid grid-cols-2 gap-4">
+									<Field
+										label="Storage Interface"
+										hint="Must be supported by the motherboard"
+										error={errors.storageInterface?.message}
+									>
+										<Select
+											value={watch("storageInterface") ?? ""}
+											onValueChange={(v) =>
+												setValue(
+													"storageInterface",
+													v === ""
+														? undefined
+														: (v as PCComponentInput["storageInterface"]),
+												)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select interface" />
+											</SelectTrigger>
+											<SelectContent>
+												{STORAGE_INTERFACE_OPTIONS.map((s) => (
+													<SelectItem key={s.value} value={s.value}>
+														{s.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</Field>
+
+									<Field
+										label="Capacity (GB)"
+										error={errors.storageCapacityGb?.message}
+									>
+										<Input
+											type="number"
+											placeholder="1000"
+											{...register("storageCapacityGb", {
+												valueAsNumber: true,
+											})}
+										/>
+									</Field>
+								</div>
+							)}
+
+							{/* PSU specific */}
+							{isPsu && (
+								<Field
+									label="Wattage (W)"
+									hint="Total rated output — must cover CPU TDP + GPU TDP + ~100W system"
+									error={errors.wattage?.message}
+								>
+									<Input
+										type="number"
+										placeholder="650"
+										{...register("wattage", { valueAsNumber: true })}
+									/>
+								</Field>
+							)}
+						</div>
+					)}
+
+					{/* ── Shop Listings ──────────────────────────────────────────────── */}
 					<div className="space-y-3">
-						<div className="flex items-center justify-between">
-							<Label className="text-xs font-semibold text-slate-700">
+						<div className="flex items-center justify-between border-b border-slate-100 pb-2">
+							<p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
 								Shop Listings
-							</Label>
+							</p>
 							<Button
 								type="button"
-								variant="outline"
 								size="sm"
+								variant="outline"
 								onClick={() =>
 									append({ shop: "", price: 0, stock: "in_stock", url: "" })
 								}
+								className="gap-1 h-7 text-xs"
 							>
-								<Plus className="w-3.5 h-3.5 mr-1" /> Add Shop
+								<Plus className="w-3 h-3" />
+								Add Shop
 							</Button>
 						</div>
 
 						{fields.length === 0 && (
-							<p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-xl">
-								No shop listings yet
+							<p className="text-xs text-slate-400 text-center py-4 border border-dashed border-slate-200 rounded-lg">
+								No shop listings yet. Add one above.
 							</p>
 						)}
 
 						{fields.map((field, index) => (
 							<div
 								key={field.id}
-								className="p-4 rounded-xl border border-slate-100 bg-slate-50 space-y-3"
+								className="border border-slate-100 rounded-xl p-4 space-y-3 bg-slate-50/50"
 							>
-								<div className="flex justify-between">
-									<p className="text-xs font-semibold text-slate-600">
+								<div className="flex items-center justify-between">
+									<span className="text-xs font-semibold text-slate-600">
 										Listing #{index + 1}
-									</p>
-									<button
+									</span>
+									<Button
 										type="button"
+										variant="ghost"
+										size="icon"
 										onClick={() => remove(index)}
-										className="text-red-400 hover:text-red-600"
+										className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-50"
 									>
-										<X className="w-4 h-4" />
-									</button>
+										<Trash2 className="w-3.5 h-3.5" />
+									</Button>
 								</div>
 
 								<div className="grid grid-cols-2 gap-3">
@@ -417,79 +674,73 @@ export function ComponentFormDialog({
 										label="Shop"
 										error={errors.shopListings?.[index]?.shop?.message}
 									>
-										<Controller
-											control={control}
-											name={`shopListings.${index}.shop`}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="bg-white">
-														<SelectValue placeholder="Select shop" />
-													</SelectTrigger>
-													<SelectContent>
-														{shops.map((s) => (
-															<SelectItem key={s._id} value={s._id}>
-																{s.name}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
-										/>
+										<Select
+											value={watch(`shopListings.${index}.shop`)}
+											onValueChange={(v) =>
+												setValue(`shopListings.${index}.shop`, v)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select shop" />
+											</SelectTrigger>
+											<SelectContent>
+												{shops.map((s) => (
+													<SelectItem key={s._id} value={s._id}>
+														{s.name}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
 									</Field>
 
+									<Field
+										label="Stock"
+										error={errors.shopListings?.[index]?.stock?.message}
+									>
+										<Select
+											value={watch(`shopListings.${index}.stock`)}
+											onValueChange={(v) =>
+												setValue(
+													`shopListings.${index}.stock`,
+													v as "in_stock" | "out_of_stock" | "limited",
+												)
+											}
+										>
+											<SelectTrigger>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												{STOCK_OPTIONS.map((s) => (
+													<SelectItem key={s.value} value={s.value}>
+														{s.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</Field>
+								</div>
+
+								<div className="grid grid-cols-2 gap-3">
 									<Field
 										label="Price (BDT)"
 										error={errors.shopListings?.[index]?.price?.message}
 									>
 										<Input
 											type="number"
+											placeholder="15000"
 											{...register(`shopListings.${index}.price`, {
 												valueAsNumber: true,
 											})}
-											className="bg-white"
-										/>
-									</Field>
-								</div>
-
-								<div className="grid grid-cols-2 gap-3">
-									<Field
-										label="Stock"
-										error={errors.shopListings?.[index]?.stock?.message}
-									>
-										<Controller
-											control={control}
-											name={`shopListings.${index}.stock`}
-											render={({ field }) => (
-												<Select
-													value={field.value}
-													onValueChange={field.onChange}
-												>
-													<SelectTrigger className="bg-white">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														{STOCK_OPTIONS.map((s) => (
-															<SelectItem key={s.value} value={s.value}>
-																{s.label}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
-											)}
 										/>
 									</Field>
 
 									<Field
-										label="URL (optional)"
+										label="Product URL (optional)"
 										error={errors.shopListings?.[index]?.url?.message}
 									>
 										<Input
-											{...register(`shopListings.${index}.url`)}
 											placeholder="https://..."
-											className="bg-white"
+											{...register(`shopListings.${index}.url`)}
 										/>
 									</Field>
 								</div>
@@ -497,22 +748,24 @@ export function ComponentFormDialog({
 						))}
 					</div>
 
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={isPending}>
+					{/* ── Submit ────────────────────────────────────────────────────── */}
+					<div className="flex gap-2 pt-2">
+						<Button type="submit" disabled={isPending} className="flex-1">
 							{isPending
 								? "Saving..."
 								: editing
 									? "Update Component"
 									: "Add Component"}
 						</Button>
-					</DialogFooter>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => onOpenChange(false)}
+							className="flex-1"
+						>
+							Cancel
+						</Button>
+					</div>
 				</form>
 			</DialogContent>
 		</Dialog>

@@ -9,10 +9,11 @@ import {
 	PCComponent,
 	type RamGeneration,
 	type SocketType,
+	type StorageInterface,
 } from "@/models/pcComponent.model";
 import type { PCComponentInput } from "@/validators/pcComponent";
 
-// ─── exported types ───────────────────────────────────────────────────────────
+// ─── exported types ────────────────────────────────────────────────────────────
 
 export interface IShopListingPopulated {
 	_id: string;
@@ -45,9 +46,15 @@ export interface IPCComponentPopulated {
 	socket?: SocketType;
 	cores?: number;
 	threads?: number;
+	tdpWatt?: number;
+	supportedRamGeneration?: RamGeneration;
+	supportedStorageInterfaces?: StorageInterface[];
 	ramGeneration?: RamGeneration;
 	ramCapacityGb?: number;
 	vramGb?: number;
+	gpuTdpWatt?: number;
+	storageInterface?: StorageInterface;
+	storageCapacityGb?: number;
 	wattage?: number;
 	createdAt: string;
 	updatedAt: string;
@@ -77,7 +84,7 @@ export interface SuggestedBuild {
 	};
 }
 
-// ─── serializer ───────────────────────────────────────────────────────────────
+// ─── serializer ────────────────────────────────────────────────────────────────
 
 function serializeData<T>(data: T): T {
 	if (data === null || data === undefined) return data;
@@ -100,7 +107,7 @@ function serializeData<T>(data: T): T {
 	return data;
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// ─── helpers ───────────────────────────────────────────────────────────────────
 
 function getBudgetTiers(tier: BudgetTier): BudgetTier[] {
 	if (tier === "budget") return ["budget"];
@@ -108,14 +115,28 @@ function getBudgetTiers(tier: BudgetTier): BudgetTier[] {
 	return ["budget", "mid", "high-end"];
 }
 
-function getMinCores(usage: string): number {
-	const map: Record<string, number> = {
+function getMinCores(usage: string, software: string[]): number {
+	const baseMap: Record<string, number> = {
 		Gaming: 6,
 		"Content Creation": 12,
 		Development: 4,
 		"Office & Web": 2,
 	};
-	return map[usage] ?? 4;
+	let base = baseMap[usage] ?? 4;
+
+	// Software-based core boost — overrides usage baseline
+	if (software.includes("Blender") || software.includes("DaVinci Resolve")) {
+		base = Math.max(base, 12);
+	} else if (
+		software.includes("Adobe Premiere") ||
+		software.includes("AutoCAD")
+	) {
+		base = Math.max(base, 8);
+	} else if (software.includes("Visual Studio Code")) {
+		base = Math.max(base, 4);
+	}
+
+	return base;
 }
 
 function getMinRAM(tabs: number, software: string[]): number {
@@ -123,17 +144,8 @@ function getMinRAM(tabs: number, software: string[]): number {
 	if (tabs > 50) base = 64;
 	else if (tabs > 30) base = 32;
 	else if (tabs > 10) base = 16;
-
-	// Software-based RAM boost
-	const heavySoftware = [
-		"Adobe Premiere",
-		"DaVinci Resolve",
-		"Blender",
-		"AutoCAD",
-	];
-	const needsExtraRam = software.some((s) => heavySoftware.includes(s));
-	if (needsExtraRam) base = Math.max(base, 32);
-
+	const heavy = ["Adobe Premiere", "DaVinci Resolve", "Blender", "AutoCAD"];
+	if (software.some((s) => heavy.includes(s))) base = Math.max(base, 32);
 	return base;
 }
 
@@ -149,12 +161,6 @@ function getMinVRAM(software: string[], usage: string): number {
 	return 4;
 }
 
-function getStorageBytes(storageNeeds: string): number {
-	if (storageNeeds === "Heavy") return 4000;
-	if (storageNeeds === "Medium") return 1000;
-	return 256;
-}
-
 function getMinWattage(usage: string, software: string[]): number {
 	const isHeavy =
 		usage === "Gaming" ||
@@ -166,7 +172,6 @@ function getMinWattage(usage: string, software: string[]): number {
 	return 450;
 }
 
-// Sort components in memory by cheapest shop listing price
 function sortByLowestPrice(
 	components: IPCComponentPopulated[],
 ): IPCComponentPopulated[] {
@@ -188,7 +193,7 @@ const SHOP_POPULATE = {
 	select: "name location lat long website phone rating",
 };
 
-// ─── fetch with 3-level fallback + compatibility filter ───────────────────────
+// ─── fetch with fallback chain ─────────────────────────────────────────────────
 
 async function fetchCategory(
 	category: ComponentCategory,
@@ -202,17 +207,17 @@ async function fetchCategory(
 		...compatibilityFilter,
 	};
 
-	// attempt 1: usageTags + budgetTier
+	// attempt 1: usage + budget + compatibility
 	let docs = await PCComponent.find({
 		...baseFilter,
 		usageTags: usage,
 		minBudgetTier: { $in: budgetTiers },
 	})
-		.limit(limit * 3) // fetch more, sort in memory
+		.limit(limit * 3)
 		.populate(SHOP_POPULATE)
 		.lean();
 
-	// attempt 2: usageTags only
+	// attempt 2: usage + compatibility (drop budget)
 	if (docs.length === 0) {
 		docs = await PCComponent.find({
 			...baseFilter,
@@ -223,7 +228,7 @@ async function fetchCategory(
 			.lean();
 	}
 
-	// attempt 3: category + compatibility only
+	// attempt 3: compatibility only (drop usage + budget)
 	if (docs.length === 0) {
 		docs = await PCComponent.find(baseFilter)
 			.limit(limit * 3)
@@ -231,7 +236,7 @@ async function fetchCategory(
 			.lean();
 	}
 
-	// attempt 4: category only (drop compatibility)
+	// attempt 4: category only (drop all filters including compatibility)
 	if (docs.length === 0 && compatibilityFilter) {
 		docs = await PCComponent.find({ category })
 			.limit(limit * 3)
@@ -240,14 +245,11 @@ async function fetchCategory(
 	}
 
 	const serialized = serializeData(docs as unknown as IPCComponentPopulated[]);
-
-	// Only return components that have at least one shop listing
 	const withListings = serialized.filter((c) => c.shopListings.length > 0);
-	const sorted = sortByLowestPrice(withListings);
-	return sorted.slice(0, limit);
+	return sortByLowestPrice(withListings).slice(0, limit);
 }
 
-// ─── queries ──────────────────────────────────────────────────────────────────
+// ─── queries ───────────────────────────────────────────────────────────────────
 
 export async function getComponents(params?: GetComponentsParams): Promise<
 	| IPCComponentPopulated[]
@@ -291,7 +293,7 @@ export async function getComponents(params?: GetComponentsParams): Promise<
 	};
 }
 
-// ─── main suggestion engine ───────────────────────────────────────────────────
+// ─── main suggestion engine ────────────────────────────────────────────────────
 
 export async function getSuggestedBuild(
 	query: SuggestionQuery,
@@ -299,36 +301,53 @@ export async function getSuggestedBuild(
 	await dbConnect();
 
 	const tiers = getBudgetTiers(query.budgetTier);
-	const minCores = getMinCores(query.mainUsage);
+	const minCores = getMinCores(query.mainUsage, query.software);
 	const minRAM = getMinRAM(query.browserTabs, query.software);
 	const minVRAM = getMinVRAM(query.software, query.mainUsage);
 	const minWattage = getMinWattage(query.mainUsage, query.software);
 
 	const results: SuggestedBuild[] = [];
 
-	// ── CPU ──────────────────────────────────────────────────────────────────────
+	// ── Step 1: CPU ──────────────────────────────────────────────────────────────
 	const cpuFilter: Record<string, unknown> = {};
 	if (minCores > 0) cpuFilter.cores = { $gte: minCores };
 
-	const cpus = await fetchCategory("CPU", query.mainUsage, tiers, 3, cpuFilter);
+	let cpus = await fetchCategory("CPU", query.mainUsage, tiers, 3, cpuFilter);
+	if (cpus.length === 0)
+		cpus = await fetchCategory("CPU", query.mainUsage, tiers, 3);
 
-	if (cpus.length === 0) {
-		// fallback: no core filter
-		const fallbackCpus = await fetchCategory("CPU", query.mainUsage, tiers, 3);
-		if (fallbackCpus.length > 0)
-			results.push({
-				category: "CPU",
-				components: fallbackCpus,
-				minSpecs: { minCores },
-			});
-	} else {
+	if (cpus.length > 0)
 		results.push({ category: "CPU", components: cpus, minSpecs: { minCores } });
-	}
 
-	// Detect socket from picked CPU for motherboard compatibility
-	const pickedCpuSocket = cpus[0]?.socket ?? null;
+	// Extract socket and DDR gen from the best CPU pick for chain filtering
+	const pickedCpu = cpus[0] ?? null;
+	const pickedSocket: SocketType | null = pickedCpu?.socket ?? null;
 
-	// ── GPU ──────────────────────────────────────────────────────────────────────
+	// ── Step 2: Motherboard (socket-compatible) ──────────────────────────────────
+	const mbFilter: Record<string, unknown> = {};
+	if (pickedSocket) mbFilter.socket = pickedSocket;
+
+	let mbs = await fetchCategory(
+		"Motherboard",
+		query.mainUsage,
+		tiers,
+		3,
+		pickedSocket ? mbFilter : undefined,
+	);
+	if (mbs.length === 0 && pickedSocket)
+		mbs = await fetchCategory("Motherboard", query.mainUsage, tiers, 3);
+
+	if (mbs.length > 0)
+		results.push({ category: "Motherboard", components: mbs });
+
+	// Extract DDR gen and storage interfaces from best motherboard for chaining
+	const pickedMb = mbs[0] ?? null;
+	const pickedRamGen: RamGeneration | null =
+		pickedMb?.supportedRamGeneration ?? null;
+	const pickedStorageInterfaces: StorageInterface[] =
+		pickedMb?.supportedStorageInterfaces ?? [];
+
+	// ── Step 3: GPU ──────────────────────────────────────────────────────────────
 	const skipGPU =
 		query.mainUsage === "Office & Web" && query.budgetTier === "budget";
 
@@ -336,99 +355,71 @@ export async function getSuggestedBuild(
 		const gpuFilter: Record<string, unknown> = {};
 		if (minVRAM > 0) gpuFilter.vramGb = { $gte: minVRAM };
 
-		const gpus = await fetchCategory(
-			"GPU",
+		let gpus = await fetchCategory("GPU", query.mainUsage, tiers, 3, gpuFilter);
+		if (gpus.length === 0)
+			gpus = await fetchCategory("GPU", query.mainUsage, tiers, 3);
+
+		if (gpus.length > 0) results.push({ category: "GPU", components: gpus });
+	}
+
+	// ── Step 4: RAM (DDR gen from motherboard) ────────────────────────────────────
+	const ramFilter: Record<string, unknown> = {};
+	if (minRAM > 0) ramFilter.ramCapacityGb = { $gte: minRAM };
+	if (pickedRamGen) ramFilter.ramGeneration = pickedRamGen;
+
+	let rams = await fetchCategory("RAM", query.mainUsage, tiers, 3, ramFilter);
+
+	// fallback 1: drop DDR gen filter, keep capacity
+	if (rams.length === 0 && pickedRamGen) {
+		const ramFilterNoDdr: Record<string, unknown> = {};
+		if (minRAM > 0) ramFilterNoDdr.ramCapacityGb = { $gte: minRAM };
+		rams = await fetchCategory(
+			"RAM",
 			query.mainUsage,
 			tiers,
 			3,
-			gpuFilter,
+			ramFilterNoDdr,
 		);
-		if (gpus.length === 0) {
-			const fallbackGpus = await fetchCategory(
-				"GPU",
-				query.mainUsage,
-				tiers,
-				3,
-			);
-			if (fallbackGpus.length > 0)
-				results.push({ category: "GPU", components: fallbackGpus });
-		} else {
-			results.push({ category: "GPU", components: gpus });
-		}
 	}
 
-	// ── RAM ──────────────────────────────────────────────────────────────────────
-	const ramFilter: Record<string, unknown> = {};
-	if (minRAM > 0) ramFilter.ramCapacityGb = { $gte: minRAM };
+	// fallback 2: no filter
+	if (rams.length === 0)
+		rams = await fetchCategory("RAM", query.mainUsage, tiers, 3);
 
-	const rams = await fetchCategory("RAM", query.mainUsage, tiers, 3, ramFilter);
-	if (rams.length === 0) {
-		const fallbackRams = await fetchCategory("RAM", query.mainUsage, tiers, 3);
-		if (fallbackRams.length > 0)
-			results.push({
-				category: "RAM",
-				components: fallbackRams,
-				minSpecs: { minRAM },
-			});
-	} else {
+	if (rams.length > 0)
 		results.push({ category: "RAM", components: rams, minSpecs: { minRAM } });
-	}
 
-	// ── Motherboard (socket-compatible) ──────────────────────────────────────────
-	const mbFilter: Record<string, unknown> = {};
-	if (pickedCpuSocket) mbFilter.socket = pickedCpuSocket;
-
-	const mbs = await fetchCategory(
-		"Motherboard",
-		query.mainUsage,
-		tiers,
-		3,
-		pickedCpuSocket ? mbFilter : undefined,
-	);
-	if (mbs.length > 0)
-		results.push({ category: "Motherboard", components: mbs });
-
-	// ── Storage ───────────────────────────────────────────────────────────────────
-	// storageNeeds is used as a tag filter via usage but we also check specs
-	const storageMinGb = getStorageBytes(query.storageNeeds);
+	// ── Step 5: Storage (interface from motherboard) ───────────────────────────────
 	const storageFilter: Record<string, unknown> = {};
-	if (storageMinGb >= 1000)
-		storageFilter["specs.capacity"] = { $regex: /TB|2TB|4TB/i };
+	if (pickedStorageInterfaces.length > 0)
+		storageFilter.storageInterface = { $in: pickedStorageInterfaces };
 
-	const storages = await fetchCategory(
+	let storages = await fetchCategory(
 		"Storage",
 		query.mainUsage,
 		tiers,
 		3,
-		storageMinGb >= 1000 ? storageFilter : undefined,
+		pickedStorageInterfaces.length > 0 ? storageFilter : undefined,
 	);
-	if (storages.length === 0) {
-		const fallbackStorages = await fetchCategory(
-			"Storage",
-			query.mainUsage,
-			tiers,
-			3,
-		);
-		if (fallbackStorages.length > 0)
-			results.push({ category: "Storage", components: fallbackStorages });
-	} else {
-		results.push({ category: "Storage", components: storages });
-	}
 
-	// ── PSU (wattage-aware) ───────────────────────────────────────────────────────
+	// fallback: drop interface filter
+	if (storages.length === 0)
+		storages = await fetchCategory("Storage", query.mainUsage, tiers, 3);
+
+	if (storages.length > 0)
+		results.push({ category: "Storage", components: storages });
+
+	// ── Step 6: PSU (wattage-aware) ────────────────────────────────────────────────
 	const psuFilter: Record<string, unknown> = {};
 	if (minWattage > 0) psuFilter.wattage = { $gte: minWattage };
 
-	const psus = await fetchCategory("PSU", query.mainUsage, tiers, 3, psuFilter);
-	if (psus.length === 0) {
-		const fallbackPsus = await fetchCategory("PSU", query.mainUsage, tiers, 3);
-		if (fallbackPsus.length > 0)
-			results.push({ category: "PSU", components: fallbackPsus });
-	} else {
-		results.push({ category: "PSU", components: psus });
-	}
+	let psus = await fetchCategory("PSU", query.mainUsage, tiers, 3, psuFilter);
+	if (psus.length === 0)
+		psus = await fetchCategory("PSU", query.mainUsage, tiers, 3);
 
-	// ── Case & Cooler (no special filter) ────────────────────────────────────────
+	if (psus.length > 0) results.push({ category: "PSU", components: psus });
+
+	// ── Step 7: Case & Cooler ─────────────────────────────────────────────────────
 	const cases = await fetchCategory("Case", query.mainUsage, tiers, 3);
 	if (cases.length > 0) results.push({ category: "Case", components: cases });
 
@@ -439,7 +430,7 @@ export async function getSuggestedBuild(
 	return results;
 }
 
-// ─── mutations ────────────────────────────────────────────────────────────────
+// ─── mutations ─────────────────────────────────────────────────────────────────
 
 export async function createComponent(
 	data: PCComponentInput,

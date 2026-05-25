@@ -34,15 +34,35 @@ export const pcComponentInputSchema = z.object({
 		.default({}),
 	shopListings: z.array(shopListingInputSchema).default([]),
 
-	// Compatibility fields
+	// CPU & Motherboard
 	socket: z
 		.enum(["AM4", "AM5", "LGA1700", "LGA1200", "LGA1151", "other"])
 		.optional(),
+
+	// CPU specific
 	cores: z.number().int().positive().optional(),
 	threads: z.number().int().positive().optional(),
-	ramGeneration: z.enum(["DDR4", "DDR5"]).optional(),
+	tdpWatt: z.number().positive().optional(),
+
+	// Motherboard specific
+	supportedRamGeneration: z.enum(["DDR3", "DDR4", "DDD5"]).optional(),
+	supportedStorageInterfaces: z
+		.array(z.enum(["NVMe_Gen3", "NVMe_Gen4", "SATA"]))
+		.optional(),
+
+	// RAM specific
+	ramGeneration: z.enum(["DDR3", "DDR4", "DDR5"]).optional(),
 	ramCapacityGb: z.number().positive().optional(),
+
+	// GPU specific
 	vramGb: z.number().positive().optional(),
+	gpuTdpWatt: z.number().positive().optional(),
+
+	// Storage specific
+	storageInterface: z.enum(["NVMe_Gen3", "NVMe_Gen4", "SATA"]).optional(),
+	storageCapacityGb: z.number().positive().optional(),
+
+	// PSU specific
 	wattage: z.number().positive().optional(),
 });
 

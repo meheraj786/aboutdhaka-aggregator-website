@@ -20,7 +20,9 @@ export type BudgetTier = "budget" | "mid" | "high-end";
 
 export type StockStatus = "in_stock" | "out_of_stock" | "limited";
 
-export type RamGeneration = "DDR4" | "DDR5";
+export type RamGeneration = "DDR3" | "DDR4" | "DDR5";
+
+export type StorageInterface = "NVMe_Gen3" | "NVMe_Gen4" | "SATA";
 
 export type SocketType =
 	| "AM4"
@@ -28,7 +30,6 @@ export type SocketType =
 	| "LGA1700"
 	| "LGA1200"
 	| "LGA1151"
-	| "LGA1700"
 	| "other";
 
 export interface IShopListing {
@@ -49,12 +50,17 @@ export interface IPCComponent extends mongoose.Document {
 	usageTags: UsageTag[];
 	minBudgetTier: BudgetTier;
 
-	// CPU & Motherboard compatibility
+	// CPU & Motherboard socket compatibility
 	socket?: SocketType;
 
 	// CPU specific
 	cores?: number;
 	threads?: number;
+	tdpWatt?: number;
+
+	// Motherboard specific
+	supportedRamGeneration?: RamGeneration;
+	supportedStorageInterfaces?: StorageInterface[];
 
 	// RAM specific
 	ramGeneration?: RamGeneration;
@@ -62,6 +68,11 @@ export interface IPCComponent extends mongoose.Document {
 
 	// GPU specific
 	vramGb?: number;
+	gpuTdpWatt?: number;
+
+	// Storage specific
+	storageInterface?: StorageInterface;
+	storageCapacityGb?: number;
 
 	// PSU specific
 	wattage?: number;
@@ -119,18 +130,38 @@ const PCComponentSchema = new Schema<IPCComponent>(
 		},
 		cores: { type: Number },
 		threads: { type: Number },
-		ramGeneration: { type: String, enum: ["DDR4", "DDR5"] },
+		tdpWatt: { type: Number },
+		supportedRamGeneration: {
+			type: String,
+			enum: ["DDR3", "DDR4", "DDR5"],
+		},
+		supportedStorageInterfaces: {
+			type: [String],
+			enum: ["NVMe_Gen3", "NVMe_Gen4", "SATA"],
+			default: undefined,
+		},
+		ramGeneration: {
+			type: String,
+			enum: ["DDR3", "DDR4", "DDR5"],
+		},
 		ramCapacityGb: { type: Number },
 		vramGb: { type: Number },
+		gpuTdpWatt: { type: Number },
+		storageInterface: {
+			type: String,
+			enum: ["NVMe_Gen3", "NVMe_Gen4", "SATA"],
+		},
+		storageCapacityGb: { type: Number },
 		wattage: { type: Number },
 	},
 	{ timestamps: true },
 );
 
 PCComponentSchema.index({ category: 1 });
-PCComponentSchema.index({ brand: 1 });
 PCComponentSchema.index({ category: 1, usageTags: 1, minBudgetTier: 1 });
 PCComponentSchema.index({ category: 1, socket: 1 });
+PCComponentSchema.index({ category: 1, ramGeneration: 1 });
+PCComponentSchema.index({ category: 1, storageInterface: 1 });
 
 const modelName = "PCComponent";
 export const PCComponent: Model<IPCComponent> =

@@ -2,49 +2,55 @@
 
 import { type ClassValue, clsx } from "clsx";
 import {
+	// AlertTriangle,
 	Briefcase,
+	// CheckCircle,
 	CheckCircle2,
 	Clapperboard,
 	Code2,
 	Cpu,
-	ExternalLink,
+	// ExternalLink,
 	Gamepad2,
 	HardDrive,
 	LayoutGrid,
-	Loader2,
+	// Loader2,
 	MemoryStick,
 	Minus,
 	Monitor,
 	Plus,
 	Rocket,
-	RotateCcw,
-	Search,
-	ShoppingCart,
-	Store,
+	// ShieldCheck,
+	// ShoppingCart,
+	// Store,
 	Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+// import {
+// 	type CompatibilityResult,
+// 	checkBuildCompatibility,
+// } from "@/actions/ai.action";
 import type {
-	IPCComponentPopulated,
-	SuggestedBuild,
+	// IPCComponentPopulated,
+	// SuggestedBuild,
 	SuggestionQuery,
 } from "@/actions/pcComponent.action";
-import { useSuggestedBuild } from "@/hooks/usePCComponents";
+
+// import { useSuggestedBuild } from "@/hooks/usePCComponents";
 
 function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
-function formatPrice(price: number) {
-	return new Intl.NumberFormat("bn-BD", {
-		style: "currency",
-		currency: "BDT",
-		maximumFractionDigits: 0,
-	}).format(price);
-}
+// function formatPrice(price: number) {
+// 	return new Intl.NumberFormat("bn-BD", {
+// 		style: "currency",
+// 		currency: "BDT",
+// 		maximumFractionDigits: 0,
+// 	}).format(price);
+// }
 
 const USAGE_OPTIONS = [
 	{
@@ -80,6 +86,13 @@ const SOFTWARE_OPTIONS = [
 	"DaVinci Resolve",
 ];
 
+const HEAVY_SOFTWARE = [
+	"Adobe Premiere",
+	"DaVinci Resolve",
+	"Blender",
+	"AutoCAD",
+];
+
 const STORAGE_OPTIONS = [
 	{ id: "Light" as const, description: "Mostly cloud docs", gb: "256GB" },
 	{ id: "Medium" as const, description: "Few big games", gb: "1TB" },
@@ -92,15 +105,7 @@ const BUDGET_OPTIONS = [
 	{ id: "high-end" as const, label: "High-end", sub: "No limits" },
 ];
 
-// Software that significantly changes recommendations — shown as warning chips
-const HEAVY_SOFTWARE = [
-	"Adobe Premiere",
-	"DaVinci Resolve",
-	"Blender",
-	"AutoCAD",
-];
-
-const CATEGORY_META: Record<
+const _CATEGORY_META: Record<
 	string,
 	{
 		icon: React.FC<{ className?: string }>;
@@ -159,7 +164,7 @@ const CATEGORY_META: Record<
 	},
 };
 
-function StockPill({ stock }: { stock: string }) {
+function _StockPill({ stock }: { stock: string }) {
 	if (stock === "in_stock")
 		return (
 			<span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
@@ -182,230 +187,332 @@ function StockPill({ stock }: { stock: string }) {
 	);
 }
 
-function ComponentCard({
-	component,
-	rank,
-}: {
-	component: IPCComponentPopulated;
-	rank: number;
-}) {
-	const meta = CATEGORY_META[component.category];
-	const CategoryIcon = meta?.icon ?? Cpu;
-	const sortedListings = [...(component.shopListings || [])].sort(
-		(a, b) => a.price - b.price,
-	);
-	const lowestPrice = sortedListings[0]?.price;
+// function ComponentCard({
+// 	component,
+// 	rank,
+// }: {
+// 	component: IPCComponentPopulated;
+// 	rank: number;
+// }) {
+// 	const meta = CATEGORY_META[component.category];
+// 	const CategoryIcon = meta?.icon ?? Cpu;
+// 	const sortedListings = [...(component.shopListings || [])].sort(
+// 		(a, b) => a.price - b.price,
+// 	);
+// 	const lowestPrice = sortedListings[0]?.price;
 
-	const rankLabel =
-		rank === 0 ? "Best Value" : rank === 1 ? "Recommended" : "Premium";
-	const rankStyle =
-		rank === 0
-			? "bg-emerald-50 text-emerald-700 border-emerald-200"
-			: rank === 1
-				? "bg-blue-50 text-blue-700 border-blue-200"
-				: "bg-violet-50 text-violet-700 border-violet-200";
+// 	const rankLabel =
+// 		rank === 0 ? "Best Value" : rank === 1 ? "Recommended" : "Premium";
+// 	const rankStyle =
+// 		rank === 0
+// 			? "bg-emerald-50 text-emerald-700 border-emerald-200"
+// 			: rank === 1
+// 				? "bg-blue-50 text-blue-700 border-blue-200"
+// 				: "bg-violet-50 text-violet-700 border-violet-200";
 
-	const specs =
-		component.specs && typeof component.specs === "object"
-			? component.specs
-			: {};
+// 	const specs =
+// 		component.specs && typeof component.specs === "object"
+// 			? component.specs
+// 			: {};
 
-	return (
-		<div className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-md transition-all duration-200 overflow-hidden">
-			<div className="px-4 pt-4 pb-3 flex items-start gap-3">
-				<div
-					className={cn(
-						"p-2 rounded-xl shrink-0",
-						meta?.iconBg ?? "bg-slate-100 text-slate-600",
-					)}
-				>
-					<CategoryIcon className="w-4 h-4" />
-				</div>
-				<div className="flex-1 min-w-0">
-					<div className="flex items-center gap-2 mb-0.5">
-						<span
-							className={cn(
-								"text-[10px] font-bold border px-2 py-0.5 rounded-full",
-								rankStyle,
-							)}
-						>
-							{rankLabel}
-						</span>
-					</div>
-					<p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-						{component.brand}
-					</p>
-					<h4 className="text-sm font-bold text-slate-900 leading-snug truncate">
-						{component.name}
-					</h4>
-				</div>
-				{lowestPrice !== undefined && (
-					<div className="text-right shrink-0">
-						<p className="text-[10px] text-slate-400">from</p>
-						<p className="text-base font-black text-slate-900">
-							{formatPrice(lowestPrice)}
-						</p>
-					</div>
-				)}
-			</div>
+// 	return (
+// 		<div className="bg-white rounded-2xl border border-slate-100 hover:border-slate-200 hover:shadow-md transition-all duration-200 overflow-hidden">
+// 			<div className="px-4 pt-4 pb-3 flex items-start gap-3">
+// 				<div
+// 					className={cn(
+// 						"p-2 rounded-xl shrink-0",
+// 						meta?.iconBg ?? "bg-slate-100 text-slate-600",
+// 					)}
+// 				>
+// 					<CategoryIcon className="w-4 h-4" />
+// 				</div>
+// 				<div className="flex-1 min-w-0">
+// 					<div className="flex items-center gap-2 mb-0.5">
+// 						<span
+// 							className={cn(
+// 								"text-[10px] font-bold border px-2 py-0.5 rounded-full",
+// 								rankStyle,
+// 							)}
+// 						>
+// 							{rankLabel}
+// 						</span>
+// 					</div>
+// 					<p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+// 						{component.brand}
+// 					</p>
+// 					<h4 className="text-sm font-bold text-slate-900 leading-snug truncate">
+// 						{component.name}
+// 					</h4>
+// 				</div>
+// 				{lowestPrice !== undefined && (
+// 					<div className="text-right shrink-0">
+// 						<p className="text-[10px] text-slate-400">from</p>
+// 						<p className="text-base font-black text-slate-900">
+// 							{formatPrice(lowestPrice)}
+// 						</p>
+// 					</div>
+// 				)}
+// 			</div>
 
-			{Object.keys(specs).length > 0 && (
-				<div className="px-4 pb-3 flex flex-wrap gap-1.5">
-					{Object.entries(specs)
-						.slice(0, 4)
-						.map(([k, v]) => (
-							<span
-								key={k}
-								className="text-[10px] font-medium bg-slate-50 text-slate-600 border border-slate-100 px-2 py-0.5 rounded-full"
-							>
-								{k}: {String(v)}
-							</span>
-						))}
-				</div>
-			)}
+// 			{Object.keys(specs).length > 0 && (
+// 				<div className="px-4 pb-3 flex flex-wrap gap-1.5">
+// 					{Object.entries(specs)
+// 						.slice(0, 4)
+// 						.map(([k, v]) => (
+// 							<span
+// 								key={k}
+// 								className="text-[10px] font-medium bg-slate-50 text-slate-600 border border-slate-100 px-2 py-0.5 rounded-full"
+// 							>
+// 								{k}: {String(v)}
+// 							</span>
+// 						))}
+// 				</div>
+// 			)}
 
-			<div className="border-t border-slate-100 mx-3" />
+// 			<div className="border-t border-slate-100 mx-3" />
 
-			<div className="p-3 space-y-1">
-				{sortedListings.length === 0 ? (
-					<p className="text-xs text-slate-400 text-center py-3">
-						No shop listings yet
-					</p>
-				) : (
-					sortedListings.map((listing, i) => (
-						<div
-							key={listing._id}
-							className={cn(
-								"flex items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors",
-								i === 0 ? "bg-slate-50" : "hover:bg-slate-50",
-							)}
-						>
-							<div className="flex items-center gap-2 min-w-0">
-								<Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-								<div className="min-w-0">
-									<p className="text-xs font-semibold text-slate-800 truncate">
-										{listing.shop.name}
-									</p>
-									<p className="text-[10px] text-slate-400 truncate">
-										{listing.shop.location}
-									</p>
-								</div>
-							</div>
-							<div className="flex items-center gap-2 shrink-0">
-								<StockPill stock={listing.stock} />
-								<span
-									className={cn(
-										"text-sm font-bold",
-										i === 0 ? "text-blue-600" : "text-slate-800",
-									)}
-								>
-									{formatPrice(listing.price)}
-								</span>
-								{listing.url && (
-									<a
-										href={listing.url}
-										target="_blank"
-										rel="noopener noreferrer"
-										className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
-									>
-										<ExternalLink className="w-3.5 h-3.5" />
-									</a>
-								)}
-							</div>
-						</div>
-					))
-				)}
-			</div>
-		</div>
-	);
-}
+// 			<div className="p-3 space-y-1">
+// 				{sortedListings.length === 0 ? (
+// 					<p className="text-xs text-slate-400 text-center py-3">
+// 						No shop listings yet
+// 					</p>
+// 				) : (
+// 					sortedListings.map((listing, i) => (
+// 						<div
+// 							key={listing._id}
+// 							className={cn(
+// 								"flex items-center justify-between gap-2 px-3 py-2 rounded-xl transition-colors",
+// 								i === 0 ? "bg-slate-50" : "hover:bg-slate-50",
+// 							)}
+// 						>
+// 							<div className="flex items-center gap-2 min-w-0">
+// 								<Store className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+// 								<div className="min-w-0">
+// 									<p className="text-xs font-semibold text-slate-800 truncate">
+// 										{listing.shop.name}
+// 									</p>
+// 									<p className="text-[10px] text-slate-400 truncate">
+// 										{listing.shop.location}
+// 									</p>
+// 								</div>
+// 							</div>
+// 							<div className="flex items-center gap-2 shrink-0">
+// 								<StockPill stock={listing.stock} />
+// 								<span
+// 									className={cn(
+// 										"text-sm font-bold",
+// 										i === 0 ? "text-blue-600" : "text-slate-800",
+// 									)}
+// 								>
+// 									{formatPrice(listing.price)}
+// 								</span>
+// 								{listing.url && (
+// 									<a
+// 										href={listing.url}
+// 										target="_blank"
+// 										rel="noopener noreferrer"
+// 										className="p-1 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+// 									>
+// 										<ExternalLink className="w-3.5 h-3.5" />
+// 									</a>
+// 								)}
+// 							</div>
+// 						</div>
+// 					))
+// 				)}
+// 			</div>
+// 		</div>
+// 	);
+// }
 
-function CategoryBlock({ build }: { build: SuggestedBuild }) {
-	const meta = CATEGORY_META[build.category];
-	const CategoryIcon = meta?.icon ?? Cpu;
-	const [selected, setSelected] = useState(0);
+// function CategoryBlock({ build }: { build: SuggestedBuild }) {
+// 	const meta = CATEGORY_META[build.category];
+// 	const CategoryIcon = meta?.icon ?? Cpu;
+// 	const [selected, setSelected] = useState(0);
 
-	return (
-		<div
-			className={cn(
-				"rounded-2xl border p-5",
-				meta?.accent ?? "border-slate-100 bg-white",
-			)}
-		>
-			<div className="flex items-center justify-between mb-4">
-				<div className="flex items-center gap-2.5">
-					<div
-						className={cn(
-							"p-2 rounded-xl",
-							meta?.iconBg ?? "bg-slate-100 text-slate-600",
-						)}
-					>
-						<CategoryIcon className="w-4 h-4" />
-					</div>
-					<div>
-						<h3 className="text-sm font-bold text-slate-900">
-							{meta?.label ?? build.category}
-						</h3>
-						<p className="text-[10px] text-slate-500">
-							{build.components.length} option
-							{build.components.length > 1 ? "s" : ""}
-							{build.minSpecs?.minCores &&
-								` · Min: ${build.minSpecs.minCores} cores`}
-							{build.minSpecs?.minRAM &&
-								` · Min: ${build.minSpecs.minRAM}GB RAM`}
-						</p>
-					</div>
-				</div>
+// 	return (
+// 		<div
+// 			className={cn(
+// 				"rounded-2xl border p-5",
+// 				meta?.accent ?? "border-slate-100 bg-white",
+// 			)}
+// 		>
+// 			<div className="flex items-center justify-between mb-4">
+// 				<div className="flex items-center gap-2.5">
+// 					<div
+// 						className={cn(
+// 							"p-2 rounded-xl",
+// 							meta?.iconBg ?? "bg-slate-100 text-slate-600",
+// 						)}
+// 					>
+// 						<CategoryIcon className="w-4 h-4" />
+// 					</div>
+// 					<div>
+// 						<h3 className="text-sm font-bold text-slate-900">
+// 							{meta?.label ?? build.category}
+// 						</h3>
+// 						<p className="text-[10px] text-slate-500">
+// 							{build.components.length} option
+// 							{build.components.length > 1 ? "s" : ""}
+// 							{build.minSpecs?.minCores &&
+// 								` · Min: ${build.minSpecs.minCores} cores`}
+// 							{build.minSpecs?.minRAM &&
+// 								` · Min: ${build.minSpecs.minRAM}GB RAM`}
+// 						</p>
+// 					</div>
+// 				</div>
 
-				{build.components.length > 1 && (
-					<div className="flex items-center gap-1 bg-white rounded-xl border border-slate-100 p-1">
-						{build.components.map((_, i) => (
-							<button
-								key={i}
-								type="button"
-								onClick={() => setSelected(i)}
-								className={cn(
-									"text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all",
-									selected === i
-										? "bg-slate-900 text-white"
-										: "text-slate-500 hover:text-slate-800",
-								)}
-							>
-								{i === 0 ? "Value" : i === 1 ? "Recommended" : "Premium"}
-							</button>
-						))}
-					</div>
-				)}
-			</div>
+// 				{build.components.length > 1 && (
+// 					<div className="flex items-center gap-1 bg-white rounded-xl border border-slate-100 p-1">
+// 						{build.components.map((_, i) => (
+// 							<button
+// 								key={i}
+// 								type="button"
+// 								onClick={() => setSelected(i)}
+// 								className={cn(
+// 									"text-[10px] font-bold px-2.5 py-1 rounded-lg transition-all",
+// 									selected === i
+// 										? "bg-slate-900 text-white"
+// 										: "text-slate-500 hover:text-slate-800",
+// 								)}
+// 							>
+// 								{i === 0 ? "Value" : i === 1 ? "Recommended" : "Premium"}
+// 							</button>
+// 						))}
+// 					</div>
+// 				)}
+// 			</div>
 
-			{build.components[selected] && (
-				<ComponentCard component={build.components[selected]} rank={selected} />
-			)}
-		</div>
-	);
-}
+// 			{build.components[selected] && (
+// 				<ComponentCard component={build.components[selected]} rank={selected} />
+// 			)}
+// 		</div>
+// 	);
+// }
 
-function ResultsSkeleton() {
-	return (
-		<div className="space-y-4">
-			{[1, 2, 3, 4].map((i) => (
-				<div
-					key={i}
-					className="rounded-2xl border border-slate-100 bg-white p-5 space-y-4 animate-pulse"
-				>
-					<div className="flex items-center gap-3">
-						<div className="w-8 h-8 rounded-xl bg-slate-100" />
-						<div className="space-y-1.5">
-							<div className="h-3.5 w-20 bg-slate-100 rounded" />
-							<div className="h-3 w-12 bg-slate-100 rounded" />
-						</div>
-					</div>
-					<div className="h-32 bg-slate-50 rounded-xl" />
-				</div>
-			))}
-		</div>
-	);
-}
+// function CompatibilityCard({
+// 	result,
+// 	onClose,
+// }: {
+// 	result: CompatibilityResult;
+// 	onClose: () => void;
+// }) {
+// 	const hasErrors = result.issues.some((i) => i.severity === "error");
+// 	const hasWarnings = result.issues.some((i) => i.severity === "warning");
+
+// 	return (
+// 		<div
+// 			className={cn(
+// 				"rounded-2xl border p-5 space-y-4",
+// 				result.compatible && !hasWarnings
+// 					? "border-emerald-200 bg-emerald-50/40"
+// 					: hasErrors
+// 						? "border-red-200 bg-red-50/40"
+// 						: "border-amber-200 bg-amber-50/40",
+// 			)}
+// 		>
+// 			<div className="flex items-start justify-between gap-2">
+// 				<div className="flex items-center gap-2">
+// 					{result.compatible && !hasErrors ? (
+// 						<ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+// 					) : hasErrors ? (
+// 						<AlertTriangle className="w-5 h-5 text-red-600 shrink-0" />
+// 					) : (
+// 						<AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+// 					)}
+// 					<p className="text-sm font-bold text-slate-900">
+// 						Compatibility Report
+// 					</p>
+// 				</div>
+// 				<button
+// 					type="button"
+// 					onClick={onClose}
+// 					className="text-[10px] text-slate-400 hover:text-slate-600 font-medium"
+// 				>
+// 					Dismiss
+// 				</button>
+// 			</div>
+
+// 			<p className="text-xs text-slate-700 leading-relaxed">{result.summary}</p>
+
+// 			{result.issues.length > 0 && (
+// 				<div className="space-y-2">
+// 					{result.issues.map((issue, i) => (
+// 						<div
+// 							key={i}
+// 							className={cn(
+// 								"rounded-xl p-3 border text-xs space-y-1",
+// 								issue.severity === "error"
+// 									? "bg-red-50 border-red-100"
+// 									: "bg-amber-50 border-amber-100",
+// 							)}
+// 						>
+// 							<div className="flex items-center gap-1.5">
+// 								<span
+// 									className={cn(
+// 										"text-[9px] font-black uppercase px-1.5 py-0.5 rounded-full",
+// 										issue.severity === "error"
+// 											? "bg-red-200 text-red-700"
+// 											: "bg-amber-200 text-amber-700",
+// 									)}
+// 								>
+// 									{issue.severity}
+// 								</span>
+// 								<span className="font-bold text-slate-700">
+// 									{issue.component}
+// 								</span>
+// 							</div>
+// 							<p className="text-slate-600">{issue.issue}</p>
+// 							<p className="text-slate-500">
+// 								<span className="font-semibold">Fix:</span> {issue.fix}
+// 							</p>
+// 						</div>
+// 					))}
+// 				</div>
+// 			)}
+
+// 			{result.totalEstimatedWattage > 0 && (
+// 				<div className="flex items-center justify-between text-xs bg-white rounded-xl px-3 py-2 border border-slate-100">
+// 					<span className="text-slate-500">Estimated system power draw</span>
+// 					<span className="font-bold text-slate-900">
+// 						~{result.totalEstimatedWattage}W
+// 					</span>
+// 				</div>
+// 			)}
+
+// 			{result.psuRecommendedWattage > 0 && (
+// 				<div className="flex items-center justify-between text-xs bg-white rounded-xl px-3 py-2 border border-slate-100">
+// 					<span className="text-slate-500">Recommended PSU wattage</span>
+// 					<span className="font-bold text-blue-600">
+// 						{result.psuRecommendedWattage}W+
+// 					</span>
+// 				</div>
+// 			)}
+// 		</div>
+// 	);
+// }
+
+// function ResultsSkeleton() {
+// 	return (
+// 		<div className="space-y-4">
+// 			{[1, 2, 3, 4].map((i) => (
+// 				<div
+// 					key={i}
+// 					className="rounded-2xl border border-slate-100 bg-white p-5 space-y-4 animate-pulse"
+// 				>
+// 					<div className="flex items-center gap-3">
+// 						<div className="w-8 h-8 rounded-xl bg-slate-100" />
+// 						<div className="space-y-1.5">
+// 							<div className="h-3.5 w-20 bg-slate-100 rounded" />
+// 							<div className="h-3 w-12 bg-slate-100 rounded" />
+// 						</div>
+// 					</div>
+// 					<div className="h-32 bg-slate-50 rounded-xl" />
+// 				</div>
+// 			))}
+// 		</div>
+// 	);
+// }
 
 interface AppState {
 	mainUsage: SuggestionQuery["mainUsage"];
@@ -425,21 +532,8 @@ export default function SmartPCSuggester() {
 	});
 
 	const router = useRouter();
-	const [submittedQuery, setSubmittedQuery] = useState<SuggestionQuery | null>(
-		null,
-	);
 
-	const {
-		data: builds,
-		isLoading,
-		isError,
-	} = useSuggestedBuild(submittedQuery);
-
-	const handleSearch = () => setSubmittedQuery({ ...state });
-	const handleReset = () => setSubmittedQuery(null);
-
-	const handleFinalize = () => {
-		if (!builds || builds.length === 0) return;
+	const handleSearch = () => {
 		const params = new URLSearchParams({
 			usage: state.mainUsage,
 			budget: state.budgetTier,
@@ -450,20 +544,6 @@ export default function SmartPCSuggester() {
 		router.push(`/pc-builder/build-result?${params.toString()}`);
 	};
 
-	const canFinalize =
-		!!submittedQuery && !!builds && builds.length > 0 && !isLoading;
-
-	const estimatedMin =
-		builds && builds.length > 0
-			? builds.reduce((sum, b) => {
-					const cheapest =
-						[...(b.components[0]?.shopListings ?? [])].sort(
-							(a, b) => a.price - b.price,
-						)[0]?.price ?? 0;
-					return sum + cheapest;
-				}, 0)
-			: null;
-
 	const toggleSoftware = (item: string) => {
 		setState((prev) => ({
 			...prev,
@@ -471,32 +551,47 @@ export default function SmartPCSuggester() {
 				? prev.software.filter((s) => s !== item)
 				: [...prev.software, item],
 		}));
-		handleReset();
 	};
 
 	const heavySelected = state.software.filter((s) =>
 		HEAVY_SOFTWARE.includes(s),
 	);
 
-	// Recommended specs based on current state
-	const recommendedCores =
-		state.mainUsage === "Gaming"
-			? "6+"
-			: state.mainUsage === "Content Creation"
-				? "12+"
-				: state.mainUsage === "Development"
-					? "4+"
-					: "2+";
+	const recommendedCores = (() => {
+		const baseMap: Record<string, number> = {
+			Gaming: 6,
+			"Content Creation": 12,
+			Development: 4,
+			"Office & Web": 2,
+		};
+		let base = baseMap[state.mainUsage] ?? 4;
+		if (
+			state.software.includes("Blender") ||
+			state.software.includes("DaVinci Resolve")
+		) {
+			base = Math.max(base, 12);
+		} else if (
+			state.software.includes("Adobe Premiere") ||
+			state.software.includes("AutoCAD")
+		) {
+			base = Math.max(base, 8);
+		} else if (state.software.includes("Visual Studio Code")) {
+			base = Math.max(base, 4);
+		}
+		return `${base}+`;
+	})();
 
 	const recommendedRAM = (() => {
 		let base = 8;
 		if (state.browserTabs > 50) base = 64;
 		else if (state.browserTabs > 30) base = 32;
 		else if (state.browserTabs > 10) base = 16;
-		const needsExtra = state.software.some((s) =>
-			["Adobe Premiere", "DaVinci Resolve", "Blender", "AutoCAD"].includes(s),
-		);
-		if (needsExtra) base = Math.max(base, 32);
+		if (
+			state.software.some((s) =>
+				["Adobe Premiere", "DaVinci Resolve", "Blender", "AutoCAD"].includes(s),
+			)
+		)
+			base = Math.max(base, 32);
 		return `${base}GB+`;
 	})();
 
@@ -520,7 +615,6 @@ export default function SmartPCSuggester() {
 
 			<main className="max-w-7xl mx-auto px-6 pb-20 grid grid-cols-1 lg:grid-cols-[1fr_440px] gap-8 items-start">
 				<div className="space-y-6">
-					{/* Usage */}
 					<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
 						<div className="flex items-center gap-3 mb-6">
 							<div className="p-2 bg-blue-50 rounded-lg">
@@ -538,10 +632,9 @@ export default function SmartPCSuggester() {
 									<button
 										key={option.id}
 										type="button"
-										onClick={() => {
-											setState((p) => ({ ...p, mainUsage: option.id }));
-											handleReset();
-										}}
+										onClick={() =>
+											setState((p) => ({ ...p, mainUsage: option.id }))
+										}
 										className={cn(
 											"flex items-start gap-4 p-5 rounded-xl border-2 text-left transition-all",
 											active
@@ -573,7 +666,6 @@ export default function SmartPCSuggester() {
 						</div>
 					</section>
 
-					{/* Workflow Details */}
 					<section className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
 						<div className="flex items-center gap-3 mb-6">
 							<div className="p-2 bg-blue-50 rounded-lg">
@@ -585,7 +677,6 @@ export default function SmartPCSuggester() {
 						</div>
 
 						<div className="space-y-8">
-							{/* Browser Tabs */}
 							<div>
 								<div className="flex items-center justify-between mb-3">
 									<span className="text-sm font-semibold text-slate-700">
@@ -637,7 +728,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* Software */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Software Usage
@@ -673,12 +763,11 @@ export default function SmartPCSuggester() {
 								{heavySelected.length > 0 && (
 									<p className="mt-3 text-xs text-violet-700 bg-violet-50 border border-violet-100 rounded-lg px-3 py-2">
 										<strong>{heavySelected.join(", ")}</strong> detected — RAM
-										will be boosted to at least 32GB and GPU VRAM to 8GB.
+										boosted to 32GB+ and GPU VRAM to 8GB minimum.
 									</p>
 								)}
 							</div>
 
-							{/* Storage */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Storage Requirement
@@ -688,10 +777,9 @@ export default function SmartPCSuggester() {
 										<button
 											key={opt.id}
 											type="button"
-											onClick={() => {
-												setState((p) => ({ ...p, storageNeeds: opt.id }));
-												handleReset();
-											}}
+											onClick={() =>
+												setState((p) => ({ ...p, storageNeeds: opt.id }))
+											}
 											className={cn(
 												"p-4 rounded-xl border-2 text-center transition-all",
 												state.storageNeeds === opt.id
@@ -713,7 +801,6 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{/* Budget */}
 							<div>
 								<span className="block text-sm font-semibold text-slate-700 mb-3">
 									Budget Tier
@@ -723,10 +810,9 @@ export default function SmartPCSuggester() {
 										<button
 											key={opt.id}
 											type="button"
-											onClick={() => {
-												setState((p) => ({ ...p, budgetTier: opt.id }));
-												handleReset();
-											}}
+											onClick={() =>
+												setState((p) => ({ ...p, budgetTier: opt.id }))
+											}
 											className={cn(
 												"p-4 rounded-xl border-2 text-center transition-all",
 												state.budgetTier === opt.id
@@ -748,7 +834,6 @@ export default function SmartPCSuggester() {
 					</section>
 				</div>
 
-				{/* Sidebar */}
 				<aside className="space-y-5 lg:sticky lg:top-8">
 					<div className="bg-white rounded-[2.5rem] p-7 border border-slate-100 shadow-xl shadow-slate-200/50 relative overflow-hidden">
 						<div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-slate-50 blur-3xl" />
@@ -819,109 +904,20 @@ export default function SmartPCSuggester() {
 								</div>
 							</div>
 
-							{estimatedMin !== null && estimatedMin > 0 && (
-								<div className="mb-5 p-4 rounded-2xl bg-blue-50/60 border border-blue-100">
-									<p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-1">
-										Estimated Build Cost
-									</p>
-									<p className="text-2xl font-black text-slate-900">
-										{formatPrice(estimatedMin)}
-										<span className="text-sm font-medium text-slate-500 ml-1">
-											minimum
-										</span>
-									</p>
-								</div>
-							)}
-
 							<button
 								type="button"
-								onClick={submittedQuery ? handleReset : handleSearch}
-								disabled={isLoading}
-								className={cn(
-									"w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all",
-									submittedQuery
-										? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-										: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200",
-								)}
-							>
-								{isLoading ? (
-									<>
-										<Loader2 className="w-4 h-4 animate-spin" />
-										Searching components...
-									</>
-								) : submittedQuery ? (
-									<>
-										<RotateCcw className="w-4 h-4" />
-										Reset & Search Again
-									</>
-								) : (
-									<>
-										<Search className="w-4 h-4" />
-										Find My Build
-									</>
-								)}
-							</button>
-
-							<button
-								type="button"
-								onClick={handleFinalize}
-								disabled={!canFinalize}
-								className={cn(
-									"w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all mt-3",
-									canFinalize
-										? "bg-slate-900 text-white hover:bg-blue-600 shadow-lg shadow-slate-200"
-										: "bg-slate-100 text-slate-400 cursor-not-allowed",
-								)}
+								onClick={handleSearch}
+								className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-200"
 							>
 								<CheckCircle2 className="w-4 h-4" />
-								Finalize Build →
+								Find My Build →
 							</button>
 
-							{!submittedQuery && (
-								<p className="text-center text-[11px] text-slate-400 mt-3">
-									Matches real components from local BD shops
-								</p>
-							)}
+							<p className="text-center text-[11px] text-slate-400 mt-3">
+								Matches real components from local BD shops
+							</p>
 						</div>
 					</div>
-
-					{isLoading && <ResultsSkeleton />}
-
-					{isError && (
-						<div className="bg-red-50 border border-red-100 rounded-2xl p-6 text-center">
-							<p className="text-sm font-semibold text-red-600">
-								Something went wrong. Please try again.
-							</p>
-						</div>
-					)}
-
-					{builds && builds.length === 0 && (
-						<div className="bg-white border border-slate-100 rounded-2xl p-8 text-center shadow-sm">
-							<ShoppingCart className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-							<p className="text-sm font-bold text-slate-700">
-								No components found
-							</p>
-							<p className="text-xs text-slate-400 mt-1">
-								Ask the admin to add components for this usage profile.
-							</p>
-						</div>
-					)}
-
-					{builds && builds.length > 0 && (
-						<div className="space-y-4">
-							<div className="flex items-center justify-between px-1">
-								<p className="text-sm font-bold text-slate-900">
-									Suggested Components
-								</p>
-								<span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-									{builds.length} categories
-								</span>
-							</div>
-							{builds.map((build) => (
-								<CategoryBlock key={build.category} build={build} />
-							))}
-						</div>
-					)}
 				</aside>
 			</main>
 		</div>
