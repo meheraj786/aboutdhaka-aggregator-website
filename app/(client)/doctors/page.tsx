@@ -24,7 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { type DoctorSuggestion, askAI } from "@/actions/ai.action";
+import { askAI, type DoctorSuggestion } from "@/actions/ai.action";
 
 function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -143,7 +143,10 @@ export default function DoctorsListing() {
 		if (!symptoms) return;
 		setIsAnalyzing(true);
 		try {
-			const result = await askAI<DoctorSuggestion>("doctor-suggestion", symptoms);
+			const result = await askAI<DoctorSuggestion>(
+				"doctor-suggestion",
+				symptoms,
+			);
 			setAiResult(result);
 			setSearchQuery(result.department);
 		} catch (error) {

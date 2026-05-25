@@ -57,7 +57,7 @@ export const categories = [
 	},
 	{
 		icon: Cpu,
-		label: "PC Build",
+		label: "PC Suggester",
 		color: "bg-gray-100 text-gray-700",
 		link: "/pc-builder",
 	},

@@ -114,7 +114,7 @@ const data = {
 			icon: <MapPinIcon />,
 		},
 		{
-			title: "PC Builder",
+			title: "PC Suggester",
 			url: "/dashboard/pc",
 			icon: <LayoutDashboardIcon />,
 		},

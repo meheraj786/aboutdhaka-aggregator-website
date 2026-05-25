@@ -82,7 +82,7 @@ const Footer = () => {
 								href="/pc-builder"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
-								PC Builder
+								PC Suggester
 							</Link>
 						</li>
 						<li>

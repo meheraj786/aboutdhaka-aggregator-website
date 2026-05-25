@@ -35,7 +35,7 @@ const Hero = () => {
 									"Restaurants",
 									"Malls",
 									"Rents",
-									"PC Builder",
+									"PC Suggester",
 									"Services",
 									"Events",
 									"Doctors",

@@ -12,7 +12,7 @@ const navItems = [
 	{ name: "HOSPITALS", href: "/hospitals" },
 	{ name: "RESTAURANTS", href: "/restaurants" },
 	{ name: "MALLS", href: "/malls" },
-	{ name: "PC BUILDER", href: "/pc-builder" },
+	{ name: "PC SUGGESTER", href: "/pc-builder" },
 ];
 
 export default function Header() {
