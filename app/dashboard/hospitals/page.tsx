@@ -112,7 +112,11 @@ export default function HospitalsPage() {
 		sortOrder: "desc",
 	});
 
-	const { data, isLoading } = useFetchHospitals({ page: params.page, pageSize: params.pageSize, search: params.search });
+	const { data, isLoading } = useFetchHospitals({
+		page: params.page,
+		pageSize: params.pageSize,
+		search: params.search,
+	});
 	const { mutate: deleteHosp } = useDeleteHospital();
 
 	const handlePaginationChange = useCallback((p: PaginationParams) => {

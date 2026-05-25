@@ -117,11 +117,7 @@ export async function getHospitals(params: GetHospitalsParams = {}) {
 		const sort = sortOptions[params.sortBy ?? "popular"];
 
 		const [items, totalCount] = await Promise.all([
-			Hospital.find(filter)
-				.sort(sort)
-				.skip(skip)
-				.limit(pageSize)
-				.lean(),
+			Hospital.find(filter).sort(sort).skip(skip).limit(pageSize).lean(),
 			Hospital.countDocuments(filter),
 		]);
 

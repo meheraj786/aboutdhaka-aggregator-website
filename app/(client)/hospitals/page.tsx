@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
 import { SlidersHorizontal } from "lucide-react";
-import FilterSidebar from "@/components/appComponents/FilterSidebar";
+import { useState } from "react";
 import FilterDrawer from "@/components/appComponents/FilterDrawer";
+import FilterSidebar from "@/components/appComponents/FilterSidebar";
 import HospitalCard, {
 	type HospitalCardProps,
 } from "@/components/appComponents/HospitalCard";
@@ -56,7 +56,13 @@ const RATING_OPTIONS = [
 
 const PAGE_SIZE = 10;
 
-const ANIMAL_TYPES = ["Veterinary Hospital", "Animal Specialty Hospital", "Exotic Animal Hospital", "Equine Hospital", "Wildlife Hospital"];
+const ANIMAL_TYPES = [
+	"Veterinary Hospital",
+	"Animal Specialty Hospital",
+	"Exotic Animal Hospital",
+	"Equine Hospital",
+	"Wildlife Hospital",
+];
 
 const TYPE_OPTIONS = [...HOSPITAL_TYPES]
 	.filter((t) => !ANIMAL_TYPES.includes(t))
@@ -85,13 +91,21 @@ export default function HospitalsPage() {
 	});
 
 	console.log(data);
-	
 
 	const totalPages = Math.ceil((data?.totalCount ?? 0) / PAGE_SIZE);
 
-	const handleAreaChange = (v: string[]) => { setPage(1); setSelectedAreas(v); };
-	const handleTypeChange = (v: string[]) => { setPage(1); setSelectedTypes(v); };
-	const handleRatingChange = (v: string[]) => { setPage(1); setSelectedRating(v); };
+	const handleAreaChange = (v: string[]) => {
+		setPage(1);
+		setSelectedAreas(v);
+	};
+	const handleTypeChange = (v: string[]) => {
+		setPage(1);
+		setSelectedTypes(v);
+	};
+	const handleRatingChange = (v: string[]) => {
+		setPage(1);
+		setSelectedRating(v);
+	};
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setPage(1);
 		setSortBy(e.target.value as "popular" | "rating_desc");
@@ -142,20 +156,23 @@ export default function HospitalsPage() {
 							</p>
 						</div>
 
-						<div className="flex items-center gap-3">						{/* Mobile filter button — hidden on lg+ */}
-						<button
-							type="button"
-							onClick={() => setDrawerOpen(true)}
-							className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-						>
-							<SlidersHorizontal className="w-4 h-4" />
-							Filters
-							{activeFilterCount > 0 && (
-								<span className="bg-blue-600 text-white text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center">
-									{activeFilterCount}
-								</span>
-							)}
-						</button>							<span className="text-sm text-slate-500 font-medium">
+						<div className="flex items-center gap-3">
+							{" "}
+							{/* Mobile filter button — hidden on lg+ */}
+							<button
+								type="button"
+								onClick={() => setDrawerOpen(true)}
+								className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+							>
+								<SlidersHorizontal className="w-4 h-4" />
+								Filters
+								{activeFilterCount > 0 && (
+									<span className="bg-blue-600 text-white text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center">
+										{activeFilterCount}
+									</span>
+								)}
+							</button>{" "}
+							<span className="text-sm text-slate-500 font-medium">
 								Sort by:
 							</span>
 							<select
@@ -185,16 +202,16 @@ export default function HospitalsPage() {
 						/>
 						<div className="grow">
 							{isLoading ? (
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{Array.from({ length: 6 }).map((_, i) => (
-									<div
-										key={`skeleton-${i}`}
-										className="h-64 animate-pulse rounded-2xl bg-slate-200"
-									/>
-								))}
-							</div>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+									{Array.from({ length: 6 }).map((_, i) => (
+										<div
+											key={`skeleton-${i}`}
+											className="h-64 animate-pulse rounded-2xl bg-slate-200"
+										/>
+									))}
+								</div>
+							) : (
+								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 									{data?.items?.map((item: HospitalCardProps) => (
 										<HospitalCard key={item._id} {...item} />
 									))}

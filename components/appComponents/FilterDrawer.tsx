@@ -1,7 +1,7 @@
 "use client";
 
+import { SlidersHorizontal, X } from "lucide-react";
 import { useEffect } from "react";
-import { X, SlidersHorizontal } from "lucide-react";
 import type { FilterSidebarSection } from "./FilterSidebar";
 
 interface FilterDrawerProps {

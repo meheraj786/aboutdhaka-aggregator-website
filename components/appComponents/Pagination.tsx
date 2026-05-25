@@ -24,7 +24,11 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 	return pages;
 }
 
-const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange = () => {} }: PaginationProps) => {
+const Pagination = ({
+	currentPage = 1,
+	totalPages = 1,
+	onPageChange = () => {},
+}: PaginationProps) => {
 	if (totalPages <= 1) return null;
 
 	const pages = getPageNumbers(currentPage, totalPages);
@@ -42,7 +46,9 @@ const Pagination = ({ currentPage = 1, totalPages = 1, onPageChange = () => {} }
 
 			{pages.map((p, i) =>
 				p === "..." ? (
-					<span key={`ellipsis-${i}`} className="text-slate-400 px-2">...</span>
+					<span key={`ellipsis-${i}`} className="text-slate-400 px-2">
+						...
+					</span>
 				) : (
 					<button
 						key={p}
