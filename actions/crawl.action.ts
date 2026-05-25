@@ -55,14 +55,9 @@ export async function crawlWebsite(formData: FormData) {
 			const items = document.querySelectorAll(sel.productContainer);
 
 			items.forEach((item) => {
-				const product: {
-					title: string;
-					price?: string;
-					originalPrice?: string;
-					image?: string;
-					link?: string;
-					description?: string;
-				} = {};
+				const product: Product = {
+					title: "",
+				};
 
 				// Title
 				const titleEl = item.querySelector(sel.title);
