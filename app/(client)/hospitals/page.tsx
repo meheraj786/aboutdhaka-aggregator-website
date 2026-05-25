@@ -1,6 +1,7 @@
 "use client";
-import { SlidersHorizontal } from "lucide-react";
+import { Building2, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+import EmptyState from "@/components/appComponents/EmptyState";
 import FilterDrawer from "@/components/appComponents/FilterDrawer";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
 import HospitalCard, {
@@ -8,64 +9,13 @@ import HospitalCard, {
 } from "@/components/appComponents/HospitalCard";
 import Pagination from "@/components/appComponents/Pagination";
 import { useFetchHospitals } from "@/hooks/useHospitals";
-import { HOSPITAL_TYPES } from "@/lib/hospitalTypes";
+import { DHAKA_AREAS, DEFAULT_PAGE_SIZE, RATING_OPTIONS } from "@/lib/filterOptions";
+import { ANIMAL_TYPES, HOSPITAL_TYPES } from "@/lib/hospitalTypes";
 
-const DHAKA_AREAS = [
-	"Adabor",
-	"Agargaon",
-	"Badda",
-	"Banani",
-	"Baridhara",
-	"Bashabo",
-	"Bashundhara",
-	"Cantonment",
-	"Dakshinkhan",
-	"Demra",
-	"Dhanmondi",
-	"Farmgate",
-	"Gendaria",
-	"Gulshan",
-	"Hazaribagh",
-	"Jatrabari",
-	"Kafrul",
-	"Kalabagan",
-	"Khilgaon",
-	"Khilkhet",
-	"Lalbagh",
-	"Lalmatia",
-	"Mirpur",
-	"Mohakhali",
-	"Mohammadpur",
-	"Motijheel",
-	"Mugda",
-	"Old Dhaka",
-	"Pallabi",
-	"Rayer Bazar",
-	"Rupnagar",
-	"Shyamoli",
-	"Tejgaon",
-	"Uttara",
-	"Wari",
-];
-
-const RATING_OPTIONS = [
-	{ label: "4.5+ Stars", value: "4.5" },
-	{ label: "4.0+ Stars", value: "4.0" },
-	{ label: "3.5+ Stars", value: "3.5" },
-];
-
-const PAGE_SIZE = 10;
-
-const ANIMAL_TYPES = [
-	"Veterinary Hospital",
-	"Animal Specialty Hospital",
-	"Exotic Animal Hospital",
-	"Equine Hospital",
-	"Wildlife Hospital",
-];
+const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 const TYPE_OPTIONS = [...HOSPITAL_TYPES]
-	.filter((t) => !ANIMAL_TYPES.includes(t))
+	.filter((t): t is Exclude<typeof t, (typeof ANIMAL_TYPES)[number]> => !(ANIMAL_TYPES as readonly string[]).includes(t))
 	.map((t) => ({ label: t, value: t }));
 
 export default function HospitalsPage() {
@@ -87,12 +37,12 @@ export default function HospitalsPage() {
 		sortBy,
 		areas: selectedAreas.length ? selectedAreas : undefined,
 		types: selectedTypes.length ? selectedTypes : undefined,
+		excludeTypes: [...ANIMAL_TYPES],
 		minRating,
 	});
 
-	console.log(data);
-
 	const totalPages = Math.ceil((data?.totalCount ?? 0) / PAGE_SIZE);
+	const hasData = isLoading || !!data?.items?.length;
 
 	const handleAreaChange = (v: string[]) => {
 		setPage(1);
@@ -157,8 +107,8 @@ export default function HospitalsPage() {
 						</div>
 
 						<div className="flex items-center gap-3">
-							{" "}
-							{/* Mobile filter button — hidden on lg+ */}
+						{/* Mobile filter button — hidden on lg+ */}
+						{hasData && (
 							<button
 								type="button"
 								onClick={() => setDrawerOpen(true)}
@@ -171,35 +121,44 @@ export default function HospitalsPage() {
 										{activeFilterCount}
 									</span>
 								)}
-							</button>{" "}
-							<span className="text-sm text-slate-500 font-medium">
-								Sort by:
-							</span>
-							<select
-								value={sortBy}
-								onChange={handleSortChange}
-								className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
-							>
-								<option value="popular">Most Popular</option>
-								<option value="rating_desc">Rating: High to Low</option>
-							</select>
-						</div>
+							</button>
+						)}
+						{hasData && (
+							<>
+								<span className="text-sm text-slate-500 font-medium">
+									Sort by:
+								</span>
+								<select
+									value={sortBy}
+									onChange={handleSortChange}
+									className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+								>
+									<option value="popular">Most Popular</option>
+									<option value="rating_desc">Rating: High to Low</option>
+								</select>
+							</>
+						)}
 					</div>
+				</div>
 
-					{/* Mobile filter drawer */}
-					<FilterDrawer
-						open={drawerOpen}
-						onClose={() => setDrawerOpen(false)}
-						sections={filterSections}
-						onClearAll={handleClearAll}
-						activeFilterCount={activeFilterCount}
-					/>
-
-					<div className="flex gap-10">
-						<FilterSidebar
+				{/* Mobile filter drawer */}
+					{hasData && (
+						<FilterDrawer
+							open={drawerOpen}
+							onClose={() => setDrawerOpen(false)}
 							sections={filterSections}
 							onClearAll={handleClearAll}
+							activeFilterCount={activeFilterCount}
 						/>
+					)}
+
+					<div className="flex gap-10">
+						{hasData && (
+							<FilterSidebar
+								sections={filterSections}
+								onClearAll={handleClearAll}
+							/>
+						)}
 						<div className="grow">
 							{isLoading ? (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -210,9 +169,21 @@ export default function HospitalsPage() {
 										/>
 									))}
 								</div>
+							) : !data?.items?.length ? (
+								<EmptyState
+									icon={Building2}
+									title="No hospitals found"
+									subtitle={
+										activeFilterCount > 0
+											? "No hospitals match your current filters. Try adjusting your search criteria."
+											: "No hospitals are listed yet. Check back soon!"
+									}
+									hasFilters={activeFilterCount > 0}
+									onClearFilters={handleClearAll}
+								/>
 							) : (
 								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-									{data?.items?.map((item: HospitalCardProps) => (
+									{data.items.map((item: HospitalCardProps) => (
 										<HospitalCard key={item._id} {...item} />
 									))}
 								</div>

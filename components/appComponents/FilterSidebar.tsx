@@ -4,7 +4,7 @@ export interface FilterSidebarSection {
 	title: string;
 	/** true = multi-select checkboxes, false = single-select (radio) */
 	multiSelect?: boolean;
-	options: { label: string; value: string }[];
+	options: ReadonlyArray<{ label: string; value: string }>;
 	selected: string[];
 	onChange: (selected: string[]) => void;
 }

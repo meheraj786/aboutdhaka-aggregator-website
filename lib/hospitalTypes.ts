@@ -71,3 +71,11 @@ export const HOSPITAL_TYPES = [
 ] as const;
 
 export type HospitalType = (typeof HOSPITAL_TYPES)[number];
+
+export const ANIMAL_TYPES = [
+	"Veterinary Hospital",
+	"Animal Specialty Hospital",
+	"Exotic Animal Hospital",
+	"Equine Hospital",
+	"Wildlife Hospital",
+] as const satisfies HospitalType[];

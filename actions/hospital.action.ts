@@ -84,6 +84,7 @@ export interface GetHospitalsParams {
 	search?: string;
 	areas?: string[];
 	types?: string[];
+	excludeTypes?: string[];
 	minRating?: number;
 	sortBy?: "popular" | "rating_desc";
 }
@@ -105,6 +106,8 @@ export async function getHospitals(params: GetHospitalsParams = {}) {
 		}
 		if (params.types?.length) {
 			filter.types = { $in: params.types };
+		} else if (params.excludeTypes?.length) {
+			filter.types = { $nin: params.excludeTypes };
 		}
 		if (params.minRating !== undefined) {
 			filter.rating = { $gte: params.minRating };
