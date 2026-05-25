@@ -1,60 +1,61 @@
 import { z } from "zod";
-import type {
-	IPCComponent,
-	IShopListing,
-	UsageTag,
-} from "@/models/pcComponent.model";
-import type { IShop } from "@/models/shop.model";
 
-const shopListingSchema = z.object({
-	shop: z.string().min(1, "Shop required"),
-	price: z.number().positive("Price must be positive"),
-	stock: z.enum(["in_stock", "out_of_stock", "limited"]),
-	url: z.string().url().optional().or(z.literal("")),
+export const shopListingInputSchema = z.object({
+  shop: z.string().min(1, "Shop required"),
+  price: z.number().positive("Price must be positive"),
+  stock: z.enum(["in_stock", "out_of_stock", "limited"]),
+  url: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
-export type ShopListingInput = z.infer<typeof shopListingSchema>;
-export const shopListingInputSchema = shopListingSchema;
+export type ShopListingInput = z.infer<typeof shopListingInputSchema>;
 
-const pcComponentSchema = z.object({
-	name: z.string().min(1, "Name required"),
-	brand: z.string().min(1, "Brand required"),
-	category: z.enum([
-		"CPU",
-		"GPU",
-		"RAM",
-		"Motherboard",
-		"Storage",
-		"PSU",
-		"Case",
-		"Cooler",
-	]),
-	imageUrl: z.string().url().or(z.literal("")).optional(),
+export const pcComponentInputSchema = z.object({
+  name: z.string().min(1, "Name required"),
+  brand: z.string().min(1, "Brand required"),
+  category: z.enum([
+    "CPU",
+    "GPU",
+    "RAM",
+    "Motherboard",
+    "Storage",
+    "PSU",
+    "Case",
+    "Cooler",
+  ]),
+  imageUrl: z.string().url().or(z.literal("")).optional(),
+  usageTags: z
+    .array(
+      z.enum(["Gaming", "Content Creation", "Development", "Office & Web"]),
+    )
+    .default([]),
+  minBudgetTier: z.enum(["budget", "mid", "high-end"]).default("mid"),
+  specs: z
+    .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+    .default({}),
+  shopListings: z.array(shopListingInputSchema).default([]),
 
-	usageTags: z
-		.array(
-			z.enum(["Gaming", "Content Creation", "Development", "Office & Web"]),
-		)
-		.default([]),
-
-	minBudgetTier: z.enum(["budget", "mid", "high-end"]).default("mid"),
-
-	specs: z
-		.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-		.default({}),
-
-	shopListings: z.array(shopListingSchema).default([]),
-
-	cores: z.number().int().positive("Cores must be positive").optional(),
-	threads: z.number().int().positive("Threads must be positive").optional(),
+  // Compatibility fields
+  socket: z
+    .enum(["AM4", "AM5", "LGA1700", "LGA1200", "LGA1151", "other"])
+    .optional(),
+  cores: z.number().int().positive().optional(),
+  threads: z.number().int().positive().optional(),
+  ramGeneration: z.enum(["DDR4", "DDR5"]).optional(),
+  ramCapacityGb: z.number().positive().optional(),
+  vramGb: z.number().positive().optional(),
+  wattage: z.number().positive().optional(),
 });
 
-export type PCComponentInput = z.infer<typeof pcComponentSchema>;
-export const pcComponentInputSchema = pcComponentSchema;
+export type PCComponentInput = z.infer<typeof pcComponentInputSchema>;
 
-export interface IPCComponentPopulated
-	extends Omit<IPCComponent, "shopListings"> {
-	usageTags: UsageTag[];
-	minBudgetTier: "budget" | "mid" | "high-end";
-	shopListings: (Omit<IShopListing, "shop"> & { shop: IShop | string })[];
-}
+export const shopInputSchema = z.object({
+  name: z.string().min(1, "Shop name required"),
+  location: z.string().min(1, "Location required"),
+  lat: z.number().optional(),
+  long: z.number().optional(),
+  rating: z.number().min(0).max(5).optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  phone: z.string().optional(),
+});
+
+export type ShopInput = z.infer<typeof shopInputSchema>;
