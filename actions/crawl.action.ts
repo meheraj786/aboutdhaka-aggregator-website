@@ -1,6 +1,7 @@
 "use server";
 
-import { chromium } from "playwright";
+import axios from "axios";
+import * as cheerio from "cheerio";
 import { z } from "zod";
 
 const crawlSchema = z.object({
@@ -26,86 +27,89 @@ export type Product = {
 };
 
 export async function crawlWebsite(formData: FormData) {
-	const validated = crawlSchema.parse({
-		url: formData.get("url"),
-		selectors: JSON.parse(formData.get("selectors") as string),
-	});
-
-	const browser = await chromium.launch({
-		headless: true,
-		args: ["--no-sandbox", "--disable-setuid-sandbox"],
-	});
-
 	try {
-		const page = await browser.newPage();
-
-		await page.setExtraHTTPHeaders({
-			"User-Agent":
-				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		const validated = crawlSchema.parse({
+			url: formData.get("url"),
+			selectors: JSON.parse(formData.get("selectors") as string),
 		});
 
-		await page.goto(validated.url, {
-			waitUntil: "networkidle",
-			timeout: 60000,
+		const { data: html } = await axios.get(validated.url, {
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+				Accept:
+					"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+				"Accept-Language": "en-US,en;q=0.9",
+			},
+			timeout: 30000,
 		});
 
-		const products: Product[] = await page.evaluate((sel) => {
-			const productsData: Product[] = [];
+		const $ = cheerio.load(html);
+		const products: Product[] = [];
+		const sel = validated.selectors;
 
-			const items = document.querySelectorAll(sel.productContainer);
+		$(sel.productContainer).each((_, element) => {
+			const item = $(element);
+			const product: Product = {
+				title: "",
+			};
 
-			items.forEach((item) => {
-				const product: Product = {
-					title: "",
-				};
+			// Title
+			const titleEl = item.find(sel.title);
+			product.title = titleEl.text().trim();
 
-				// Title
-				const titleEl = item.querySelector(sel.title);
-				product.title = (titleEl as HTMLElement)?.innerText.trim() || "";
+			// Price
+			if (sel.price) {
+				const priceEl = item.find(sel.price);
+				product.price = priceEl.text().trim();
+			}
 
-				// Price
-				if (sel.price) {
-					const priceEl = item.querySelector(sel.price);
-					product.price = (priceEl as HTMLElement)?.innerText.trim();
+			// Original Price
+			if (sel.originalPrice) {
+				const origEl = item.find(sel.originalPrice);
+				product.originalPrice = origEl.text().trim();
+			}
+
+			// Image
+			if (sel.image) {
+				const imgEl = item.find(sel.image);
+				let imageUrl = imgEl.attr("src") || imgEl.attr("data-src") || "";
+
+				// Handle relative URLs
+				if (imageUrl && !imageUrl.startsWith("http")) {
+					const urlObj = new URL(validated.url);
+					imageUrl = `${urlObj.origin}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
 				}
+				product.image = imageUrl;
+			}
 
-				// Original Price
-				if (sel.originalPrice) {
-					const origEl = item.querySelector(sel.originalPrice);
-					product.originalPrice = (origEl as HTMLElement)?.innerText.trim();
+			// Link
+			if (sel.link) {
+				const linkEl = item.find(sel.link);
+				let productLink = linkEl.attr("href") || "";
+
+				// Handle relative URLs
+				if (productLink && !productLink.startsWith("http")) {
+					const urlObj = new URL(validated.url);
+					productLink = `${urlObj.origin}${productLink.startsWith("/") ? "" : "/"}${productLink}`;
 				}
+				product.link = productLink;
+			}
 
-				// Image
-				if (sel.image) {
-					const imgEl = item.querySelector(sel.image);
-					product.image =
-						(imgEl as HTMLImageElement)?.src ||
-						(imgEl as HTMLImageElement)?.getAttribute("data-src") ||
-						"";
-				}
+			// Description
+			if (sel.description) {
+				const descEl = item.find(sel.description);
+				product.description = descEl
+					.text()
+					.trim()
+					.replace(/\s+/g, " ")
+					.slice(0, 300);
+			}
 
-				// Link
-				if (sel.link) {
-					const linkEl = item.querySelector(sel.link);
-					product.link = (linkEl as HTMLAnchorElement)?.href;
-				}
-
-				// Description
-				if (sel.description) {
-					const descEl = item.querySelector(sel.description);
-					product.description = (descEl as HTMLElement)?.innerText
-						.trim()
-						.replace(/\s+/g, " ")
-						.slice(0, 300);
-				}
-
-				if (product.title.length > 15) {
-					productsData.push(product);
-				}
-			});
-
-			return productsData;
-		}, validated.selectors);
+			if (product.title.length > 5) {
+				products.push(product);
+			}
+		});
 
 		return {
 			success: true,
@@ -114,13 +118,12 @@ export async function crawlWebsite(formData: FormData) {
 			url: validated.url,
 		};
 	} catch (error: unknown) {
+		console.error("Crawling Error:", error);
 		const errorMessage =
 			error instanceof Error ? error.message : "Crawling failed";
 		return {
 			success: false,
 			error: errorMessage,
 		};
-	} finally {
-		await browser.close();
 	}
 }

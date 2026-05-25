@@ -103,7 +103,12 @@ export function useUpsertShopListing() {
 			listing,
 		}: {
 			componentId: string;
-			listing: { shop: string; price: number; stock: string; url?: string };
+			listing: {
+				shop: string;
+				price: number;
+				stock: "in_stock" | "out_of_stock" | "limited";
+				url?: string;
+			};
 		}) => upsertShopListing(componentId, listing),
 		onSuccess: () => {
 			qc.invalidateQueries({ queryKey: [queryKeys.pcComponents] });

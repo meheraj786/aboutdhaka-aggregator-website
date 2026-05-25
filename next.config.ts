@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
-	serverExternalPackages: ["playwright"],
 };
 
 export default nextConfig;
