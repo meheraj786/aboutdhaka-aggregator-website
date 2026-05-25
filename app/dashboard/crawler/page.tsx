@@ -235,7 +235,7 @@ export default function WebCrawlerPage() {
 																	</div>
 																)}
 															</TableCell>
-															<TableCell className="font-medium max-w-xs">
+															<TableCell className="font-medium max-w-xs truncate">
 																{product.title}
 															</TableCell>
 															<TableCell className="text-green-600 font-bold whitespace-nowrap">
@@ -244,7 +244,7 @@ export default function WebCrawlerPage() {
 															<TableCell className="text-red-500 line-through whitespace-nowrap">
 																{product.originalPrice || "N/A"}
 															</TableCell>
-															<TableCell className="max-w-md text-sm text-gray-600">
+															<TableCell className="max-w-md text-sm text-gray-600 truncate">
 																{product.description || "No description"}
 															</TableCell>
 														</TableRow>
