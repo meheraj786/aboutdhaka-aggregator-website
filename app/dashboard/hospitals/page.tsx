@@ -95,7 +95,7 @@ const mapHospitalToFormInput = (
 	slug: hospital.slug,
 });
 
-export type GetHospitalsParams = {
+type DashboardHospitalsParams = {
 	page: number;
 	pageSize: number;
 	search?: string;
@@ -104,7 +104,7 @@ export type GetHospitalsParams = {
 };
 
 export default function HospitalsPage() {
-	const [params, setParams] = useState<GetHospitalsParams>({
+	const [params, setParams] = useState<DashboardHospitalsParams>({
 		page: 1,
 		pageSize: 10,
 		search: "",
@@ -112,7 +112,7 @@ export default function HospitalsPage() {
 		sortOrder: "desc",
 	});
 
-	const { data, isLoading } = useFetchHospitals(params);
+	const { data, isLoading } = useFetchHospitals({ page: params.page, pageSize: params.pageSize, search: params.search });
 	const { mutate: deleteHosp } = useDeleteHospital();
 
 	const handlePaginationChange = useCallback((p: PaginationParams) => {
