@@ -20,6 +20,7 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import type { IPCComponentPopulated } from "@/actions/pcComponent.action";
 import { ComponentFormDialog } from "@/components/dashboardComponents/ComponentFormDialog";
+import { ShopFormDialog } from "@/components/dashboardComponents/ShopFormDialog";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -72,7 +73,6 @@ import {
 	// useUpdateShop,
 } from "@/hooks/useShops";
 import type { ComponentCategory } from "@/models/pcComponent.model";
-import { ShopFormDialog } from "@/components/dashboardComponents/ShopFormDialog";
 
 // import {
 // 	type PCComponentInput,
