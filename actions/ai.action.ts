@@ -22,6 +22,13 @@ export interface CompatibilityResult {
 	psuRecommendedWattage: number;
 }
 
+export interface DoctorSuggestion {
+	department: string;
+	severity: string;
+	suggested_action: string;
+	reason: string;
+}
+
 function getGroqClient(): OpenAI {
 	const apiKey = process.env.GROQ_API_KEY;
 	if (!apiKey) throw new Error("GROQ_API_KEY is not defined");
@@ -90,7 +97,10 @@ JSON structure: {
 	return base;
 }
 
-export async function askAI(tool: AITool, userInput: string): Promise<unknown> {
+export async function askAI<T = unknown>(
+	tool: AITool,
+	userInput: string,
+): Promise<T> {
 	const groq = getGroqClient();
 
 	try {
@@ -105,7 +115,7 @@ export async function askAI(tool: AITool, userInput: string): Promise<unknown> {
 		});
 
 		const content = completion.choices[0]?.message?.content ?? "{}";
-		return JSON.parse(content);
+		return JSON.parse(content) as T;
 	} catch {
 		throw new Error("AI service failed. Please try again.");
 	}

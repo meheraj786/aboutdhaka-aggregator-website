@@ -24,7 +24,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { askAI } from "@/actions/ai.action";
+import { type DoctorSuggestion, askAI } from "@/actions/ai.action";
 
 function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -137,17 +137,13 @@ export default function DoctorsListing() {
 	const [location, setLocation] = useState("All Locations (Dhaka)");
 	const [symptoms, setSymptoms] = useState("");
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
-	const [aiResult, setAiResult] = useState<{
-		department: string;
-		severity: string;
-		reason: string;
-	} | null>(null);
+	const [aiResult, setAiResult] = useState<DoctorSuggestion | null>(null);
 
 	const handleAIAnalysis = async () => {
 		if (!symptoms) return;
 		setIsAnalyzing(true);
 		try {
-			const result = await askAI("doctor-suggestion", symptoms);
+			const result = await askAI<DoctorSuggestion>("doctor-suggestion", symptoms);
 			setAiResult(result);
 			setSearchQuery(result.department);
 		} catch (error) {

@@ -27,12 +27,12 @@ export const pcComponentInputSchema = z.object({
 		.array(
 			z.enum(["Gaming", "Content Creation", "Development", "Office & Web"]),
 		)
-		.default([]),
-	minBudgetTier: z.enum(["budget", "mid", "high-end"]).default("mid"),
+		.optional(),
+	minBudgetTier: z.enum(["budget", "mid", "high-end"]).optional(),
 	specs: z
 		.record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
-		.default({}),
-	shopListings: z.array(shopListingInputSchema).default([]),
+		.optional(),
+	shopListings: z.array(shopListingInputSchema).optional(),
 
 	// CPU & Motherboard
 	socket: z
@@ -45,7 +45,7 @@ export const pcComponentInputSchema = z.object({
 	tdpWatt: z.number().positive().optional(),
 
 	// Motherboard specific
-	supportedRamGeneration: z.enum(["DDR3", "DDR4", "DDD5"]).optional(),
+	supportedRamGeneration: z.enum(["DDR3", "DDR4", "DDR5"]).optional(),
 	supportedStorageInterfaces: z
 		.array(z.enum(["NVMe_Gen3", "NVMe_Gen4", "SATA"]))
 		.optional(),

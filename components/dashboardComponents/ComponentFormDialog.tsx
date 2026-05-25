@@ -201,7 +201,9 @@ export function ComponentFormDialog({
 	const watchedUsageTags = watch("usageTags");
 	const watchedStorageInterfaces = watch("supportedStorageInterfaces") ?? [];
 
-	const toggleUsageTag = (tag: PCComponentInput["usageTags"][number]) => {
+	const toggleUsageTag = (
+		tag: "Gaming" | "Content Creation" | "Development" | "Office & Web",
+	) => {
 		const current = watchedUsageTags ?? [];
 		if (current.includes(tag)) {
 			setValue(
