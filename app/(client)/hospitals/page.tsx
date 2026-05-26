@@ -9,13 +9,20 @@ import HospitalCard, {
 } from "@/components/appComponents/HospitalCard";
 import Pagination from "@/components/appComponents/Pagination";
 import { useFetchHospitals } from "@/hooks/useHospitals";
-import { DHAKA_AREAS, DEFAULT_PAGE_SIZE, RATING_OPTIONS } from "@/lib/filterOptions";
+import {
+	DEFAULT_PAGE_SIZE,
+	DHAKA_AREAS,
+	RATING_OPTIONS,
+} from "@/lib/filterOptions";
 import { ANIMAL_TYPES, HOSPITAL_TYPES } from "@/lib/hospitalTypes";
 
 const PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 const TYPE_OPTIONS = [...HOSPITAL_TYPES]
-	.filter((t): t is Exclude<typeof t, (typeof ANIMAL_TYPES)[number]> => !(ANIMAL_TYPES as readonly string[]).includes(t))
+	.filter(
+		(t): t is Exclude<typeof t, (typeof ANIMAL_TYPES)[number]> =>
+			!(ANIMAL_TYPES as readonly string[]).includes(t),
+	)
 	.map((t) => ({ label: t, value: t }));
 
 export default function HospitalsPage() {
@@ -107,41 +114,41 @@ export default function HospitalsPage() {
 						</div>
 
 						<div className="flex items-center gap-3">
-						{/* Mobile filter button — hidden on lg+ */}
-						{hasData && (
-							<button
-								type="button"
-								onClick={() => setDrawerOpen(true)}
-								className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-							>
-								<SlidersHorizontal className="w-4 h-4" />
-								Filters
-								{activeFilterCount > 0 && (
-									<span className="bg-blue-600 text-white text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center">
-										{activeFilterCount}
-									</span>
-								)}
-							</button>
-						)}
-						{hasData && (
-							<>
-								<span className="text-sm text-slate-500 font-medium">
-									Sort by:
-								</span>
-								<select
-									value={sortBy}
-									onChange={handleSortChange}
-									className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+							{/* Mobile filter button — hidden on lg+ */}
+							{hasData && (
+								<button
+									type="button"
+									onClick={() => setDrawerOpen(true)}
+									className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
 								>
-									<option value="popular">Most Popular</option>
-									<option value="rating_desc">Rating: High to Low</option>
-								</select>
-							</>
-						)}
+									<SlidersHorizontal className="w-4 h-4" />
+									Filters
+									{activeFilterCount > 0 && (
+										<span className="bg-blue-600 text-white text-xs font-semibold w-5 h-5 rounded-full flex items-center justify-center">
+											{activeFilterCount}
+										</span>
+									)}
+								</button>
+							)}
+							{hasData && (
+								<>
+									<span className="text-sm text-slate-500 font-medium">
+										Sort by:
+									</span>
+									<select
+										value={sortBy}
+										onChange={handleSortChange}
+										className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all"
+									>
+										<option value="popular">Most Popular</option>
+										<option value="rating_desc">Rating: High to Low</option>
+									</select>
+								</>
+							)}
+						</div>
 					</div>
-				</div>
 
-				{/* Mobile filter drawer */}
+					{/* Mobile filter drawer */}
 					{hasData && (
 						<FilterDrawer
 							open={drawerOpen}
