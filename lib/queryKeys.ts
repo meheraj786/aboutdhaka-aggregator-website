@@ -1,0 +1,16 @@
+export const queryKeys = {
+	areas: "areas",
+	places: "places",
+	doctors: "doctors",
+	hospitals: "hospitals",
+	restaurants: "restaurants",
+	malls: "malls",
+	pcs: "pcs",
+	busRoutes: "busRoutes",
+	medicalCategories: "medicalCategories",
+	doctorHospitals: "doctorHospitals",
+	blogs: "blogs",
+	blogCategories: "blogCategories",
+	pcComponents: "pcComponents",
+	shops: "shops",
+};
