@@ -121,10 +121,17 @@ export default function RestaurantsPage() {
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							<DropdownMenuItem onClick={() => toast.info("Edit coming soon")}>
-								<Pencil className="mr-2 h-4 w-4" /> Edit
-							</DropdownMenuItem>
+							<RestaurantFormDialog
+								restaurant={row.original}
+								trigger={
+									<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+										<Pencil className="mr-2 h-4 w-4" /> Edit
+									</DropdownMenuItem>
+								}
+							/>
+
 							<DropdownMenuSeparator />
+
 							<DropdownMenuItem
 								onSelect={(e) => e.preventDefault()}
 								className="text-destructive"
@@ -145,11 +152,10 @@ export default function RestaurantsPage() {
 										<AlertDialogFooter>
 											<AlertDialogCancel>Cancel</AlertDialogCancel>
 											<AlertDialogAction
-												className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+												className="bg-destructive hover:bg-destructive/90"
 												onClick={() =>
 													deleteRes(row.original._id, {
-														onSuccess: () =>
-															toast.success("Restaurant deleted"),
+														onSuccess: () => toast.success("Deleted"),
 													})
 												}
 											>

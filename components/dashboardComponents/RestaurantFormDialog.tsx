@@ -1,22 +1,11 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-	Image as ImageIcon,
-	Loader2,
-	Plus,
-	Trash2,
-	Utensils,
-	X,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import {
-	Controller,
-	type Resolver,
-	useFieldArray,
-	useForm,
-} from "react-hook-form";
+import { ImageIcon, Loader2, Plus, Trash2, Utensils, X } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import type { GetRestaurantByIdReturn } from "@/actions/restaurants.action";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,13 +30,16 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { useFetchAreas } from "@/hooks/useAreas";
-import { useCreateRestaurant } from "@/hooks/useRestaurants";
+import {
+	useCreateRestaurant,
+	useUpdateRestaurant,
+} from "@/hooks/useRestaurants";
 import {
 	type CreateRestaurantInput,
 	createRestaurantSchema,
 } from "@/validators/restaurants";
-import { Textarea } from "../ui/textarea";
 
 const CATEGORIES = [
 	"Fast Food",
@@ -71,19 +63,27 @@ const DEFAULT_VALUES: CreateRestaurantInput = {
 	menu: [],
 };
 
-export function RestaurantFormDialog() {
+interface RestaurantFormDialogProps {
+	restaurant?: GetRestaurantByIdReturn | null;
+	trigger?: ReactNode;
+}
+
+export function RestaurantFormDialog({
+	restaurant = null,
+	trigger = null,
+}: RestaurantFormDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [amenityInput, setAmenityInput] = useState("");
 	const [galleryInput, setGalleryInput] = useState("");
 
 	const { data: areasData = [] } = useFetchAreas();
-	const { mutate: createRes, isPending } = useCreateRestaurant();
-	const areas = useMemo(() => areasData, [areasData]);
+	const { mutate: createRes, isPending: isCreating } = useCreateRestaurant();
+	const { mutate: updateRes, isPending: isUpdating } = useUpdateRestaurant();
+
+	const isEdit = !!restaurant;
 
 	const form = useForm<CreateRestaurantInput>({
-		resolver: zodResolver(
-			createRestaurantSchema,
-		) as Resolver<CreateRestaurantInput>,
+		resolver: zodResolver(createRestaurantSchema),
 		defaultValues: DEFAULT_VALUES,
 	});
 
@@ -92,61 +92,94 @@ export function RestaurantFormDialog() {
 		name: "menu",
 	});
 
-	const onSubmit = (values: CreateRestaurantInput) => {
-		createRes(values, {
-			onSuccess: () => {
-				setOpen(false);
+	useEffect(() => {
+		if (open) {
+			if (isEdit && restaurant) {
+				const areaId =
+					restaurant.area &&
+					typeof restaurant.area === "object" &&
+					"_id" in restaurant.area
+						? String(restaurant.area._id)
+						: String(restaurant.area || "");
+
+				form.reset({
+					...restaurant,
+					area: areaId,
+					menu: restaurant.menu || [],
+					amenities: restaurant.amenities || [],
+					gallery: restaurant.gallery || [],
+					detail: restaurant.detail || "",
+					phone: restaurant.phone || "",
+					category: restaurant.category || "",
+					rating: restaurant.rating || 0,
+				} as CreateRestaurantInput);
+			} else {
 				form.reset(DEFAULT_VALUES);
-				setAmenityInput("");
-				setGalleryInput("");
-				toast.success("Restaurant added successfully!");
-			},
-			onError: (error) => {
-				toast.error(error.message || "Failed to create restaurant");
-			},
-		});
+			}
+		}
+	}, [open, isEdit, restaurant, form]);
+
+	const onSubmit = (values: CreateRestaurantInput) => {
+		if (isEdit && restaurant) {
+			updateRes(
+				{ id: restaurant._id, data: values },
+				{
+					onSuccess: () => {
+						setOpen(false);
+						toast.success("Restaurant updated!");
+					},
+					onError: (error) => {
+						toast.error(error.message || "Something went wrong");
+					},
+				},
+			);
+		} else {
+			createRes(values, {
+				onSuccess: () => {
+					setOpen(false);
+					toast.success("Restaurant created!");
+				},
+				onError: (error) => {
+					toast.error(error.message || "Something went wrong");
+				},
+			});
+		}
 	};
 
 	const amenities = form.watch("amenities") || [];
 	const gallery = form.watch("gallery") || [];
 
 	const addAmenity = () => {
-		const trimmed = amenityInput.trim();
-		if (trimmed && !amenities.includes(trimmed)) {
-			form.setValue("amenities", [...amenities, trimmed]);
+		if (amenityInput.trim() && !amenities.includes(amenityInput.trim())) {
+			form.setValue("amenities", [...amenities, amenityInput.trim()]);
 			setAmenityInput("");
 		}
 	};
 
 	const addGalleryUrl = () => {
-		const trimmed = galleryInput.trim();
-		if (trimmed && !gallery.includes(trimmed)) {
-			form.setValue("gallery", [...gallery, trimmed]);
+		if (galleryInput.trim() && !gallery.includes(galleryInput.trim())) {
+			form.setValue("gallery", [...gallery, galleryInput.trim()]);
 			setGalleryInput("");
 		}
 	};
 
 	return (
-		<Dialog
-			open={open}
-			onOpenChange={(val) => {
-				setOpen(val);
-				if (!val) form.reset(DEFAULT_VALUES);
-			}}
-		>
+		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button className="gap-2">
-					<Plus className="h-4 w-4" />
-					Add Restaurant
-				</Button>
+				{trigger || (
+					<Button className="gap-2">
+						<Plus className="h-4 w-4" /> Add Restaurant
+					</Button>
+				)}
 			</DialogTrigger>
 			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
 				<DialogHeader>
-					<DialogTitle>Add New Restaurant</DialogTitle>
+					<DialogTitle>
+						{isEdit ? "Edit Restaurant" : "Add New Restaurant"}
+					</DialogTitle>
 				</DialogHeader>
 
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-2">
-					{/* Basic Info */}
 					<FieldGroup>
 						<Controller
 							name="name"
@@ -174,7 +207,7 @@ export function RestaurantFormDialog() {
 												<SelectValue placeholder="Select Area" />
 											</SelectTrigger>
 											<SelectContent>
-												{areas.map((a) => (
+												{areasData.map((a) => (
 													<SelectItem key={String(a._id)} value={String(a._id)}>
 														{a.name}
 													</SelectItem>
@@ -209,14 +242,22 @@ export function RestaurantFormDialog() {
 								)}
 							/>
 						</div>
+
 						<div className="grid grid-cols-2 gap-4">
 							<Controller
 								name="rating"
 								control={form.control}
 								render={({ field, fieldState }) => (
 									<Field>
-										<FieldLabel>Rating</FieldLabel>
-										<Input {...field} placeholder="e.g. 4.5" />
+										<FieldLabel>Rating (0-5)</FieldLabel>
+										<Input
+											{...field}
+											type="number"
+											step="0.1"
+											onChange={(e) =>
+												field.onChange(e.target.valueAsNumber || 0)
+											}
+										/>
 										{fieldState.error && (
 											<FieldError errors={[fieldState.error]} />
 										)}
@@ -226,13 +267,10 @@ export function RestaurantFormDialog() {
 							<Controller
 								name="phone"
 								control={form.control}
-								render={({ field, fieldState }) => (
+								render={({ field }) => (
 									<Field>
-										<FieldLabel>Phone</FieldLabel>
-										<Input {...field} placeholder="e.g. 0123456789" />
-										{fieldState.error && (
-											<FieldError errors={[fieldState.error]} />
-										)}
+										<FieldLabel>Phone Number</FieldLabel>
+										<Input {...field} placeholder="017..." />
 									</Field>
 								)}
 							/>
@@ -251,16 +289,17 @@ export function RestaurantFormDialog() {
 								</Field>
 							)}
 						/>
+
 						<Controller
 							name="detail"
 							control={form.control}
-							render={({ field, fieldState }) => (
+							render={({ field }) => (
 								<Field>
-									<FieldLabel>Add Detail</FieldLabel>
-									<Textarea {...field} placeholder="About the Restaurant..." />
-									{fieldState.error && (
-										<FieldError errors={[fieldState.error]} />
-									)}
+									<FieldLabel>Detail Description</FieldLabel>
+									<Textarea
+										{...field}
+										placeholder="Describe the restaurant..."
+									/>
 								</Field>
 							)}
 						/>
@@ -271,76 +310,55 @@ export function RestaurantFormDialog() {
 					{/* Menu Section */}
 					<section className="space-y-4">
 						<div className="flex items-center justify-between">
-							<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-								<Utensils className="h-3.5 w-3.5" /> Restaurant Menu
+							<FieldLabel className="flex items-center gap-2">
+								<Utensils className="h-4 w-4" /> Menu Items
 							</FieldLabel>
 							<Button
 								type="button"
 								variant="outline"
 								size="sm"
 								onClick={() => append({ name: "", price: "" })}
-								className="h-7 text-xs"
 							>
-								<Plus className="h-3 w-3 mr-1" /> Add Item
+								<Plus className="h-4 w-4 mr-1" /> Add Item
 							</Button>
 						</div>
-
 						<div className="space-y-3">
 							{fields.map((field, index) => (
 								<div key={field.id} className="flex gap-2 items-start">
-									<div className="flex-1">
-										<Input
-											{...form.register(`menu.${index}.name` as const)}
-											placeholder="Item Name (e.g. Kacchi)"
-											className={
-												form.formState.errors.menu?.[index]?.name
-													? "border-destructive"
-													: ""
-											}
-										/>
-									</div>
-									<div className="w-24">
-										<Input
-											{...form.register(`menu.${index}.price` as const)}
-											placeholder="Price"
-											className={
-												form.formState.errors.menu?.[index]?.price
-													? "border-destructive"
-													: ""
-											}
-										/>
-									</div>
+									<Input
+										{...form.register(`menu.${index}.name`)}
+										placeholder="Item name"
+										className="flex-1"
+									/>
+									<Input
+										{...form.register(`menu.${index}.price`)}
+										placeholder="Price"
+										className="w-24"
+									/>
 									<Button
 										type="button"
 										variant="ghost"
 										size="icon"
-										className="text-muted-foreground hover:text-destructive"
 										onClick={() => remove(index)}
+										className="text-destructive"
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>
 								</div>
 							))}
-							{fields.length === 0 && (
-								<p className="text-xs text-center text-muted-foreground py-2 border border-dashed rounded-md">
-									No menu items added yet.
-								</p>
-							)}
 						</div>
 					</section>
 
 					<Separator />
 
-					{/* Amenities Section */}
+					{/* Amenities */}
 					<section className="space-y-3">
-						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-							Amenities
-						</FieldLabel>
+						<FieldLabel>Amenities</FieldLabel>
 						<div className="flex gap-2">
 							<Input
 								value={amenityInput}
 								onChange={(e) => setAmenityInput(e.target.value)}
-								placeholder="e.g. WiFi, AC"
+								placeholder="e.g. WiFi, Parking"
 								onKeyDown={(e) => {
 									if (e.key === "Enter") {
 										e.preventDefault();
@@ -354,10 +372,10 @@ export function RestaurantFormDialog() {
 						</div>
 						<div className="flex flex-wrap gap-2">
 							{amenities.map((item) => (
-								<Badge key={item} variant="secondary" className="pr-1 py-1">
+								<Badge key={item} variant="secondary" className="gap-1">
 									{item}
 									<X
-										className="ml-1 h-3 w-3 cursor-pointer hover:text-destructive"
+										className="h-3 w-3 cursor-pointer"
 										onClick={() =>
 											form.setValue(
 												"amenities",
@@ -372,16 +390,14 @@ export function RestaurantFormDialog() {
 
 					<Separator />
 
-					{/* Gallery Section */}
+					{/* Gallery */}
 					<section className="space-y-3">
-						<FieldLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-							Gallery Images
-						</FieldLabel>
+						<FieldLabel>Gallery URLs</FieldLabel>
 						<div className="flex gap-2">
 							<Input
 								value={galleryInput}
 								onChange={(e) => setGalleryInput(e.target.value)}
-								placeholder="Paste image URL..."
+								placeholder="Image URL..."
 								onKeyDown={(e) => {
 									if (e.key === "Enter") {
 										e.preventDefault();
@@ -393,55 +409,41 @@ export function RestaurantFormDialog() {
 								<Plus className="h-4 w-4" />
 							</Button>
 						</div>
-
-						{gallery.length > 0 && (
-							<div className="grid grid-cols-1 gap-2">
-								{gallery.map((url, index) => (
-									<div
-										key={index}
-										className="flex items-center gap-2 p-2 border rounded-md bg-muted/50"
-									>
-										<ImageIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-										<span className="text-xs truncate flex-1">{url}</span>
-										<button
-											type="button"
-											onClick={() =>
-												form.setValue(
-													"gallery",
-													gallery.filter((g) => g !== url),
-												)
-											}
-											className="text-muted-foreground hover:text-destructive"
-										>
-											<X className="h-4 w-4" />
-										</button>
-									</div>
-								))}
-							</div>
-						)}
+						<div className="grid grid-cols-1 gap-2">
+							{gallery.map((url, idx) => (
+								<div
+									key={idx}
+									className="flex items-center gap-2 p-2 border rounded bg-muted/50"
+								>
+									<ImageIcon className="h-4 w-4 shrink-0" />
+									<span className="text-xs truncate flex-1">{url}</span>
+									<X
+										className="h-4 w-4 cursor-pointer text-destructive"
+										onClick={() =>
+											form.setValue(
+												"gallery",
+												gallery.filter((g) => g !== url),
+											)
+										}
+									/>
+								</div>
+							))}
+						</div>
 					</section>
 
-					<div className="flex justify-end gap-3 pt-4">
+					<div className="flex justify-end gap-3 pt-4 sticky bottom-0 bg-white">
 						<Button
 							type="button"
 							variant="outline"
 							onClick={() => setOpen(false)}
-							disabled={isPending}
 						>
 							Cancel
 						</Button>
-						<Button
-							type="submit"
-							className="min-w-[120px]"
-							disabled={isPending}
-						>
-							{isPending ? (
-								<>
-									<Loader2 className="animate-spin mr-2 h-4 w-4" /> Saving...
-								</>
-							) : (
-								"Save Restaurant"
+						<Button type="submit" disabled={isCreating || isUpdating}>
+							{(isCreating || isUpdating) && (
+								<Loader2 className="animate-spin mr-2 h-4 w-4" />
 							)}
+							{isEdit ? "Update Restaurant" : "Create Restaurant"}
 						</Button>
 					</div>
 				</form>

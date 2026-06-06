@@ -6,7 +6,7 @@ export const createRestaurantSchema = z.object({
 	location: z.string().min(1, "Location is required"),
 	category: z.string().default(""),
 	detail: z.string().default(""),
-	rating: z.coerce.number().default(0),
+	rating: z.number().min(0).max(5).default(0),
 	phone: z.string().default(""),
 	amenities: z.array(z.string()).default([]),
 	gallery: z.array(z.string()).default([]),
@@ -21,7 +21,5 @@ export const createRestaurantSchema = z.object({
 	hours: z.record(z.string(), z.string()).optional(),
 });
 
-export const updateRestaurantSchema = createRestaurantSchema.partial();
-
 export type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>;
-export type UpdateRestaurantInput = z.infer<typeof updateRestaurantSchema>;
+export const updateRestaurantSchema = createRestaurantSchema.partial();

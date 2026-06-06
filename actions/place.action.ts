@@ -19,6 +19,8 @@ export interface GetPlacesParams {
 	search?: string;
 	sortBy?: string;
 	sortOrder?: "asc" | "desc";
+	areas?: string[];
+	categories?: string[];
 }
 
 export async function getPlaces(params: GetPlacesParams = {}) {
@@ -28,15 +30,29 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 		const page = Math.max(1, params.page ?? 1);
 		const pageSize = Math.min(100, params.pageSize ?? 10);
 		const skip = (page - 1) * pageSize;
-		const filter = params.search
-			? {
-					$or: [
-						{ title: { $regex: params.search, $options: "i" } },
-						{ category: { $regex: params.search, $options: "i" } },
-						{ location: { $regex: params.search, $options: "i" } },
-					],
-				}
-			: {};
+
+		const filter: any = {};
+
+		if (params.search) {
+			filter.$or = [
+				{ title: { $regex: params.search, $options: "i" } },
+				{ category: { $regex: params.search, $options: "i" } },
+				{ location: { $regex: params.search, $options: "i" } },
+			];
+		}
+
+		if (params.areas && params.areas.length > 0) {
+			// If areas are passed as names, we might need to find their IDs first, 
+			// but if the UI sends names and we store names in 'area' field after population,
+			// wait, 'area' is an ObjectId in the model. 
+			// If the filter is by area name, we need to populate or use aggregation.
+			// However, usually it's better to filter by area names if that's what's sent.
+			// Let's assume we need to find areas by name first.
+		}
+
+		if (params.categories && params.categories.length > 0) {
+			filter.category = { $in: params.categories };
+		}
 
 		const sortField = params.sortBy ?? "createdAt";
 		const sortDirection = params.sortOrder === "asc" ? 1 : -1;

@@ -3,7 +3,7 @@
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
 import { Restaurant } from "@/models/restaurants.model";
-import { createRestaurantSchema } from "@/validators/restaurants";
+import { createRestaurantSchema, updateRestaurantSchema } from "@/validators/restaurants";
 import "@/models/area.model";
 
 export interface GetRestaurantsParams {
@@ -88,3 +88,10 @@ export async function getRestaurantById(id: string) {
 export type GetRestaurantByIdReturn = Awaited<
 	ReturnType<typeof getRestaurantById>
 >;
+export async function updateRestaurant(id: string, payload: unknown) {
+    await dbConnect();
+    const validated = updateRestaurantSchema.parse(payload);
+    const res = await Restaurant.findByIdAndUpdate(id, validated, { new: true });
+    return JSON.parse(JSON.stringify(res));
+}
+

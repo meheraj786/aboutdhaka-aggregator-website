@@ -5,8 +5,13 @@ import {
 	type GetRestaurantsParams,
 	getRestaurantById,
 	getRestaurants,
+	updateRestaurant,
 } from "@/actions/restaurants.action";
 import { queryKeys } from "@/lib/queryKeys";
+import type { createRestaurantSchema } from "@/validators/restaurants";
+import type { z } from "zod";
+
+type CreateRestaurantInput = z.infer<typeof createRestaurantSchema>;
 
 export function useFetchRestaurants(params: GetRestaurantsParams = {}) {
 	return useQuery({
@@ -24,7 +29,7 @@ export function useFetchRestaurants(params: GetRestaurantsParams = {}) {
 export function useCreateRestaurant() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: createRestaurant,
+		mutationFn: (data: CreateRestaurantInput) => createRestaurant(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: [queryKeys.restaurants] });
 		},
@@ -34,7 +39,7 @@ export function useCreateRestaurant() {
 export function useDeleteRestaurant() {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: deleteRestaurant,
+		mutationFn: (id: string) => deleteRestaurant(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: [queryKeys.restaurants] });
 		},
@@ -48,5 +53,16 @@ export function useFetchRestaurantById(id: string) {
 			return await getRestaurantById(id);
 		},
 		enabled: !!id,
+	});
+}
+
+export function useUpdateRestaurant() {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: ({ id, data }: { id: string; data: Partial<CreateRestaurantInput> }) =>
+			updateRestaurant(id, data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: [queryKeys.restaurants] });
+		},
 	});
 }
