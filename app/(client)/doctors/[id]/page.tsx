@@ -12,41 +12,36 @@ import {
 	ShieldCheck,
 	Star,
 	Stethoscope,
+	Loader2,
+	Mail,
+	Phone,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
-const STATS = [
-	{ label: "YEARS EXP.", value: "15+", icon: Calendar },
-	{ label: "SURGERIES", value: "5k+", icon: Activity },
-	{ label: "AWARDS", value: "12+", icon: Award },
-	{ label: "RATING", value: "4.9", icon: Star },
-];
-
-const SERVICES = [
-	{
-		title: "Cardiac Consultation",
-		desc: "Detailed evaluation and personalized heart care plans.",
-		icon: Heart,
-	},
-	{
-		title: "Echocardiography",
-		desc: "Advanced 4D imaging for precise heart structural analysis.",
-		icon: Monitor,
-	},
-	{
-		title: "Angioplasty",
-		desc: "State-of-the-art stent placements and block clearance.",
-		icon: Activity,
-	},
-	{
-		title: "Preventive Screenings",
-		desc: "Comprehensive vascular and arterial risk assessments.",
-		icon: ShieldCheck,
-	},
-];
+import { useParams } from "next/navigation";
+import { useFetchDoctorById } from "@/hooks/useDoctors"; // Ensure this hook exists
 
 export default function SpecialistDetail() {
+	const { id } = useParams();
+	const { data: response, isLoading } = useFetchDoctorById(id as string);
+	const doctor = response?.data;
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center bg-slate-50">
+				<Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+			</div>
+		);
+	}
+
+	if (!doctor) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<p className="font-bold text-slate-500">Doctor not found.</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans selection:bg-blue-100">
 			{/* Hero Section */}
@@ -54,7 +49,7 @@ export default function SpecialistDetail() {
 				<div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full -mr-64 -mt-64 blur-[120px]" />
 				<div className="max-w-7xl mx-auto px-6 relative z-10">
 					<Link
-						href="/hospitals"
+						href="/doctors"
 						className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-12 text-sm font-bold group"
 					>
 						<ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -62,15 +57,13 @@ export default function SpecialistDetail() {
 					</Link>
 					<div className="max-w-3xl">
 						<span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4 block">
-							SPECIALIST PHYSICIAN
+							{doctor.departments?.[0] || "SPECIALIST PHYSICIAN"}
 						</span>
 						<h1 className="text-6xl font-black mb-6 tracking-tight">
-							Dr. Sarah Rahman
+							{doctor.name}
 						</h1>
 						<p className="text-xl text-slate-400 leading-relaxed font-medium">
-							Lead Cardiologist & Interventional Specialist with over 15 years
-							of excellence in cardiovascular care and patient-centric
-							treatment.
+							{doctor.designation}. Expert in {doctor.speciality?.join(", ") || "Advanced Healthcare"}.
 						</p>
 					</div>
 				</div>
@@ -86,8 +79,8 @@ export default function SpecialistDetail() {
 								<Image
 									fill
 									priority
-									src="https://picsum.photos/seed/sarah/800/1000"
-									alt="Dr. Sarah Rahman"
+									src={doctor.profileImage || "https://avatar.iran.liara.run/public/doctor"}
+									alt={doctor.name}
 									className="w-full h-full object-cover"
 								/>
 							</div>
@@ -97,13 +90,17 @@ export default function SpecialistDetail() {
 										<h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
 											QUALIFICATIONS
 										</h4>
-										<p className="text-sm font-bold text-slate-900 leading-relaxed">
-											MBBS (DMC), FCPS (Cardiology), MRCP (UK), FACC (USA)
-										</p>
+										<div className="space-y-2">
+											{doctor.qualifications?.map((q: { degree: string; institution: string; passingYear: string }) => (
+												<p key={q.degree} className="text-sm font-bold text-slate-900 leading-relaxed">
+													{q.degree} from {q.institution} ({q.passingYear})
+												</p>
+											))}
+										</div>
 									</div>
 									<div>
 										<h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-											AFFILIATION
+											PRIMARY CHAMBER
 										</h4>
 										<div className="flex items-start gap-3">
 											<div className="p-2 bg-blue-50 rounded-lg">
@@ -111,12 +108,22 @@ export default function SpecialistDetail() {
 											</div>
 											<div>
 												<p className="text-sm font-bold text-slate-900">
-													Dhaka Medical College & Hospital
+													{doctor.chamber?.[0]?.name || "General Hospital"}
 												</p>
 												<p className="text-xs text-slate-500 font-medium">
-													Department of Cardiology
+													{doctor.chamber?.[0]?.address?.area || "Dhaka"}
 												</p>
 											</div>
+										</div>
+									</div>
+									<div className="pt-4 border-t border-slate-50 space-y-3">
+										<div className="flex items-center gap-3 text-slate-600">
+											<Phone className="w-4 h-4" />
+											<span className="text-sm font-bold">{doctor.contact?.phone}</span>
+										</div>
+										<div className="flex items-center gap-3 text-slate-600">
+											<Mail className="w-4 h-4" />
+											<span className="text-sm font-bold">{doctor.contact?.email}</span>
 										</div>
 									</div>
 								</div>
@@ -129,31 +136,16 @@ export default function SpecialistDetail() {
 							</div>
 						</div>
 
-						{/* Location Map Mock */}
+						{/* Quick Contact Card */}
 						<div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
 							<h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">
-								LOCATION MAP
+								BMDC REGISTRATION
 							</h4>
-							<div className="aspect-video bg-slate-100 rounded-2xl mb-4 relative overflow-hidden group cursor-pointer">
-								<Image
-									width={600}
-									height={400}
-									src="https://picsum.photos/seed/map/600/400"
-									alt="Map Location"
-									className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-								/>
-								<div className="absolute inset-0 flex items-center justify-center">
-									<div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-xl animate-bounce">
-										<MapPin className="w-5 h-5" />
-									</div>
-								</div>
-							</div>
-							<div className="flex items-center justify-between">
-								<p className="text-xs font-bold text-slate-900">
-									121/A, Dhanmondi, Dhaka
-								</p>
-								<div className="p-2 bg-slate-50 rounded-lg">
-									<ChevronRight className="w-4 h-4 text-slate-400" />
+							<div className="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+								<ShieldCheck className="w-6 h-6 text-emerald-500" />
+								<div>
+									<p className="text-xs font-black text-slate-400 uppercase">Status</p>
+									<p className="text-sm font-black text-slate-900 tracking-tight">Verified: {doctor.bmdc}</p>
 								</div>
 							</div>
 						</div>
@@ -170,76 +162,103 @@ export default function SpecialistDetail() {
 								</h2>
 							</div>
 							<p className="text-lg text-slate-500 leading-relaxed mb-10 font-medium">
-								Dr. Sarah Rahman is a board-certified cardiologist specializing
-								in interventional cardiology. With over 15 years of clinical
-								experience, she has pioneered several minimally invasive cardiac
-								procedures in Dhaka. Her patient-centric approach focuses on
-								holistic recovery and long-term heart health management.
+								{doctor.bio}
 							</p>
 
 							{/* Stats Grid */}
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-								{STATS.map((stat) => (
-									<div
-										key={stat.label}
-										className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 hover:border-blue-100 transition-colors"
-									>
-										<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-											{stat.label}
-										</p>
-										<p className="text-2xl font-black text-blue-600">
-											{stat.value}
-										</p>
-									</div>
-								))}
+								<div className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 transition-colors">
+									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Experience</p>
+									<p className="text-2xl font-black text-blue-600">{doctor.experience || 0}+ Yrs</p>
+								</div>
+								<div className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 transition-colors">
+									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Rating</p>
+									<p className="text-2xl font-black text-blue-600">{doctor.rating || "5.0"}</p>
+								</div>
+								<div className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 transition-colors">
+									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Reviews</p>
+									<p className="text-2xl font-black text-blue-600">{doctor.reviewCount || 0}</p>
+								</div>
+								<div className="bg-slate-50 rounded-2xl p-6 text-center border border-slate-100 transition-colors">
+									<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Status</p>
+									<p className="text-sm font-black text-emerald-600 uppercase pt-2">Active</p>
+								</div>
 							</div>
 						</section>
 
-						{/* Specialized Services */}
+						{/* Areas of Specialization */}
 						<section>
 							<div className="flex items-center gap-4 mb-10">
 								<div className="w-12 h-1 bg-blue-600 rounded-full" />
 								<h2 className="text-2xl font-black text-slate-900">
-									Specialized Services
+									Specialized Areas
 								</h2>
 							</div>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{SERVICES.map((service) => (
+								{doctor.speciality?.map((spec: string) => (
 									<div
-										key={service.title}
+										key={spec}
 										className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm hover:shadow-xl transition-all group"
 									>
 										<div className="p-3 bg-blue-50 rounded-2xl w-fit mb-6 group-hover:bg-blue-600 transition-colors">
-											<service.icon className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+											<Activity className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
 										</div>
 										<h3 className="text-lg font-black text-slate-900 mb-3">
-											{service.title}
+											{spec}
 										</h3>
 										<p className="text-sm text-slate-500 leading-relaxed font-medium">
-											{service.desc}
+											Expertise in {spec} related clinical cases and procedures.
 										</p>
 									</div>
 								))}
 							</div>
 						</section>
 
-						{/* Weekly Availability */}
-						<section className="bg-blue-600 rounded-3xl p-10 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+						{/* Chamber Details / Location */}
+						<section>
+							<div className="flex items-center gap-4 mb-10">
+								<div className="w-12 h-1 bg-blue-600 rounded-full" />
+								<h2 className="text-2xl font-black text-slate-900">
+									Chambers & Schedule
+								</h2>
+							</div>
+							<div className="space-y-4">
+								{doctor.chamber?.map((hosp: { name: string; address: { area: string; district: string }}) => (
+									<div key={hosp.name} className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center gap-6">
+										<div className="flex items-center gap-4">
+											<div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-blue-600">
+												<MapPin className="w-6 h-6" />
+											</div>
+											<div>
+												<h4 className="text-lg font-black text-slate-900">{hosp.name}</h4>
+												<p className="text-sm font-medium text-slate-500">{hosp.address?.area}, {hosp.address?.district}</p>
+											</div>
+										</div>
+										<button type="button" className="px-6 py-3 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+											Get Directions <ChevronRight className="w-4 h-4" />
+										</button>
+									</div>
+								))}
+							</div>
+						</section>
+
+						{/* Call to Action */}
+						<section className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
 							<div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
 							<div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
 								<div>
 									<h4 className="text-[10px] font-black text-blue-200 uppercase tracking-[0.2em] mb-4">
-										WEEKLY AVAILABILITY
+										READY TO VISIT?
 									</h4>
 									<p className="text-2xl font-black">
-										Monday — Friday: 4:00 PM - 9:00 PM
+										Book an appointment for consultation
 									</p>
 								</div>
 								<button
 									type="button"
 									className="px-8 py-4 bg-white text-blue-600 font-black rounded-2xl hover:bg-blue-50 transition-all text-sm"
 								>
-									Next Available: Tomorrow, 4:30 PM
+									Schedule Visit
 								</button>
 							</div>
 						</section>
