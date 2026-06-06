@@ -15,6 +15,7 @@ const navItems = [
 	{ name: "VETERINARY CLINICS", href: "/veterinary-clinics" },
 		{ name: "DOCTORS", href: "/doctors" },
 		{ name: "VETS", href: "/vets" },
+		{ name: "BUS ROUTES", href: "/bus" },
 		
 
 	{ name: "PC SUGGESTER", href: "/pc-builder" },

@@ -1,4 +1,4 @@
-// models/Place.ts
+
 import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IPlace extends Document {

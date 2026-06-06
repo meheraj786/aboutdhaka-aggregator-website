@@ -13,6 +13,8 @@ const PAGE_SIZE = 6;
 const CATEGORIES = ["Museum", "Historical", "Park", "Monument", "Cultural", "Religious"];
 
 export default function PlacesPage() {
+	// const {data: areas}= useFetchAreas();
+	// console.log(areas?.map((a: { name: string }) => ({ areaId: a._id, areaName: a.name })));
 	const [params, setParams] = useState<GetPlacesParams>({
 		page: 1,
 		pageSize: PAGE_SIZE,
