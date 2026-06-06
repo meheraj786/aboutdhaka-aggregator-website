@@ -9,9 +9,14 @@ import Logo from "./Logo";
 const navItems = [
 	{ name: "HOME", href: "/" },
 	{ name: "PLACES", href: "/places" },
-	{ name: "HOSPITALS", href: "/hospitals" },
+
 	{ name: "RESTAURANTS", href: "/restaurants" },
-	{ name: "MALLS", href: "/malls" },
+	{ name: "HOSPITALS", href: "/hospitals" },
+	{ name: "VETERINARY CLINICS", href: "/veterinary-clinics" },
+		{ name: "DOCTORS", href: "/doctors" },
+		{ name: "VETS", href: "/vets" },
+		
+
 	{ name: "PC SUGGESTER", href: "/pc-builder" },
 ];
 
