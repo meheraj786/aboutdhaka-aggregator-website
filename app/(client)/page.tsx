@@ -11,6 +11,7 @@ import { RentalsSection } from "@/components/appComponents/Rental";
 import { CityNavigationSection } from "@/components/appComponents/Routes";
 import TravelPlaces from "@/components/appComponents/TravelPlaces";
 import { TutorsSection } from "@/components/appComponents/Tutors";
+import WeatherBadge from "@/components/appComponents/WeatherBadge";
 
 export default function Home() {
 	return (
@@ -28,6 +29,7 @@ export default function Home() {
 			<TutorsSection />
 			<CityNavigationSection />
 			<BlogsSection />
+			<WeatherBadge />
 		</>
 	);
 }
