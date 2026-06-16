@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { twMerge } from "tailwind-merge";
 import { askAI, type DoctorSuggestion } from "@/actions/ai.action";
 import { useFetchDoctors } from "@/hooks/useDoctors";
@@ -26,6 +26,8 @@ function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }
 
+const VET_KEYWORDS = ["Veterinary", "Avian", "Exotic Animal", "Zoo", "Aquatic", "Equine", "Large Animal", "Small Animal"];
+
 export default function DoctorsListing() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
@@ -34,13 +36,20 @@ export default function DoctorsListing() {
 	const [isAnalyzing, setIsAnalyzing] = useState(false);
 	const [aiResult, setAiResult] = useState<DoctorSuggestion | null>(null);
 
-	// --- DATA FETCHING ---
 	const { data: doctorData, isLoading: doctorsLoading } = useFetchDoctors();
 	const { data: areas, isLoading: areasLoading } = useFetchAreas();
 
-	const doctorsList = doctorData?.items || [];
+	const doctorsList = useMemo(() => {
+		const items = doctorData?.items || [];
+		return items.filter((doc: any) => {
+			const isVet = doc.departments?.some((dept: string) => 
+				VET_KEYWORDS.some(keyword => dept.includes(keyword))
+			);
+			return !isVet;
+		});
+	}, [doctorData]);
 
-const dynamicCategories = useMemo(() => {
+	const dynamicCategories = useMemo(() => {
 		const departments = new Set<string>();
 		doctorsList.forEach((doc: { departments: string[] }) => {
 			doc.departments?.forEach((dept: string) => {
@@ -50,7 +59,7 @@ const dynamicCategories = useMemo(() => {
 		return Array.from(departments).slice(0, 8);
 	}, [doctorsList]);
 
-	const handleAIAnalysis = async () => {
+	const handleAIAnalysis = useCallback(async () => {
 		if (!symptoms) return;
 		setIsAnalyzing(true);
 		try {
@@ -62,9 +71,8 @@ const dynamicCategories = useMemo(() => {
 		} finally {
 			setIsAnalyzing(false);
 		}
-	};
+	}, [symptoms]);
 
-	// --- FILTERING LOGIC ---
 	const filteredAreas = useMemo(() => {
 		if (!areas) return [];
 		return areas.filter((a) => 
@@ -80,7 +88,6 @@ const dynamicCategories = useMemo(() => {
 				doc.designation.toLowerCase().includes(query) ||
 				doc.departments?.some((d: string) => d.toLowerCase().includes(query));
 			
-			// Filter by Area (checks if any chamber/hospital area matches selectedAreas)
 			const matchesArea = selectedAreas.length === 0 || 
 				doc.chamber?.some((c: any) => selectedAreas.includes(c.address?.area));
 
@@ -88,9 +95,19 @@ const dynamicCategories = useMemo(() => {
 		});
 	}, [searchQuery, selectedAreas, doctorsList]);
 
+	const toggleArea = useCallback((areaName: string) => {
+		setSelectedAreas(prev => 
+			prev.includes(areaName) ? prev.filter(a => a !== areaName) : [...prev, areaName]
+		);
+	}, []);
+
+	const resetFilters = useCallback(() => {
+		setSearchQuery("");
+		setSelectedAreas([]);
+	}, []);
+
 	return (
 		<div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans selection:bg-blue-100">
-			{/* AI HERO SECTION */}
 			<section className="bg-white border-b border-slate-100 pt-16 pb-12 relative overflow-hidden">
 				<div className="max-w-7xl mx-auto px-6">
 					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -123,7 +140,6 @@ const dynamicCategories = useMemo(() => {
 				</div>
 			</section>
 
-			{/* SEARCH BAR & DYNAMIC QUICK FILTERS */}
 			<section className="bg-white border-b border-slate-100 py-6 sticky top-0 z-30 shadow-sm">
 				<div className="max-w-7xl mx-auto px-6">
 					<div className="flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl w-full border border-slate-200">
@@ -159,7 +175,6 @@ const dynamicCategories = useMemo(() => {
 			</section>
 
 			<main className="max-w-7xl mx-auto px-6 py-12 flex flex-col lg:flex-row gap-10">
-				{/* SIDEBAR AREA FILTER */}
 				<aside className="w-full lg:w-64 shrink-0 space-y-8">
 					<div className="bg-white border border-slate-100 rounded-[2rem] p-6 shadow-sm sticky top-40">
 						<div className="flex items-center justify-between mb-6">
@@ -192,7 +207,7 @@ const dynamicCategories = useMemo(() => {
 											type="checkbox" 
 											className="w-4 h-4 rounded border-slate-200 text-blue-600 focus:ring-blue-500"
 											checked={selectedAreas.includes(area.name)}
-											onChange={() => setSelectedAreas(prev => prev.includes(area.name) ? prev.filter(a => a !== area.name) : [...prev, area.name])}
+											onChange={() => toggleArea(area.name)}
 										/>
 										<span className={cn("text-xs transition-colors", selectedAreas.includes(area.name) ? "font-bold text-blue-600" : "text-slate-600 group-hover:text-slate-900")}>
 											{area.name}
@@ -206,7 +221,6 @@ const dynamicCategories = useMemo(() => {
 					</div>
 				</aside>
 
-				{/* DOCTOR LISTING */}
 				<div className="flex-1">
 					<div className="flex items-center justify-between mb-8">
 						<h2 className="text-2xl font-black text-slate-900">
@@ -267,7 +281,7 @@ const dynamicCategories = useMemo(() => {
 							<Filter className="w-12 h-12 text-slate-200 mb-4" />
 							<h3 className="text-lg font-bold text-slate-900">No doctors match your criteria</h3>
 							<p className="text-slate-400 text-sm max-w-xs">Try selecting a different area or removing your search keyword.</p>
-							<button type="button" onClick={() => {setSearchQuery(""); setSelectedAreas([])}} className="mt-4 text-blue-600 font-bold text-sm hover:underline">Clear all filters</button>
+							<button type="button" onClick={resetFilters} className="mt-4 text-blue-600 font-bold text-sm hover:underline">Clear all filters</button>
 						</div>
 					)}
 				</div>

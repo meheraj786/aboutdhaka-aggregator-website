@@ -1,7 +1,7 @@
 "use client";
 
 import { PawPrint, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import EmptyState from "@/components/appComponents/EmptyState";
 import FilterDrawer from "@/components/appComponents/FilterDrawer";
 import FilterSidebar from "@/components/appComponents/FilterSidebar";
@@ -10,15 +10,14 @@ import HospitalCard, {
 } from "@/components/appComponents/HospitalCard";
 import Pagination from "@/components/appComponents/Pagination";
 import { useFetchHospitals } from "@/hooks/useHospitals";
+import { useFetchAreas } from "@/hooks/useAreas";
 import {
 	DEFAULT_PAGE_SIZE,
-	DHAKA_AREAS,
 	RATING_OPTIONS,
 } from "@/lib/filterOptions";
 import { ANIMAL_TYPES } from "@/lib/hospitalTypes";
 
 const PAGE_SIZE = DEFAULT_PAGE_SIZE;
-
 const VET_TYPE_OPTIONS = ANIMAL_TYPES.map((t) => ({ label: t, value: t }));
 
 export default function VeterinaryPage() {
@@ -28,6 +27,8 @@ export default function VeterinaryPage() {
 	const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 	const [selectedRating, setSelectedRating] = useState<string[]>([]);
 	const [drawerOpen, setDrawerOpen] = useState(false);
+
+	const { data: areasData } = useFetchAreas();
 
 	const activeFilterCount =
 		selectedAreas.length + selectedTypes.length + selectedRating.length;
@@ -46,36 +47,42 @@ export default function VeterinaryPage() {
 	const totalPages = Math.ceil((data?.totalCount ?? 0) / PAGE_SIZE);
 	const hasData = isLoading || !!data?.items?.length;
 
-	const handleAreaChange = (v: string[]) => {
+	const handleAreaChange = useCallback((v: string[]) => {
 		setPage(1);
 		setSelectedAreas(v);
-	};
-	const handleTypeChange = (v: string[]) => {
+	}, []);
+
+	const handleTypeChange = useCallback((v: string[]) => {
 		setPage(1);
 		setSelectedTypes(v);
-	};
-	const handleRatingChange = (v: string[]) => {
+	}, []);
+
+	const handleRatingChange = useCallback((v: string[]) => {
 		setPage(1);
 		setSelectedRating(v);
-	};
+	}, []);
+
 	const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
 		setPage(1);
 		setSortBy(e.target.value as "popular" | "rating_desc");
 	};
 
-	const handleClearAll = () => {
+	const handleClearAll = useCallback(() => {
 		setPage(1);
 		setSelectedAreas([]);
 		setSelectedTypes([]);
 		setSelectedRating([]);
-	};
+	}, []);
 
-	const filterSections = [
+	const filterSections = useMemo(() => [
 		{
 			title: "Area",
 			multiSelect: true,
 			searchable: true,
-			options: DHAKA_AREAS.map((a) => ({ label: a, value: a })),
+			options: (areasData || []).map((a: { name: string }) => ({ 
+				label: a.name, 
+				value: a.name 
+			})),
 			selected: selectedAreas,
 			onChange: handleAreaChange,
 		},
@@ -95,7 +102,7 @@ export default function VeterinaryPage() {
 			selected: selectedRating,
 			onChange: handleRatingChange,
 		},
-	];
+	], [areasData, selectedAreas, selectedTypes, selectedRating, handleAreaChange, handleTypeChange, handleRatingChange]);
 
 	return (
 		<div className="min-h-screen flex flex-col bg-slate-50/30">
@@ -130,7 +137,7 @@ export default function VeterinaryPage() {
 							)}
 							{hasData && (
 								<>
-									<span className="text-sm text-slate-500 font-medium">
+									<span className="text-sm text-slate-500 font-medium hidden sm:inline">
 										Sort by:
 									</span>
 									<select
@@ -186,17 +193,21 @@ export default function VeterinaryPage() {
 									onClearFilters={handleClearAll}
 								/>
 							) : (
-								<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-									{data.items.map((item: HospitalCardProps) => (
-										<HospitalCard key={item._id} {...item} />
-									))}
-								</div>
+								<>
+									<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+										{data.items.map((item: HospitalCardProps) => (
+											<HospitalCard key={item._id} {...item} />
+										))}
+									</div>
+									<div className="mt-12">
+										<Pagination
+											currentPage={page}
+											totalPages={totalPages}
+											onPageChange={setPage}
+										/>
+									</div>
+								</>
 							)}
-							<Pagination
-								currentPage={page}
-								totalPages={totalPages}
-								onPageChange={setPage}
-							/>
 						</div>
 					</div>
 				</div>
