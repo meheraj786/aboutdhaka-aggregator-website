@@ -30,7 +30,6 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeletePlace, useFetchPlaces } from "@/hooks/usePlaces";
@@ -62,7 +61,6 @@ function PlacesColumns(
 			),
 		},
 		{
-			// area is populated — show the name
 			id: "area",
 			header: "Area",
 			cell: ({ row }) => {
@@ -108,60 +106,64 @@ function PlacesColumns(
 			id: "actions",
 			header: "Actions",
 			cell: ({ row }) => {
-				const id = String((row.original as { _id: unknown })._id);
+				const place = row.original;
+				const id = String(place._id);
 				return (
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button variant="outline" className="h-8 w-8 p-0">
-								<MoreVertical className="h-4 w-4 mx-auto" />
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem
-								onClick={() => {
-									toast.info("Edit coming soon");
-								}}
-							>
-								<Pencil className="mr-2 h-4 w-4" />
-								Edit
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
+					<div className="flex items-center gap-2">
+						<PlaceFormDialog 
+							mode="edit" 
+							placeId={id} 
+							initialData={place} 
+							trigger={
+								<Button variant="ghost" size="icon" className="h-8 w-8">
+									<Pencil className="h-4 w-4 text-blue-600" />
+								</Button>
+							}
+						/>
 
-							<DropdownMenuItem
-								onSelect={(e) => e.preventDefault()}
-								className="text-destructive focus:text-destructive"
-							>
-								<AlertDialog>
-									<AlertDialogTrigger asChild>
-										<div className="flex items-center w-full cursor-default">
-											<Trash2 className="mr-2 h-4 w-4" />
-											Delete
-										</div>
-									</AlertDialogTrigger>
-									<AlertDialogContent>
-										<AlertDialogHeader>
-											<AlertDialogTitle>
-												Are you absolutely sure?
-											</AlertDialogTitle>
-											<AlertDialogDescription>
-												This action cannot be undone. This will permanently
-												delete this place.
-											</AlertDialogDescription>
-										</AlertDialogHeader>
-										<AlertDialogFooter>
-											<AlertDialogCancel>Cancel</AlertDialogCancel>
-											<AlertDialogAction
-												className="bg-red-500 text-white"
-												onClick={() => onDelete(id)}
-											>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button variant="ghost" size="icon" className="h-8 w-8">
+									<MoreVertical className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end">
+								<DropdownMenuItem
+									onSelect={(e) => e.preventDefault()}
+									className="text-destructive focus:text-destructive"
+								>
+									<AlertDialog>
+										<AlertDialogTrigger asChild>
+											<div className="flex items-center w-full cursor-default">
+												<Trash2 className="mr-2 h-4 w-4" />
 												Delete
-											</AlertDialogAction>
-										</AlertDialogFooter>
-									</AlertDialogContent>
-								</AlertDialog>
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+											</div>
+										</AlertDialogTrigger>
+										<AlertDialogContent>
+											<AlertDialogHeader>
+												<AlertDialogTitle>
+													Are you absolutely sure?
+												</AlertDialogTitle>
+												<AlertDialogDescription>
+													This action cannot be undone. This will permanently
+													delete this place.
+												</AlertDialogDescription>
+											</AlertDialogHeader>
+											<AlertDialogFooter>
+												<AlertDialogCancel>Cancel</AlertDialogCancel>
+												<AlertDialogAction
+													className="bg-red-500 text-white"
+													onClick={() => onDelete(id)}
+												>
+													Delete
+												</AlertDialogAction>
+											</AlertDialogFooter>
+										</AlertDialogContent>
+									</AlertDialog>
+								</DropdownMenuItem>
+							</DropdownMenuContent>
+						</DropdownMenu>
+					</div>
 				);
 			},
 		},

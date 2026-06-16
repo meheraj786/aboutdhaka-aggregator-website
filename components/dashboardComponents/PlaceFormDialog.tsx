@@ -1,9 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Plus, X, FileUp, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Loader2, Plus, X, FileUp, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import {
 	Field,
-	FieldDescription,
 	FieldError,
 	FieldGroup,
 	FieldLabel,
@@ -33,10 +32,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useFetchAreas } from "@/hooks/useAreas";
-import { useCreatePlace } from "@/hooks/usePlaces";
+import { useCreatePlace, useUpdatePlace } from "@/hooks/usePlaces";
 import { type CreatePlaceInput, createPlaceSchema } from "@/validators/places";
-
-// ── Constants ──────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
 	"Museum", "Historical", "Park", "Cultural", "Architectural",
@@ -70,8 +67,6 @@ const DEFAULT_VALUES: CreatePlaceInput = {
 	hours: {},
 };
 
-// ── Helper ───────────────────────────────────────────────────────────────────
-
 const uploadToCloudinary = async (files: FileList) => {
 	const formData = new FormData();
 	Array.from(files).forEach((file) => {
@@ -91,48 +86,84 @@ const uploadToCloudinary = async (files: FileList) => {
 	return response.json() as Promise<{ urls: string[] }>;
 };
 
-// ── Component ──────────────────────────────────────────────────────────────────
+interface PlaceFormDialogProps {
+	mode?: "create" | "edit";
+	placeId?: string;
+	initialData?: any;
+	trigger?: React.ReactNode;
+}
 
-export function PlaceFormDialog() {
+export function PlaceFormDialog({ 
+	mode = "create", 
+	placeId, 
+	initialData, 
+	trigger 
+}: PlaceFormDialogProps) {
 	const [open, setOpen] = useState(false);
 	const [facilityInput, setFacilityInput] = useState("");
 	const [isUploading, setIsUploading] = useState(false);
 
 	const { data: areas = [], isLoading: areasLoading } = useFetchAreas();
-	const { mutate: createPlace, isPending } = useCreatePlace();
+	const { mutate: createPlace, isPending: isCreating } = useCreatePlace();
+	const { mutate: updatePlace, isPending: isUpdating } = useUpdatePlace();
 
-	const resolver = useMemo(() => zodResolver(createPlaceSchema), []);
+	const isPending = isCreating || isUpdating;
+
+	const normalizedValues = useMemo(() => {
+		if (!initialData) return DEFAULT_VALUES;
+		return {
+			...DEFAULT_VALUES,
+			...initialData,
+			area: typeof initialData.area === 'object' ? initialData.area._id : initialData.area,
+			gallery: initialData.gallery || [],
+			facilities: initialData.facilities || [],
+			hours: initialData.hours || {},
+		};
+	}, [initialData]);
 
 	const form = useForm<CreatePlaceInput>({
-		resolver,
-		defaultValues: DEFAULT_VALUES,
+		resolver: zodResolver(createPlaceSchema),
+		defaultValues: normalizedValues,
 	});
+
+	useEffect(() => {
+		if (open) {
+			form.reset(normalizedValues);
+		}
+	}, [open, normalizedValues, form]);
 
 	const handleOpenChange = (newOpen: boolean) => {
 		setOpen(newOpen);
-		if (!newOpen) {
+		if (!newOpen && mode === "create") {
 			form.reset(DEFAULT_VALUES);
 			setFacilityInput("");
 		}
 	};
 
 	const onSubmit = (values: CreatePlaceInput) => {
-		createPlace(values, {
-			onSuccess: () => {
-				handleOpenChange(false);
-				toast.success("Place has been created.");
-			},
-		});
+		if (mode === "edit" && placeId) {
+			updatePlace({ id: placeId, data: values }, {
+				onSuccess: () => {
+					setOpen(false);
+					toast.success("Place updated successfully");
+				}
+			});
+		} else {
+			createPlace(values, {
+				onSuccess: () => {
+					handleOpenChange(false);
+					toast.success("Place created successfully");
+				},
+			});
+		}
 	};
 
-	// ── Image Upload logic ─────────────────────────────────────────────────────
 	const gallery = form.watch("gallery") ?? [];
 
 	const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const files = event.target.files;
 		if (!files || files.length === 0) return;
 
-		// Validate types
 		const invalidFiles = Array.from(files).filter(f => !ALLOWED_IMAGE_TYPES.includes(f.type));
 		if (invalidFiles.length > 0) {
 			toast.error("Only JPG, PNG, and WEBP images are allowed");
@@ -149,42 +180,44 @@ export function PlaceFormDialog() {
 			toast.error(message);
 		} finally {
 			setIsUploading(false);
-			event.target.value = ""; // Reset input
+			event.target.value = "";
 		}
 	};
 
 	const removeGalleryUrl = (url: string) =>
 		form.setValue("gallery", gallery.filter((g) => g !== url), { shouldDirty: true });
 
-	// ── Facilities helpers ─────────────────────────────────────────────────────
 	const facilities = form.watch("facilities") ?? [];
 
 	const addFacility = (value: string) => {
 		const trimmed = value.trim();
 		if (!trimmed || facilities.includes(trimmed)) return;
-		form.setValue("facilities", [...facilities, trimmed]);
+		form.setValue("facilities", [...facilities, trimmed], { shouldDirty: true });
 		setFacilityInput("");
 	};
 
 	const removeFacility = (item: string) =>
-		form.setValue("facilities", facilities.filter((f) => f !== item));
+		form.setValue("facilities", facilities.filter((f) => f !== item), { shouldDirty: true });
 
 	return (
 		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>
-				<Button className="gap-2">
-					<Plus className="h-4 w-4" />
-					Add Place
-				</Button>
+				{trigger || (
+					<Button className="gap-2">
+						<Plus className="h-4 w-4" />
+						Add Place
+					</Button>
+				)}
 			</DialogTrigger>
 
 			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
 				<DialogHeader>
-					<DialogTitle className="text-xl font-bold">Add New Place</DialogTitle>
+					<DialogTitle className="text-xl font-bold">
+						{mode === "edit" ? "Edit Place" : "Add New Place"}
+					</DialogTitle>
 				</DialogHeader>
 
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-2">
-					{/* ── Basic Info ──────────────────────────────────────────────── */}
 					<section className="space-y-4">
 						<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 							Basic Information
@@ -277,7 +310,6 @@ export function PlaceFormDialog() {
 
 					<Separator />
 
-					{/* ── Gallery ──────────────────────────────────────────────────── */}
 					<section className="space-y-4">
 						<div className="flex items-center justify-between">
 							<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -335,7 +367,6 @@ export function PlaceFormDialog() {
 
 					<Separator />
 
-					{/* ── Details ─────────────────────────────────────────────────── */}
 					<section className="space-y-4">
 						<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 							Operating Details
@@ -346,8 +377,8 @@ export function PlaceFormDialog() {
 								<Controller
 									name="rating"
 									control={form.control}
-									render={({ field, fieldState }) => (
-										<Field data-invalid={fieldState.invalid}>
+									render={({ field }) => (
+										<Field>
 											<FieldLabel>Rating (0–5)</FieldLabel>
 											<Input
 												{...field}
@@ -361,8 +392,8 @@ export function PlaceFormDialog() {
 								<Controller
 									name="fee"
 									control={form.control}
-									render={({ field, fieldState }) => (
-										<Field data-invalid={fieldState.invalid}>
+									render={({ field }) => (
+										<Field>
 											<FieldLabel>Entry Fee (৳)</FieldLabel>
 											<Input
 												{...field}
@@ -411,16 +442,18 @@ export function PlaceFormDialog() {
 								<div className="grid grid-cols-2 gap-4 mt-1">
 									<Input
 										type="time"
+										value={form.watch("hours.open") || ""}
 										onChange={(e) => {
 											const current = form.getValues("hours") ?? {};
-											form.setValue("hours", { ...current, open: e.target.value });
+											form.setValue("hours", { ...current, open: e.target.value }, { shouldDirty: true });
 										}}
 									/>
 									<Input
 										type="time"
+										value={form.watch("hours.close") || ""}
 										onChange={(e) => {
 											const current = form.getValues("hours") ?? {};
-											form.setValue("hours", { ...current, close: e.target.value });
+											form.setValue("hours", { ...current, close: e.target.value }, { shouldDirty: true });
 										}}
 									/>
 								</div>
@@ -430,7 +463,6 @@ export function PlaceFormDialog() {
 
 					<Separator />
 
-					{/* ── Facilities ───────────────────────────────────────────────── */}
 					<section className="space-y-3">
 						<p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
 							Facilities
@@ -477,8 +509,8 @@ export function PlaceFormDialog() {
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isPending || isUploading} className="min-w-[120px]">
-							{isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-							{isPending ? "Saving…" : "Save Place"}
+							{isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+							{mode === "edit" ? "Update Place" : "Save Place"}
 						</Button>
 					</div>
 				</form>
