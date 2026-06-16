@@ -54,9 +54,9 @@ const doctorSchema: Schema<IDoctor> = new Schema(
 		qualifications: {
 			type: [
 				{
-					degree: { type: String, required: true, trim: true },
-					institution: { type: String, required: true, trim: true },
-					passingYear: { type: Number, required: true },
+					degree: { type: String,  trim: true },
+					institution: { type: String,  trim: true },
+					passingYear: { type: Number,  },
 				},
 			],
 			required: true,
@@ -67,21 +67,20 @@ const doctorSchema: Schema<IDoctor> = new Schema(
 		},
 		designation: { type: String, required: true, trim: true },
 		experience: { type: Number },
-		bio: { type: String, required: true, trim: true },
+		bio: { type: String,  trim: true },
 		contact: {
 			type: {
-				phone: { type: String, required: true, trim: true },
-				email: { type: String, required: true, trim: true },
+				phone: { type: String, trim: true },
+				email: { type: String, trim: true },
 			},
-			required: true,
 		},
 		profileImage: { type: String },
 		gender: { type: String, enum: ["male", "female", "other"] },
-		bmdc: { type: String, required: true, unique: true, trim: true },
+		bmdc: { type: String, unique: true, trim: true },
 		speciality: [{ type: String, trim: true }],
 		chamber: {
 			type: [{ type: Schema.Types.ObjectId, ref: "Hospital" }],
-			required: true,
+	
 			validate: {
 				validator: (value: mongoose.Types.ObjectId[]) => value.length > 0,
 				message: "At least one chamber is required",
