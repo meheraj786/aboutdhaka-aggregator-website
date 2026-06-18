@@ -57,7 +57,7 @@ const Hero = () => {
 					essential services, and premium lifestyles.
 				</p>
 
-				<div className="w-full hiddenminor max-w-3xl mx-auto relative group">
+				<div className="w-full hidden max-w-3xl mx-auto relative group">
 					<div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
 						<Search className="h-6 w-6 text-slate-400" />
 					</div>
