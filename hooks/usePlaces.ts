@@ -6,6 +6,7 @@ import {
 	getPlaceById,
 	getPlaces,
 	updatePlace,
+	getRandomPlaces,
 } from "@/actions/place.action";
 import { queryKeys } from "@/lib/queryKeys";
 import type { UpdatePlaceInput } from "@/validators/places";
@@ -59,5 +60,16 @@ export function useDeletePlace() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: [queryKeys.places, "get"] });
 		},
+	});
+}
+
+export function useFetchRandomPlaces() {
+	return useQuery({
+		queryKey: [queryKeys.places, "random"],
+		queryFn: () => getRandomPlaces(),
+		staleTime: 0,
+		gcTime: 0,
+		refetchOnMount: "always",
+		refetchOnWindowFocus: true,
 	});
 }

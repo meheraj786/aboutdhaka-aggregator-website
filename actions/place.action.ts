@@ -186,3 +186,18 @@ export async function deletePlace(id: string) {
 		throw new ActionError("Failed to delete place");
 	}
 }
+
+export async function getRandomPlaces() {
+	try {
+		await dbConnect();
+
+		const items = await Place.aggregate([
+			{ $sample: { size: 3 } }
+		]);
+
+		return JSON.parse(JSON.stringify(items)) as any[];
+	} catch (error) {
+		console.error("Error fetching random places:", error);
+		throw new ActionError("Failed to fetch random places");
+	}
+}
