@@ -7,6 +7,7 @@ import {
 	getBlogById,
 	getBlogs,
 	updateBlog,
+	getRecentBlogs,
 } from "@/actions/blogs.action";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -66,5 +67,13 @@ export function useDeleteBlog() {
 		onError: (error) => {
 			toast.error(error.message || "Failed to delete blog");
 		},
+	});
+}
+
+export function useFetchRecentBlogs() {
+	return useQuery({
+		queryKey: [queryKeys.blogs, "recent"],
+		queryFn: () => getRecentBlogs(),
+		staleTime: 5 * 60 * 1000, 
 	});
 }

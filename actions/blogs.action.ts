@@ -205,4 +205,19 @@ export async function deleteBlog(id: string) {
 	}
 }
 
+export async function getRecentBlogs() {
+	try {
+		await dbConnect();
+		const items = await Blog.find({ isActive: true })
+			.sort({ createdAt: -1 })
+			.limit(4)
+			.lean();
+
+		return JSON.parse(JSON.stringify(items));
+	} catch (error) {
+		console.error("Error fetching recent blogs:", error);
+		throw new Error("Failed to fetch recent blogs");
+	}
+}
+
 export type GetBlogsReturn = Awaited<ReturnType<typeof getBlogs>>;
