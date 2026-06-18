@@ -332,15 +332,41 @@ export async function getHospitalById(id: string) {
 	}
 }
 
+import { ANIMAL_TYPES } from "@/lib/hospitalTypes";
+
 export async function getRandomHospitals(size: number = 4) {
 	try {
 		await dbConnect();
-		const items = await Hospital.aggregate([{ $sample: { size } }]);
+		const items = await Hospital.aggregate([
+			{ 
+				$match: { 
+					types: { $nin: ANIMAL_TYPES },
+					isActive: true 
+				} 
+			},
+			{ $sample: { size } }
+		]);
 		return JSON.parse(JSON.stringify(items));
 	} catch (error) {
 		throw new Error("Failed to fetch random hospitals");
 	}
 }
 
-
+export async function getRandomPetCare(size: number = 3) {
+	try {
+		await dbConnect();
+		const items = await Hospital.aggregate([
+			{ 
+				$match: { 
+					types: { $in: ANIMAL_TYPES },
+					isActive: true 
+				} 
+			},
+			{ $sample: { size } }
+		]);
+		return JSON.parse(JSON.stringify(items));
+	} catch (error) {
+		throw new Error("Failed to fetch random pet care services");
+	}
+}
 export type GetHospitalsReturn = Awaited<ReturnType<typeof getHospitals>>;

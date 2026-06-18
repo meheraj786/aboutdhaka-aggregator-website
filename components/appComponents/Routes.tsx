@@ -1,53 +1,10 @@
 "use client";
 
-import { ArrowRight, MapPin, Navigation, Search } from "lucide-react";
+import { ArrowRight, MapPin, Navigation, Search, Bus, Info, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import type { IAreaPopulated } from "@/actions/area.action";
 import { useFetchAreas } from "@/hooks/useAreas";
-
-const SUGGESTIONS = [
-	{
-		id: "s1",
-		from: "Shankar",
-		to: "Science Lab",
-		fromId: "69e738015548584ada29d284",
-		toId: "69e738015548584ada29d287",
-		fromArea: "69e7541a5548584ada29d2d8",
-		toArea: "69e7541a5548584ada29d2db",
-		route: "VICTOR CLASSIC",
-	},
-	{
-		id: "s2",
-		from: "Jigatola",
-		to: "City College",
-		fromId: "69e738015548584ada29d285",
-		toId: "69e738015548584ada29d286",
-		fromArea: "69e7541a5548584ada29d2d8",
-		toArea: "69e7541a5548584ada29d2db",
-		route: "BALAKA",
-	},
-	{
-		id: "s3",
-		from: "Sukrabad",
-		to: "Kalabagan",
-		fromId: "69e738015548584ada29d28a",
-		toId: "69e738015548584ada29d288",
-		fromArea: "69e7541a5548584ada29d2d8",
-		toArea: "69e7541a5548584ada29d2d8",
-		route: "ATCL Paribahan",
-	},
-	{
-		id: "s4",
-		from: "Dhanmondi 15",
-		to: "Shankar",
-		fromId: "69e738015548584ada29d289",
-		toId: "69e738015548584ada29d284",
-		fromArea: "69e7541a5548584ada29d2d8",
-		toArea: "69e7541a5548584ada29d2d8",
-		route: "13 NUMBER",
-	},
-];
+import Image from "next/image";
 
 export function CityNavigationSection() {
 	const router = useRouter();
@@ -59,182 +16,167 @@ export function CityNavigationSection() {
 	const [destStop, setDestStop] = useState("");
 
 	const selectedDepArea = useMemo(
-		() => areas.find((a: { _id: string }) => a._id === depArea),
+		() => areas?.find((a: any) => a?._id === depArea),
 		[areas, depArea],
 	);
 	const selectedDestArea = useMemo(
-		() => areas.find((a: { _id: string }) => a._id === destArea),
+		() => areas?.find((a: any) => a?._id === destArea),
 		[areas, destArea],
 	);
 
-	const navigateToRoute = (
-		dA: string,
-		dS: string,
-		desA: string,
-		desS: string,
-	) => {
-		router.push(`/bus?depA=${dA}&depS=${dS}&destA=${desA}&destS=${desS}`);
+	const navigateToRoute = () => {
+		if (depArea && depStop && destArea && destStop) {
+			router.push(`/bus?depA=${depArea}&depS=${depStop}&destA=${destArea}&destS=${destStop}`);
+		}
 	};
 
 	return (
-		<section className="px-4 py-12">
-			<div className="max-w-7xl mx-auto bg-[#2563eb] rounded-[40px] p-12 md:p-20 flex flex-col lg:flex-row items-center gap-16 overflow-hidden relative shadow-2xl shadow-blue-200">
-				<div className="flex-1 z-10 w-full">
-					<h2 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-8">
-						City Navigation Made Easy
-					</h2>
+		<section className="px-4 py-16 md:py-24 bg-[#f8fafc] overflow-hidden">
+			<div className="max-w-[1400px] mx-auto">
+				<div className="relative bg-white rounded-[3.5rem] border border-slate-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] overflow-hidden">
+					
+					<div className="grid grid-cols-1 xl:grid-cols-12 items-stretch">
+						
+						{/* Left Content: Search Panel */}
+						<div className="xl:col-span-7 p-8 md:p-16 lg:p-20">
+							<div className="max-w-xl">
+								<div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full mb-6">
+									<div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+									<span className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Intelligent Route Finder</span>
+								</div>
+								
+								<h2 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-6">
+									Navigate the city <br />
+									<span className="text-blue-600">like a local.</span>
+								</h2>
+								
+								<p className="text-slate-500 text-lg mb-12 leading-relaxed">
+									Find the fastest bus routes, live timings, and ticket prices in just a few clicks.
+								</p>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-						<div className="space-y-3">
-							<div className="relative">
-								<MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300 w-5 h-5" />
-								<select
-									value={depArea}
-									onChange={(e) => {
-										setDepArea(e.target.value);
-										setDepStop("");
-									}}
-									className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white appearance-none focus:ring-2 focus:ring-white/40 outline-none transition-all"
-								>
-									<option value="" className="text-slate-900">
-										Select Departure Area
-									</option>
-									{areas.map((a: { name: string; _id: string }) => (
-										<option
-											key={a._id}
-											value={a._id}
-											className="text-slate-900"
-										>
-											{a.name}
-										</option>
-									))}
-								</select>
-							</div>
-							<div className="relative">
-								<MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300 w-5 h-5" />
-								<select
-									disabled={!depArea}
-									value={depStop}
-									onChange={(e) => setDepStop(e.target.value)}
-									className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white appearance-none disabled:opacity-50 focus:ring-2 focus:ring-white/40 outline-none transition-all"
-								>
-									<option value="" className="text-slate-900">
-										Select Stop
-									</option>
-									{selectedDepArea?.stops?.map(
-										(s: { stop: { stopName: string; _id: string } }) => (
-											<option
-												key={s.stop._id}
-												value={s.stop._id}
-												className="text-slate-900"
+								<div className="space-y-8 relative">
+									{/* Form Group */}
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+										
+										{/* Source */}
+										<div className="space-y-3">
+											<label htmlFor="depArea" className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter ml-1">
+												<MapPin className="w-3 h-3 text-blue-500" /> Start Point
+											</label>
+											<select
+												value={depArea}
+												onChange={(e) => { setDepArea(e.target.value); setDepStop(""); }}
+												className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
 											>
-												{s.stop.stopName}
-											</option>
-										),
-									)}
-								</select>
+												<option value="">Select Area</option>
+												{areas?.map((a: any) => (
+													<option key={a?._id} value={a?._id}>{a?.name}</option>
+												))}
+											</select>
+											<select
+												disabled={!depArea}
+												value={depStop}
+												onChange={(e) => setDepStop(e.target.value)}
+												className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 transition-all appearance-none disabled:opacity-40 cursor-pointer"
+											>
+												<option value="">Select Stop</option>
+												{selectedDepArea?.stops?.map((s: any) => (
+													<option key={s?.stop?._id} value={s?.stop?._id}>{s?.stop?.stopName}</option>
+												))}
+											</select>
+										</div>
+
+										{/* Destination */}
+										<div className="space-y-3">
+											<label htmlFor="end" className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-tighter ml-1">
+												<Navigation className="w-3 h-3 text-indigo-500" /> Endpoint
+											</label>
+											<select
+												value={destArea}
+												onChange={(e) => { setDestArea(e.target.value); setDestStop(""); }}
+												className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
+											>
+												<option value="">Select Area</option>
+												{areas?.map((a: any) => (
+													<option key={a?._id} value={a?._id}>{a?.name}</option>
+												))}
+											</select>
+											<select
+												disabled={!destArea}
+												value={destStop}
+												onChange={(e) => setDestStop(e.target.value)}
+												className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-slate-900 font-bold focus:ring-2 focus:ring-blue-500 transition-all appearance-none disabled:opacity-40 cursor-pointer"
+											>
+												<option value="">Select Stop</option>
+												{selectedDestArea?.stops?.map((s: any) => (
+													<option key={s?.stop?._id} value={s?.stop?._id}>{s?.stop?.stopName}</option>
+												))}
+											</select>
+										</div>
+									</div>
+
+									{/* CTA Button */}
+									<button
+										type="button"
+										onClick={navigateToRoute}
+										disabled={!depStop || !destStop}
+										className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[1.5rem] flex items-center justify-center gap-3 shadow-xl shadow-blue-200 transition-all active:scale-95 disabled:grayscale disabled:opacity-50 group"
+									>
+										<Search className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+										FIND BEST ROUTES
+										<ChevronRight className="w-5 h-5" />
+									</button>
+								</div>
 							</div>
 						</div>
 
-						<div className="space-y-3">
-							<div className="relative">
-								<Navigation className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300 w-5 h-5" />
-								<select
-									value={destArea}
-									onChange={(e) => {
-										setDestArea(e.target.value);
-										setDestStop("");
-									}}
-									className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white appearance-none focus:ring-2 focus:ring-white/40 outline-none transition-all"
-								>
-									<option value="" className="text-slate-900">
-										Select Destination Area
-									</option>
-									{areas.map((a: IAreaPopulated) => (
-										<option
-											key={a._id}
-											value={a._id}
-											className="text-slate-900"
-										>
-											{a.name}
-										</option>
-									))}
-								</select>
-							</div>
-							<div className="relative">
-								<Navigation className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300 w-5 h-5" />
-								<select
-									disabled={!destArea}
-									value={destStop}
-									onChange={(e) => setDestStop(e.target.value)}
-									className="w-full bg-white/10 border border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white appearance-none disabled:opacity-50 focus:ring-2 focus:ring-white/40 outline-none transition-all"
-								>
-									<option value="" className="text-slate-900">
-										Select Stop
-									</option>
-									{selectedDestArea?.stops?.map(
-										(s: { stop: { stopName: string; _id: string } }) => (
-											<option
-												key={s.stop._id}
-												value={s.stop._id}
-												className="text-slate-900"
-											>
-												{s.stop.stopName}
-											</option>
-										),
-									)}
-								</select>
+						{/* Right Content: Modern Visuals */}
+						<div className="xl:col-span-5 bg-blue-600 relative overflow-hidden hidden xl:block">
+							<div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-800" />
+							
+							{/* Pattern / Map Background Overlay */}
+							<div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M54.62 10.11L51 13.73l-3.62-3.62 1.41-1.41 2.21 2.21 2.21-2.21 1.41 1.41zM10.11 54.62L13.73 51l-3.62-3.62 1.41-1.41 2.21 2.21 2.21-2.21 1.41 1.41zM54.62 50.11L51 53.73l-3.62-3.62 1.41-1.41 2.21 2.21 2.21-2.21 1.41 1.41zM10.11 10.11L13.73 13.73l-3.62-3.62 1.41-1.41 2.21 2.21 2.21-2.21 1.41 1.41z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")` }} />
+
+							<div className="relative h-full flex flex-col justify-center p-16">
+								<div className="relative w-full aspect-square max-w-[400px] mx-auto group">
+									{/* Bus Image */}
+									<div className="absolute inset-0 bg-white/10 rounded-[3rem] backdrop-blur-sm border border-white/20 transform rotate-6 transition-transform group-hover:rotate-3" />
+									<div className="absolute inset-0 bg-white/10 rounded-[3rem] backdrop-blur-sm border border-white/20 transform -rotate-3 transition-transform group-hover:rotate-0" />
+									<Image 
+										src="https://asianews.network/wp-content/uploads/bfi_thumb/unnamed-file-7dbidgf1weu5y40yvoryjsn7a13r26gmvdcb4cl38lc.jpg"
+										alt="City Bus"
+										fill
+										className="object-cover rounded-[2.5rem] shadow-2xl transition-transform duration-700 group-hover:scale-105"
+									/>
+									
+									{/* Floating Badge */}
+									<div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-3xl shadow-2xl animate-bounce duration-[3000ms]">
+										<div className="flex items-center gap-4">
+											<div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+												<Bus className="w-6 h-6" />
+											</div>
+											<div>
+												<p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Buses</p>
+												<p className="text-xl font-black text-slate-900">500+</p>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div className="mt-20 space-y-6">
+									<div className="flex items-start gap-4">
+										<div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+											<Info className="w-5 h-5 text-white" />
+										</div>
+										<p className="text-white/80 text-sm leading-relaxed">
+											We cover over 150+ routes across Dhaka city, providing you with real-time bus stand locations and fare updates.
+										</p>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
-
-					<button
-						type="button"
-						onClick={() =>
-							navigateToRoute(depArea, depStop, destArea, destStop)
-						}
-						className="w-full bg-white text-blue-600 font-bold py-4 rounded-2xl hover:bg-blue-50 transition-all flex items-center justify-center gap-2 shadow-lg"
-					>
-						<Search className="w-5 h-5" /> Search Routes
-					</button>
 				</div>
-
-				<div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full z-10">
-					{SUGGESTIONS.map((item) => (
-						<button
-							id={item.id}
-							key={item.id}
-							type="button"
-							onClick={() =>
-								navigateToRoute(
-									item.fromArea,
-									item.fromId,
-									item.toArea,
-									item.toId,
-								)
-							}
-							className="group bg-white/10 backdrop-blur-md border border-white/20 rounded-[2rem] p-6 hover:bg-white/20 transition-all cursor-pointer text-left w-full"
-						>
-							<div className="flex justify-between items-start mb-4">
-								<p className="text-blue-200 text-[10px] font-black tracking-widest uppercase">
-									{item.route}
-								</p>
-								<ArrowRight className="w-4 h-4 text-white/50 group-hover:text-white transition-colors" />
-							</div>
-							<div className="flex items-center gap-3 text-white mb-2">
-								<span className="font-bold text-sm">{item.from}</span>
-								<div className="h-px flex-grow bg-white/20" />
-								<span className="font-bold text-sm">{item.to}</span>
-							</div>
-							<p className="text-blue-100/50 text-[10px]">
-								Click to view direct routes
-							</p>
-						</button>
-					))}
-				</div>
-
-				<div className="absolute top-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl -mr-48 -mt-48" />
-				<div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-700/30 rounded-full blur-3xl -ml-32 -mb-32" />
 			</div>
 		</section>
 	);

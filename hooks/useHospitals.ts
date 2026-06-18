@@ -8,6 +8,7 @@ import {
 	getHospitals,
 	updateHospital,
 	getRandomHospitals,
+	getRandomPetCare,
 } from "@/actions/hospital.action";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -79,10 +80,18 @@ export function useUpdateHospital() {
 
 export function useFetchRandomHospitals() {
 	return useQuery({
-		queryKey: [queryKeys.hospitals, "random"],
+		queryKey: [queryKeys.hospitals, "random", "human"],
 		queryFn: () => getRandomHospitals(4),
 		staleTime: 0,
 		gcTime: 0,
 	});
 }
 
+export function useFetchRandomPetCare() {
+	return useQuery({
+		queryKey: [queryKeys.hospitals, "random", "pet"],
+		queryFn: () => getRandomPetCare(3),
+		staleTime: 0,
+		gcTime: 0,
+	});
+}
