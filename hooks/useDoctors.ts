@@ -7,6 +7,7 @@ import {
 	getDoctorById,
 	getDoctors,
 	updateDoctor,
+	getRandomDoctors,
 } from "@/actions/doctor.action";
 import { queryKeys } from "@/lib/queryKeys";
 import type { UpdateDoctorInput } from "@/validators/doctors";
@@ -70,5 +71,14 @@ export function useDeleteDoctor() {
 		onError: (error) => {
 			toast.error(error.message || "Failed to delete doctor");
 		},
+	});
+}
+
+export function useFetchRandomDoctors() {
+	return useQuery({
+		queryKey: [queryKeys.doctors, "random"],
+		queryFn: () => getRandomDoctors(4),
+		staleTime: 0,
+		gcTime: 0,
 	});
 }

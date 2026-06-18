@@ -304,3 +304,28 @@ export async function deleteDoctor(id: string) {
 		throw new Error("Failed to delete doctor");
 	}
 }
+
+export async function getRandomDoctors(size: number = 4) {
+	try {
+		await dbConnect();
+
+		const excludeRegex = /Veterinary|Animal|Avian|Wildlife|Zoo|Aquatic|Equine/i;
+
+		const items = await Doctor.aggregate([
+			{
+				$match: {
+					departments: { 
+						$not: { $elemMatch: { $regex: excludeRegex } } 
+					},
+					isActive: true, 
+				},
+			},
+			{ $sample: { size } },
+		]);
+
+		return JSON.parse(JSON.stringify(items));
+	} catch (error) {
+		console.error("Error fetching random doctors:", error);
+		throw new Error("Failed to fetch random doctors");
+	}
+}

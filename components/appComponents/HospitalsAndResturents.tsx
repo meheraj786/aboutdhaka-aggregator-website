@@ -9,7 +9,7 @@ import Link from "next/link";
 const ListSkeleton = () => (
 	<div className="space-y-4">
 		{Array.from({ length: 4 }).map((_, i) => (
-			<div key={i} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl animate-pulse">
+			<div key={i} className="flex items-center justify-between p-10 bg-white border border-slate-100 rounded-2xl animate-pulse">
 				<div className="flex items-center gap-4">
 					<div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center">
 						<ImageIcon className="w-5 h-5 text-slate-300" />
@@ -44,7 +44,9 @@ const HospitalsAndRestaurants = () => {
 					{isLoadingHosp ? <ListSkeleton /> : (
 						<div className="space-y-4">
 							{hospitals?.map((hosp: any) => (
-								<div key={hosp._id} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
+								<Link  key={hosp._id} href={`/places/${hosp._id}`} className="p-5">
+								<div  className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
+									
 									<div className="flex items-center gap-4">
 										<div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
 											<HospitalIcon className="w-6 h-6" />
@@ -61,7 +63,9 @@ const HospitalsAndRestaurants = () => {
 									<a href={`tel:${hosp.contact?.phone?.[0]}`} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
 										<Phone className="w-4 h-4" />
 									</a>
+									
 								</div>
+								</Link>
 							))}
 						</div>
 					)}
@@ -78,6 +82,8 @@ const HospitalsAndRestaurants = () => {
 					{isLoadingRest ? <ListSkeleton /> : (
 						<div className="space-y-4">
 							{restaurants?.map((rest: any) => (
+
+								<Link  key={rest._id} href={`/places/${rest._id}`} className="p-5">
 								<div key={rest._id} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
 									<div className="flex items-center gap-4">
 										<div className="relative w-12 h-12 overflow-hidden rounded-xl bg-slate-100">
@@ -103,6 +109,7 @@ const HospitalsAndRestaurants = () => {
 										Menu
 									</Link>
 								</div>
+								</Link>
 							))}
 						</div>
 					)}

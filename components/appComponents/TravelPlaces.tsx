@@ -55,6 +55,7 @@ const TravelPlaces = () => {
 									key={place._id}
 									className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
 								>
+									<Link href={`/places/${place._id}`}>
 									<div className="relative h-64 overflow-hidden bg-slate-100">
 										<Image
 											src={place.gallery?.[0] || "/placeholder.jpg"}
@@ -76,6 +77,7 @@ const TravelPlaces = () => {
 											{place.detail}
 										</p>
 									</div>
+									</Link>
 								</div>
 						  ))}
 				</div>
