@@ -6,6 +6,7 @@ import {
 	getRestaurantById,
 	getRestaurants,
 	updateRestaurant,
+	getRandomRestaurants,
 } from "@/actions/restaurants.action";
 import { queryKeys } from "@/lib/queryKeys";
 import type { createRestaurantSchema } from "@/validators/restaurants";
@@ -64,5 +65,14 @@ export function useUpdateRestaurant() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: [queryKeys.restaurants] });
 		},
+	});
+}
+
+export function useFetchRandomRestaurants() {
+	return useQuery({
+		queryKey: [queryKeys.restaurants, "random"],
+		queryFn: () => getRandomRestaurants(4),
+		staleTime: 0,
+		gcTime: 0,
 	});
 }

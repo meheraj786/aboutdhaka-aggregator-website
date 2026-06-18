@@ -1,150 +1,113 @@
-import { Hospital as HospitalIcon, Phone, Star } from "lucide-react";
+"use client";
+
+import { useFetchRandomHospitals } from "@/hooks/useHospitals";
+import { useFetchRandomRestaurants } from "@/hooks/useRestaurants";
+import { Hospital as HospitalIcon, Phone, Star, Utensils, ImageIcon, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-const hospitals = [
-	{
-		name: "Evercare Hospital",
-		location: "Bashundhara R/A, Dhaka",
-		rating: 4.8,
-		reviews: "2.4k",
-	},
-	{
-		name: "Square Hospital",
-		location: "Panthapath, Dhaka",
-		rating: 4.7,
-		reviews: "3.1k",
-	},
-];
-
-const restaurants = [
-	{
-		name: "Takeout",
-		location: "Multiple Locations",
-		rating: 4.9,
-		reviews: "Dhaka's best burgers",
-		image:
-			"https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&q=80&w=200",
-	},
-	{
-		name: "Sultan's Dine",
-		location: "Gulshan & Dhanmondi",
-		rating: 4.8,
-		reviews: "Kacchi Biryani Experts",
-		image:
-			"https://images.unsplash.com/photo-1633945274405-b6c8069047b0?auto=format&fit=crop&q=80&w=200",
-	},
-];
+const ListSkeleton = () => (
+	<div className="space-y-4">
+		{Array.from({ length: 4 }).map((_, i) => (
+			<div key={i} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl animate-pulse">
+				<div className="flex items-center gap-4">
+					<div className="w-12 h-12 bg-slate-200 rounded-xl flex items-center justify-center">
+						<ImageIcon className="w-5 h-5 text-slate-300" />
+					</div>
+					<div className="space-y-2">
+						<div className="h-4 w-32 bg-slate-200 rounded" />
+						<div className="h-3 w-20 bg-slate-100 rounded" />
+					</div>
+				</div>
+				<div className="w-8 h-8 bg-slate-100 rounded-lg" />
+			</div>
+		))}
+	</div>
+);
 
 const HospitalsAndRestaurants = () => {
+	const { data: hospitals, isLoading: isLoadingHosp } = useFetchRandomHospitals();
+	const { data: restaurants, isLoading: isLoadingRest } = useFetchRandomRestaurants();
+
 	return (
-		<section
-			id="hospitals-restaurants"
-			className="py-20 px-6 md:px-12 lg:px-24 bg-white"
-		>
-			<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
-				{/* Hospitals Column */}
+		<section className="py-20 px-6 md:px-12 lg:px-24 bg-white">
+			<div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+				
 				<div>
 					<div className="flex justify-between items-center mb-8">
-						<h2 className="text-2xl font-bold text-slate-900">
-							Popular Hospitals
-						</h2>
-						<Link
-							href="/hospitals"
-							className="text-blue-600 font-medium hover:underline text-sm"
-						>
-							See all
+						<h2 className="text-2xl font-bold text-slate-900">Popular Hospitals</h2>
+						<Link href="/hospitals" className="group flex items-center gap-1 text-blue-600 font-medium text-sm">
+							See all <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
 						</Link>
 					</div>
-					<div className="space-y-4">
-						{hospitals.map((hosp) => (
-							<div
-								key={hosp.name}
-								className="flex items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all"
-							>
-								<div className="flex items-center gap-4">
-									<div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
-										<HospitalIcon className="w-6 h-6" />
-									</div>
-									<div>
-										<h3 className="font-bold text-slate-900">{hosp.name}</h3>
-										<p className="text-xs text-slate-400 mb-1">
-											{hosp.location}
-										</p>
-										<div className="flex items-center gap-1 text-xs">
-											<Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-											<span className="font-bold text-slate-700">
-												{hosp.rating}
-											</span>
-											<span className="text-slate-400">
-												({hosp.reviews} reviews)
-											</span>
+					
+					{isLoadingHosp ? <ListSkeleton /> : (
+						<div className="space-y-4">
+							{hospitals?.map((hosp: any) => (
+								<div key={hosp._id} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
+									<div className="flex items-center gap-4">
+										<div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+											<HospitalIcon className="w-6 h-6" />
+										</div>
+										<div>
+											<h3 className="font-bold text-slate-900 text-sm md:text-base line-clamp-1">{hosp.name}</h3>
+											<p className="text-[11px] text-slate-400 mb-1">{hosp.address?.area || "Dhaka"}</p>
+											<div className="flex items-center gap-1 text-[11px]">
+												<Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+												<span className="font-bold text-slate-700">{hosp.rating || 0}</span>
+											</div>
 										</div>
 									</div>
+									<a href={`tel:${hosp.contact?.phone?.[0]}`} className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+										<Phone className="w-4 h-4" />
+									</a>
 								</div>
-								<button
-									type="button"
-									className="p-3 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-								>
-									<Phone className="w-5 h-5" />
-								</button>
-							</div>
-						))}
-					</div>
+							))}
+						</div>
+					)}
 				</div>
 
-				{/* Restaurants Column */}
 				<div>
 					<div className="flex justify-between items-center mb-8">
-						<h2 className="text-2xl font-bold text-slate-900">
-							Best Restaurants
-						</h2>
-						<Link
-							href="/restaurants"
-							className="text-blue-600 font-medium hover:underline text-sm"
-						>
-							See all
+						<h2 className="text-2xl font-bold text-slate-900">Best Restaurants</h2>
+						<Link href="/restaurants" className="group flex items-center gap-1 text-blue-600 font-medium text-sm">
+							See all <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
 						</Link>
 					</div>
-					<div className="space-y-4">
-						{restaurants.map((rest) => (
-							<div
-								key={rest.name}
-								className="flex items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all"
-							>
-								<div className="flex items-center gap-4">
-									<Image
-										src={rest.image}
-										alt={rest.name}
-										width={500}
-										height={500}
-										className="w-16 h-16 rounded-xl object-cover"
-										referrerPolicy="no-referrer"
-									/>
-									<div>
-										<h3 className="font-bold text-slate-900">{rest.name}</h3>
-										<p className="text-xs text-slate-400 mb-1">
-											{rest.location}
-										</p>
-										<div className="flex items-center gap-1 text-xs">
-											<Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-											<span className="font-bold text-slate-700">
-												{rest.rating}
-											</span>
-											<span className="text-slate-400">{rest.reviews}</span>
+					
+					{isLoadingRest ? <ListSkeleton /> : (
+						<div className="space-y-4">
+							{restaurants?.map((rest: any) => (
+								<div key={rest._id} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
+									<div className="flex items-center gap-4">
+										<div className="relative w-12 h-12 overflow-hidden rounded-xl bg-slate-100">
+											{rest.gallery?.[0] ? (
+												<Image src={rest.gallery[0]} alt={rest.name} fill className="object-cover" />
+											) : (
+												<div className="w-full h-full flex items-center justify-center text-orange-500 bg-orange-50">
+													<Utensils className="w-5 h-5" />
+												</div>
+											)}
+										</div>
+										<div>
+											<h3 className="font-bold text-slate-900 text-sm md:text-base line-clamp-1">{rest.name}</h3>
+											<p className="text-[11px] text-slate-400 mb-1">{rest.area?.name || rest.location}</p>
+											<div className="flex items-center gap-1 text-[11px]">
+												<Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+												<span className="font-bold text-slate-700">{rest.rating || 0}</span>
+												<span className="text-slate-400 uppercase tracking-tighter ml-1"> • {rest.category}</span>
+											</div>
 										</div>
 									</div>
+									<Link href={`/restaurants/${rest._id}`} className="px-3 py-1.5 bg-slate-50 text-slate-600 text-[10px] font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all uppercase">
+										Menu
+									</Link>
 								</div>
-								<button
-									type="button"
-									className="px-4 py-2 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-all"
-								>
-									Menu
-								</button>
-							</div>
-						))}
-					</div>
+							))}
+						</div>
+					)}
 				</div>
+
 			</div>
 		</section>
 	);

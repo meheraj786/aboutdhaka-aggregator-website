@@ -7,6 +7,7 @@ import {
 	getHospitalById,
 	getHospitals,
 	updateHospital,
+	getRandomHospitals,
 } from "@/actions/hospital.action";
 import { queryKeys } from "@/lib/queryKeys";
 
@@ -75,3 +76,13 @@ export function useUpdateHospital() {
 		},
 	});
 }
+
+export function useFetchRandomHospitals() {
+	return useQuery({
+		queryKey: [queryKeys.hospitals, "random"],
+		queryFn: () => getRandomHospitals(4),
+		staleTime: 0,
+		gcTime: 0,
+	});
+}
+

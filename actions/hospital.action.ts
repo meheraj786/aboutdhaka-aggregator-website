@@ -332,4 +332,15 @@ export async function getHospitalById(id: string) {
 	}
 }
 
+export async function getRandomHospitals(size: number = 4) {
+	try {
+		await dbConnect();
+		const items = await Hospital.aggregate([{ $sample: { size } }]);
+		return JSON.parse(JSON.stringify(items));
+	} catch (error) {
+		throw new Error("Failed to fetch random hospitals");
+	}
+}
+
+
 export type GetHospitalsReturn = Awaited<ReturnType<typeof getHospitals>>;

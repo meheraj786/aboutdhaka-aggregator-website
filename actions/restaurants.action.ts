@@ -95,3 +95,23 @@ export async function updateRestaurant(id: string, payload: unknown) {
     return JSON.parse(JSON.stringify(res));
 }
 
+export async function getRandomRestaurants(size: number = 4) {
+	try {
+		await dbConnect();
+		const items = await Restaurant.aggregate([
+			{ $sample: { size } },
+			{
+				$lookup: {
+					from: "areas",
+					localField: "area",
+					foreignField: "_id",
+					as: "area",
+				},
+			},
+			{ $unwind: { path: "$area", preserveNullAndEmptyArrays: true } },
+		]);
+		return JSON.parse(JSON.stringify(items));
+	} catch (error) {
+		throw new Error("Failed to fetch random restaurants");
+	}
+}
