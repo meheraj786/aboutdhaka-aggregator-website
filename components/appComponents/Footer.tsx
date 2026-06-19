@@ -21,15 +21,21 @@ const Footer = () => {
 					<div className="flex  gap-4">
 						<Link
 							href="/"
+							aria-label="About Dhaka Website"
+							title="About Dhaka Website"
 							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
 						>
 							<Globe className="w-5 h-5" />
+							<span className="sr-only">About Dhaka Website</span>
 						</Link>
 						<Link
-							href="/"
+							href="mailto:contact@aboutdhaka.com"
+							aria-label="Email Us"
+							title="Email Us"
 							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
 						>
 							<Mail className="w-5 h-5" />
+							<span className="sr-only">Email Us</span>
 						</Link>
 					</div>
 				</div>
@@ -48,7 +54,7 @@ const Footer = () => {
 						</li>
 						<li>
 							<Link
-								href="/resturants"
+								href="/restaurants"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Restaurants
@@ -118,7 +124,7 @@ const Footer = () => {
 					<ul className="space-y-4">
 						<li>
 							<Link
-								href="/"
+								href="/help-center"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Help Center
@@ -126,7 +132,7 @@ const Footer = () => {
 						</li>
 						<li>
 							<Link
-								href="/"
+								href="/contact"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Contact Us
@@ -134,7 +140,7 @@ const Footer = () => {
 						</li>
 						<li>
 							<Link
-								href="/"
+								href="/privacy-policy"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Privacy Policy
@@ -142,7 +148,7 @@ const Footer = () => {
 						</li>
 						<li>
 							<Link
-								href="/"
+								href="/terms-of-service"
 								className="text-slate-500 hover:text-blue-600 transition-colors"
 							>
 								Terms of Service

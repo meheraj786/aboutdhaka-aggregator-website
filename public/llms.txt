@@ -1,0 +1,21 @@
+# About Dhaka - Ultimate City Guide & Directory
+
+> Discover Dhaka City's top attractions, restaurants, hospitals, doctors, bus routes, and local travel guides. Your ultimate digital directory and companion to explore Dhaka, the vibrant capital of Bangladesh.
+
+## Core Pages & Features
+
+- **Home**: `https://aboutdhaka.vercel.app/` - The main portal featuring interactive search, essential service quick-links, and featured sections.
+- **Travel Places**: `https://aboutdhaka.vercel.app/places` - Comprehensive guide to heritage sites, parks, museums, and popular tourist spots in Dhaka.
+- **Restaurants**: `https://aboutdhaka.vercel.app/restaurants` - Directory of eateries, cafes, local street food stalls, and fine-dining restaurants.
+- **Hospitals**: `https://aboutdhaka.vercel.app/hospitals` - Hospital search and diagnostic directories with addresses and medical specialties.
+- **Doctors**: `https://aboutdhaka.vercel.app/doctors` - Directory of verified expert doctors, medical departments, and consulting guides.
+- **Veterinary Clinics & Vets**: `https://aboutdhaka.vercel.app/veterinary-clinics` & `https://aboutdhaka.vercel.app/vets` - Complete resources for pet-care and veterinary clinic search.
+- **Bus Routes**: `https://aboutdhaka.vercel.app/bus` - Public transport helper with real-time stops, routes, and custom bus routing queries.
+- **PC Suggester / PC Builder**: `https://aboutdhaka.vercel.app/pc-builder` - Interactive PC compatibility builder and parts selection.
+- **Blogs**: `https://aboutdhaka.vercel.app/blogs` - Educational articles, city updates, local reviews, and travel tips.
+
+## API & Metadata Resources
+
+- **Sitemap**: `https://aboutdhaka.vercel.app/sitemap.xml` - Dynamic XML sitemap listing active application routes.
+- **Robots configuration**: `https://aboutdhaka.vercel.app/robots.txt` - SEO guidelines, crawled paths, and disallow rules.
+- **Public Domain**: `https://aboutdhaka.vercel.app/`

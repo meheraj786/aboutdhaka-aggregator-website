@@ -12,6 +12,7 @@ import { CityNavigationSection } from "@/components/appComponents/Routes";
 import TravelPlaces from "@/components/appComponents/TravelPlaces";
 // import { TutorsSection } from "@/components/appComponents/Tutors";
 import WeatherBadge from "@/components/appComponents/WeatherBadge";
+import AboutDhakaIntro from "@/components/appComponents/AboutDhakaIntro";
 
 export default function Home() {
 	return (
@@ -28,6 +29,7 @@ export default function Home() {
 			{/* <RentalsSection /> */}
 			{/* <TutorsSection /> */}
 			<CityNavigationSection />
+			<AboutDhakaIntro />
 			<BlogsSection />
 			<WeatherBadge />
 		</>
