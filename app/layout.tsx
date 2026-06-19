@@ -27,8 +27,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+	metadataBase: new URL("https://aboutdhaka.vercel.app"),
 	title: "About Dhaka - Ultimate Dhaka City Guide, Directory & Resources",
-	description: "Discover Dhaka City's top attractions, restaurants, hospitals, doctors, bus routes, and local travel guides. Your ultimate digital directory and companion to explore Dhaka.",
+	description: "Explore Dhaka City's best attractions, restaurants, hospitals, and bus routes. Your ultimate digital directory for Dhaka.",
+	alternates: {
+		canonical: "/",
+	},
 	icons: {
 		icon: "/favicon.ico",
 		apple: "/apple-touch-icon.png",
@@ -36,12 +40,12 @@ export const metadata: Metadata = {
 	manifest: "/site.webmanifest",
 	openGraph: {
 		title: "About Dhaka - Ultimate Dhaka City Guide, Directory & Resources",
-		description: "Discover Dhaka City's top attractions, restaurants, hospitals, doctors, bus routes, and local travel guides. Your ultimate digital directory and companion to explore Dhaka.",
+		description: "Explore Dhaka City's best attractions, restaurants, hospitals, and bus routes. Your ultimate digital directory for Dhaka.",
 		url: "https://aboutdhaka.vercel.app/",
 		siteName: "About Dhaka",
 		images: [
 			{
-				url: "https://aboutdhaka.vercel.app/og.png",
+				url: "/og.png",
 				width: 800,
 				height: 600,
 			},
@@ -52,8 +56,8 @@ export const metadata: Metadata = {
 	twitter: {
 		card: "summary_large_image",
 		title: "About Dhaka - Ultimate Dhaka City Guide, Directory & Resources",
-		description: "Discover Dhaka City's top attractions, restaurants, hospitals, doctors, bus routes, and local travel guides. Your ultimate digital directory and companion to explore Dhaka.",
-		images: ["https://aboutdhaka.vercel.app/og.png"],
+		description: "Explore Dhaka City's best attractions, restaurants, hospitals, and bus routes. Your ultimate digital directory for Dhaka.",
+		images: ["/og.png"],
 	},
 };
 

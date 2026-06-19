@@ -1,4 +1,4 @@
-import { Globe, Mail } from "lucide-react";
+import { Facebook, Globe, Instagram, Linkedin, Mail, Twitter, Youtube } from "lucide-react";
 import Link from "next/link";
 import Logo from "./Logo";
 
@@ -18,21 +18,67 @@ const Footer = () => {
 						street food to five-star services, we help you find what you need in
 						the heart of Bangladesh.
 					</p>
-					<div className="flex  gap-4">
+					<div className="flex flex-wrap gap-3">
 						<Link
-							href="/"
-							aria-label="About Dhaka Website"
-							title="About Dhaka Website"
-							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
+							href="https://facebook.com/aboutdhaka"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Follow us on Facebook"
+							title="Facebook"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-blue-600 hover:text-white transition-all"
 						>
-							<Globe className="w-5 h-5" />
-							<span className="sr-only">About Dhaka Website</span>
+							<Facebook className="w-5 h-5" />
+							<span className="sr-only">Facebook</span>
+						</Link>
+						<Link
+							href="https://twitter.com/aboutdhaka"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Follow us on X (Twitter)"
+							title="X (Twitter)"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-900 hover:text-white transition-all"
+						>
+							<Twitter className="w-5 h-5" />
+							<span className="sr-only">X (Twitter)</span>
+						</Link>
+						<Link
+							href="https://instagram.com/aboutdhaka"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Follow us on Instagram"
+							title="Instagram"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-rose-600 hover:text-white transition-all"
+						>
+							<Instagram className="w-5 h-5" />
+							<span className="sr-only">Instagram</span>
+						</Link>
+						<Link
+							href="https://linkedin.com/company/aboutdhaka"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Follow us on LinkedIn"
+							title="LinkedIn"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-blue-700 hover:text-white transition-all"
+						>
+							<Linkedin className="w-5 h-5" />
+							<span className="sr-only">LinkedIn</span>
+						</Link>
+						<Link
+							href="https://youtube.com/@aboutdhaka"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="Subscribe to our YouTube channel"
+							title="YouTube"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-red-600 hover:text-white transition-all"
+						>
+							<Youtube className="w-5 h-5" />
+							<span className="sr-only">YouTube</span>
 						</Link>
 						<Link
 							href="mailto:contact@aboutdhaka.com"
 							aria-label="Email Us"
 							title="Email Us"
-							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition-colors"
+							className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 hover:bg-emerald-600 hover:text-white transition-all"
 						>
 							<Mail className="w-5 h-5" />
 							<span className="sr-only">Email Us</span>
