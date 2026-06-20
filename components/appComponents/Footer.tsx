@@ -1,6 +1,8 @@
-import { Facebook, Globe, Instagram, Linkedin, Mail, Twitter, Youtube } from "lucide-react";
+
+import { FaFacebook as Facebook, FaInstagram as Instagram, FaLinkedin as Linkedin, FaTwitter as Twitter, FaYoutube as Youtube } from "react-icons/fa";
 import Link from "next/link";
 import Logo from "./Logo";
+import { Mail } from "lucide-react";
 
 const Footer = () => {
 	const year = new Date().getFullYear();
