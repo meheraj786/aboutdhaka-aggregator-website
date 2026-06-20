@@ -286,7 +286,7 @@ async function generateResponse(
 
 // ── main server action ───────────────────────────────────────────────────────
 
-export async function askDhakaAI(
+export default async function askDhakaAI(
 	message: string,
 	history: { role: "user" | "assistant"; content: string }[] = []
 ): Promise<DhakaAIResult> {
