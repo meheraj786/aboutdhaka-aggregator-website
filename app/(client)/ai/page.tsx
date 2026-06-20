@@ -12,7 +12,8 @@ import {
 	User,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { askDhakaAI } from "@/actions/dhakaAi.action";
 import { Button } from "@/components/ui/button";
@@ -246,7 +247,7 @@ function CitySkyline() {
 	);
 }
 
-export default function DhakaAIPage() {
+function DhakaAIContent() {
 	const [messages, setMessages] = useState<Message[]>([
 		{
 			id: "welcome",
@@ -261,6 +262,8 @@ export default function DhakaAIPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const scrollRef = useRef<HTMLDivElement>(null);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const searchParams = useSearchParams();
+	const autoSentRef = useRef(false);
 
 	const scrollToBottom = useCallback(() => {
 		if (scrollRef.current) {
@@ -323,6 +326,15 @@ export default function DhakaAIPage() {
 			setIsLoading(false);
 		}
 	};
+
+	useEffect(() => {
+		const q = searchParams.get("q");
+		if (q && q.trim() && !autoSentRef.current) {
+			autoSentRef.current = true;
+			sendMessage(q);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [searchParams]);
 
 	return (
 		<div className="min-h-screen bg-[#f8f9fb]" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
@@ -503,5 +515,24 @@ export default function DhakaAIPage() {
 				</div>
 			</div>
 		</div>
+	);
+}
+
+export default function DhakaAIPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen bg-[#f8f9fb] flex items-center justify-center">
+					<div className="flex flex-col items-center gap-4">
+						<div className="w-12 h-12 rounded-2xl bg-blue-100 animate-pulse" />
+						<p className="text-sm text-slate-400 animate-pulse font-medium">
+							Loading Dhaka AI…
+						</p>
+					</div>
+				</div>
+			}
+		>
+			<DhakaAIContent />
+		</Suspense>
 	);
 }
