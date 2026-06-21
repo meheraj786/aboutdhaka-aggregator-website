@@ -11,7 +11,6 @@ export default function AskDhakaAIButton() {
 			aria-label="Ask Dhaka AI"
 			className="group fixed bottom-6 right-6 z-50 md:bottom-8 md:right-8 isolate"
 		>
-			{/* Soft ambient glow behind the button — tight, not a blob */}
 			<span
 				className="absolute -inset-1.5 rounded-full opacity-50 blur-md transition-opacity duration-300 group-hover:opacity-80 -z-10"
 				style={{
@@ -20,7 +19,6 @@ export default function AskDhakaAIButton() {
 				}}
 			/>
 
-			{/* Spinning gradient ring — clipped to a thin sliver around the pill, not a filled blur */}
 			<span className="absolute -inset-[2px] rounded-full overflow-hidden -z-10 opacity-90 group-hover:opacity-100 transition-opacity">
 				<span
 					className="absolute inset-[-50%] block animate-spin-slow"
@@ -31,7 +29,6 @@ export default function AskDhakaAIButton() {
 				/>
 			</span>
 
-			{/* Button body */}
 			<span
 				className="relative z-10 flex items-center gap-2.5 rounded-full bg-slate-900 px-5 py-3.5 text-white shadow-xl shadow-blue-900/30 transition-transform duration-300 group-hover:scale-105 group-active:scale-95"
 				style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}
