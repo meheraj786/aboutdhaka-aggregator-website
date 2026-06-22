@@ -31,7 +31,6 @@ export default function BlogCard({
 }: BlogCardProps) {
 	const href = `/blogs/${slug ?? _id}`;
 
-	// strip HTML tags from description for plain text preview
 	const plainDescription = description.replace(/<[^>]*>/g, "");
 
 	const formattedDate = createdAt
@@ -45,7 +44,7 @@ export default function BlogCard({
 	return (
 		<Link href={href} className={cn("group block", className)}>
 			<article className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden h-full flex flex-col">
-				{/* Cover image */}
+
 				<div className="relative h-48 w-full overflow-hidden bg-slate-100 shrink-0">
 					{imageUrl ? (
 						<Image
@@ -61,7 +60,6 @@ export default function BlogCard({
 						</div>
 					)}
 
-					{/* Category badge — overlaid on image */}
 					<div className="absolute top-3 left-3">
 						<Badge className="bg-white/90 text-slate-700 hover:bg-white border-0 shadow-sm text-xs font-semibold backdrop-blur-sm">
 							{category}
@@ -79,7 +77,6 @@ export default function BlogCard({
 
 				{/* Content */}
 				<div className="flex flex-col flex-grow p-5 gap-3">
-					{/* Meta row */}
 					<div className="flex items-center gap-3 text-xs text-slate-400">
 						{readingMin && (
 							<span className="flex items-center gap-1">
