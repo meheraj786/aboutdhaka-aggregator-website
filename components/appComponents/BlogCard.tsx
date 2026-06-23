@@ -75,7 +75,6 @@ export default function BlogCard({
 					)}
 				</div>
 
-				{/* Content */}
 				<div className="flex flex-col flex-grow p-5 gap-3">
 					<div className="flex items-center gap-3 text-xs text-slate-400">
 						{readingMin && (
@@ -92,17 +91,14 @@ export default function BlogCard({
 						)}
 					</div>
 
-					{/* Title */}
 					<h2 className="text-base font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
 						{title}
 					</h2>
 
-					{/* Description */}
 					<p className="text-sm text-slate-500 line-clamp-3 flex-grow leading-relaxed">
 						{plainDescription}
 					</p>
 
-					{/* Read more */}
 					<span className="text-sm font-semibold text-blue-600 group-hover:underline mt-auto pt-1">
 						Read more →
 					</span>
