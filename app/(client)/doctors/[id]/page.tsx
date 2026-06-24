@@ -107,9 +107,9 @@ export default function SpecialistDetail() {
 												<Stethoscope className="w-4 h-4 text-blue-600" />
 											</div>
 											<div>
-												<p className="text-sm font-bold text-slate-900">
-													{doctor.chamber?.[0]?.name || "General Hospital"}
-												</p>
+												<Link href={`/hospitals/${doctor.chamber?.[0]?._id}`} className="text-sm font-bold text-slate-900">
+													{doctor.chamber?.[0]?.name || "No Chamber Found"}
+												</Link>
 												<p className="text-xs text-slate-500 font-medium">
 													{doctor.chamber?.[0]?.address?.area || "Dhaka"}
 												</p>

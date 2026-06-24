@@ -325,14 +325,35 @@ export async function deleteHospital(id: string) {
 export async function getHospitalById(id: string) {
 	try {
 		await dbConnect();
-		const res = await Hospital.findById(id).lean();
-		return { success: true, data: JSON.parse(JSON.stringify(res)) };
-	} catch {
+		
+		const hospital = await Hospital.findById(id).lean();
+		
+		if (!hospital) {
+			return { success: false, data: null };
+		}
+
+		const doctors = await Doctor.find({ 
+			chamber: id,
+			isActive: true 
+		}).lean();
+
+		const combinedData = {
+			...hospital,
+			doctors: doctors || []
+		};
+
+		return { 
+			success: true, 
+			data: JSON.parse(JSON.stringify(combinedData)) 
+		};
+	} catch (error) {
+		console.error("Error fetching hospital details:", error);
 		throw new Error("Failed to fetch hospital");
 	}
 }
 
 import { ANIMAL_TYPES } from "@/lib/hospitalTypes";
+import { Doctor } from "@/models";
 
 export async function getRandomHospitals(size: number = 4) {
 	try {

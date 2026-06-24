@@ -6,6 +6,7 @@ import {
 	Bed,
 	ChevronRight,
 	Clock,
+	GraduationCap,
 	Heart,
 	Info,
 	Loader2,
@@ -15,6 +16,7 @@ import {
 	Share2,
 	Star,
 	Stethoscope,
+	User2,
 } from "lucide-react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
@@ -25,12 +27,25 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFetchHospitalById } from "@/hooks/useHospitals";
+import Link from "next/link";
 
 export default function HospitalDetailPage() {
 	const { id } = useParams();
 	const { data: response, isLoading } = useFetchHospitalById(id as string);
 
+	console.log(response, "dataaaaaaaaaaaaaaaaaaaaaaaaa");
+	
+
 	const hospital = response?.data;
+
+
+// Group doctors by their first department
+const doctorsByDept = hospital?.doctors?.reduce((acc: any, doctor: any) => {
+    const dept = doctor.departments[0] || "General";
+    if (!acc[dept]) acc[dept] = [];
+    acc[dept].push(doctor);
+    return acc;
+}, {});
 
 	if (isLoading) {
 		return (
@@ -149,7 +164,7 @@ export default function HospitalDetailPage() {
 									Capacity
 								</p>
 								<p className="text-base font-black text-slate-900 truncate">
-									{hospital.totalBeds} Patient Beds
+									{hospital.totalBeds === 0 ? "N/A" : hospital.totalBeds + "Patient Beds"} 
 								</p>
 							</div>
 						</CardContent>
@@ -196,6 +211,15 @@ export default function HospitalDetailPage() {
 							>
 								Test Pricing
 							</TabsTrigger>
+							{/* 1. Add to TabsList */}
+<TabsTrigger
+    value="doctors"
+    className="rounded-lg py-2.5 px-6 font-bold data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+>
+    Doctors
+</TabsTrigger>
+
+
 						</TabsList>
 
 						<TabsContent
@@ -330,6 +354,68 @@ export default function HospitalDetailPage() {
 								</div>
 							</Card>
 						</TabsContent>
+						<TabsContent value="doctors" className="space-y-8 animate-in fade-in-50 duration-500">
+    {doctorsByDept && Object.keys(doctorsByDept).length > 0 ? (
+        Object.entries(doctorsByDept).map(([dept, doctors]: [string, any]) => (
+            <div key={dept} className="space-y-4">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="h-8 w-1 bg-blue-600 rounded-full" />
+                    <h3 className="text-xl font-black text-slate-800">{dept}</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {doctors.map((doctor: any) => (
+                        <Link href={`/doctors/${doctor._id}`} key={doctor._id}>
+                            <Card className="hover:shadow-md transition-all border-slate-100 group overflow-hidden">
+                                <CardContent className="p-5 flex items-start gap-4">
+                                    <div className="relative w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden shrink-0">
+                                        {doctor.profileImage ? (
+                                            <Image 
+                                                src={doctor.profileImage} 
+                                                alt={doctor.name} 
+                                                fill 
+                                                className="object-cover" 
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-slate-400">
+                                                <User2 className="w-8 h-8" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                                            {doctor.name}
+                                        </h4>
+                                        <p className="text-xs font-medium text-blue-600 mb-2">
+                                            {doctor.designation}
+                                        </p>
+                                        <div className="flex items-center gap-1.5 text-slate-500">
+                                            <GraduationCap className="w-3.5 h-3.5" />
+                                            <p className="text-[11px] truncate">
+                                                {doctor.qualifications?.[0]?.degree}
+                                                {doctor.qualifications?.length > 1 && ` +${doctor.qualifications.length - 1} more`}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="self-center">
+                                        <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 transform group-hover:translate-x-1 transition-all" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+        ))
+    ) : (
+        <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-slate-200">
+            <Stethoscope className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 font-bold">No doctors listed for this hospital yet.</p>
+        </div>
+    )}
+</TabsContent>
 					</Tabs>
 				</div>
 
