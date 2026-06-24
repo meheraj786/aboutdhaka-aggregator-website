@@ -44,6 +44,8 @@ const availableDepts = useMemo(() => {
 	return Array.from(depts).sort();
 }, [hospital?.doctors]);
 
+console.log(hospital)
+
 const filteredDoctorsByDept = useMemo(() => {
 	const filtered = (hospital?.doctors || []).filter((doc: any) => {
 		const matchesSearch =
@@ -180,15 +182,16 @@ return (
 				</Card>
 
 				<div className="flex gap-2 h-[66px]">
-					<Button className="flex-1 rounded-xl h-full font-bold bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 text-sm">
+					
+					<Link
+						href={`tel:${hospital.contact?.phone?.[0]}`} className="flex-1 rounded-xl h-full flex shadow-md items-center justify-center p-2 text-white font-bold bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 text-sm">
 						<Phone className="w-4 h-4 mr-2" /> Call Now
-					</Button>
-					<Button
-						variant="outline"
-						className="flex-1 rounded-xl h-full font-bold border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-sm"
-					>
+
+					</Link>
+
+						<Link className="flex-1 rounded-xl h-full font-bold border-slate-200 bg-white text-slate-700 hover:bg-slate-50 p-2 flex items-center justify-center shadow-md text-sm" href={`https://www.google.com/maps/search/?api=1&query=${hospital.address?.area}, ${hospital.address?.district}`} target="_blank" rel="noopener noreferrer">
 						<MapPin className="w-4 h-4 mr-2" /> Directions
-					</Button>
+						</Link>
 				</div>
 			</div>
 		</div>
