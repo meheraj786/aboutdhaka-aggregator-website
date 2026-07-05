@@ -44,7 +44,7 @@ const HospitalsAndRestaurants = () => {
 					{isLoadingHosp ? <ListSkeleton /> : (
 						<div className="space-y-4">
 							{hospitals?.map((hosp: any) => (
-								<Link  key={hosp._id} href={`/places/${hosp._id}`} className="p-5">
+								<Link  key={hosp._id} href={`/hospitals/${hosp._id}`} className="p-5">
 								<div  className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
 									
 									<div className="flex items-center gap-4">
@@ -83,7 +83,7 @@ const HospitalsAndRestaurants = () => {
 						<div className="space-y-4">
 							{restaurants?.map((rest: any) => (
 
-								<Link  key={rest._id} href={`/places/${rest._id}`} className="p-5">
+								<Link  key={rest._id} href={`/restaurants/${rest._id}`} className="p-5">
 								<div key={rest._id} className="flex items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
 									<div className="flex items-center gap-4">
 										<div className="relative w-12 h-12 overflow-hidden rounded-xl bg-slate-100">
