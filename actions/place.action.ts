@@ -1,10 +1,10 @@
 "use server";
-
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
 import { Place } from "@/models/places.model";
 import { createPlaceSchema, updatePlaceSchema } from "@/validators/places";
 import "@/models/area.model";
+import { Area } from "@/models/area.model";
 
 class ActionError extends Error {
 	constructor(message: string) {
@@ -41,14 +41,18 @@ export async function getPlaces(params: GetPlacesParams = {}) {
 			];
 		}
 
-		if (params.areas && params.areas.length > 0) {
-			// If areas are passed as names, we might need to find their IDs first, 
-			// but if the UI sends names and we store names in 'area' field after population,
-			// wait, 'area' is an ObjectId in the model. 
-			// If the filter is by area name, we need to populate or use aggregation.
-			// However, usually it's better to filter by area names if that's what's sent.
-			// Let's assume we need to find areas by name first.
-		}
+if (params.areas && params.areas.length > 0) {
+  const areas = await Area.find({ name: { $in: params.areas } })
+    .select('_id')
+    .lean();
+  const areaIds = areas.map((a) => a._id);
+
+  if (areaIds.length === 0) {
+    return { items: [], totalCount: 0, currentPage: page };
+  }
+
+  filter.area = { $in: areaIds };
+}
 
 		if (params.categories && params.categories.length > 0) {
 			filter.category = { $in: params.categories };
