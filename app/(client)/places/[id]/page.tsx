@@ -18,10 +18,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useFetchPlaceById } from "@/hooks/usePlaces";
+import FindBusButton from "@/components/appComponents/FindBusButton";
 
 export default function PlaceDetailPage() {
 	const params = useParams();
 	const { data, isLoading, error } = useFetchPlaceById(params.id as string);
+
+	console.log(data);
 
 	if (isLoading) {
 		return (
@@ -73,9 +76,6 @@ export default function PlaceDetailPage() {
 							<div className="flex gap-3">
 								<button type="button" className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white border border-white/20 hover:bg-white/20 transition-all">
 									<Share2 className="w-5 h-5" />
-								</button>
-								<button type="button" className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white border border-white/20 hover:bg-white/20 transition-all">
-									<Heart className="w-5 h-5" />
 								</button>
 							</div>
 						</div>
@@ -149,12 +149,12 @@ export default function PlaceDetailPage() {
 							{data.contact && <InfoItem icon={Phone} label="Official Contact" value={data.contact} />}
 						</div>
 
-						<button 
-							type="button" 
-							className="w-full py-5 bg-blue-600 text-white font-black rounded-[2rem] hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 uppercase tracking-widest text-sm"
-						>
-							Open Navigation
-						</button>
+							<div className="pt-2">
+								<FindBusButton
+									hospitalLat={data?.gps?.coordinates[0]}
+									hospitalLng={data?.gps?.coordinates[1]}
+								/>
+							</div>
 					</div>
 				</aside>
 			</section>
