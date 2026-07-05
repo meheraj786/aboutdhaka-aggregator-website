@@ -17,11 +17,15 @@ import {
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useFetchRestaurantById } from "@/hooks/useRestaurants";
+import Link from "next/link";
+import FindBusButton from "@/components/appComponents/FindBusButton";
 
 export default function RestaurantDetailPage() {
 	const id = useParams().id;
 	const router = useRouter();
 	const { data, isLoading } = useFetchRestaurantById(id as string);
+
+	console.log(data)
 
 	if (isLoading) {
 		return (
@@ -91,10 +95,7 @@ export default function RestaurantDetailPage() {
 							<MapPin className="w-5 h-5 text-blue-400" />
 							<span>{data.area?.name || "Dhaka"}</span>
 						</div>
-						<div className="flex items-center gap-2 text-emerald-400">
-							<div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-							<span>Open Now</span>
-						</div>
+
 					</div>
 				</div>
 			</div>
@@ -166,7 +167,7 @@ export default function RestaurantDetailPage() {
 					</section>
 
 					{/* Simple Review Placeholder */}
-					<section>
+					{/* <section>
 						<h2 className="text-3xl font-black text-slate-900 mb-10 tracking-tight">Verified Reviews</h2>
 						<div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-sm relative overflow-hidden">
 							<div className="absolute top-0 right-0 p-6">
@@ -187,7 +188,7 @@ export default function RestaurantDetailPage() {
 								"One of the best places in {data.area?.name || "the city"}. The atmosphere is amazing and the staff were very attentive. Will definitely visit again!"
 							</p>
 						</div>
-					</section>
+					</section> */}
 				</div>
 
 				{/* --- Right Column (Sidebar) --- */}
@@ -203,7 +204,7 @@ export default function RestaurantDetailPage() {
 								</div>
 								<div>
 									<p className="text-xs text-blue-100 uppercase font-bold tracking-widest">Call for booking</p>
-									<p className="font-bold">{data.phone || "Not provided"}</p>
+									<p className="font-bold">{data?.phone || "Not provided"}</p>
 								</div>
 							</div>
 							<div className="flex items-center gap-4">
@@ -212,13 +213,20 @@ export default function RestaurantDetailPage() {
 								</div>
 								<div>
 									<p className="text-xs text-blue-100 uppercase font-bold tracking-widest">Standard Hours</p>
-									<p className="font-bold">12:00 PM - 11:00 PM</p>
+									<p className="font-bold">{data?.hours?.open || "Not provided"} - {data?.hours?.close || "Not provided"}</p>
 								</div>
 							</div>
 						</div>
+						{
+							data?.phone && (
+						<Link href={`tel:${data.phone}`} className="w-full mt-10 bg-white text-blue-600 font-black py-4 rounded-2xl hover:bg-blue-50 transition-all shadow-lg shadow-blue-900/20">
 						<button type="button" className="w-full mt-10 bg-white text-blue-600 font-black py-4 rounded-2xl hover:bg-blue-50 transition-all shadow-lg shadow-blue-900/20">
 							Book a Table
 						</button>
+						</Link>
+							)
+						}
+
 					</section>
 
 					{/* Location Sidebar */}
@@ -237,6 +245,7 @@ export default function RestaurantDetailPage() {
 							<p className="text-slate-600 font-bold leading-relaxed mb-8">
 								{data.location}
 							</p>
+							<FindBusButton  />
 
 							<Separator className="mb-8" />
 
