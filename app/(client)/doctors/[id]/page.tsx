@@ -20,6 +20,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useFetchDoctorById } from "@/hooks/useDoctors"; // Ensure this hook exists
+import FindBusButton from "@/components/appComponents/FindBusButton";
 
 export default function SpecialistDetail() {
 	const { id } = useParams();
@@ -127,17 +128,20 @@ export default function SpecialistDetail() {
 										</div>
 									</div>
 								</div>
-								<button
+								<Link href={`tel:${doctor.contact?.phone}`}>
+																<button
 									type="button"
 									className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
 								>
-									Book Appointment
+									Call <form action="" method="get"></form> Appointment
 								</button>
+								</Link>
+
 							</div>
 						</div>
 
 						{/* Quick Contact Card */}
-						<div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
+						{/* <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
 							<h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">
 								BMDC REGISTRATION
 							</h4>
@@ -148,7 +152,7 @@ export default function SpecialistDetail() {
 									<p className="text-sm font-black text-slate-900 tracking-tight">Verified: {doctor.bmdc}</p>
 								</div>
 							</div>
-						</div>
+						</div> */}
 					</aside>
 
 					{/* Content Area */}
@@ -234,16 +238,17 @@ export default function SpecialistDetail() {
 												<p className="text-sm font-medium text-slate-500">{hosp.address?.area}, {hosp.address?.district}</p>
 											</div>
 										</div>
-										<button type="button" className="px-6 py-3 bg-slate-50 hover:bg-blue-50 hover:text-blue-600 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
-											Get Directions <ChevronRight className="w-4 h-4" />
-										</button>
+										<FindBusButton 
+										hospitalLat={hosp?.address?.coordinates?.lat}
+									hospitalLng={hosp?.address?.coordinates?.lng}
+										/>
 									</div>
 								))}
 							</div>
 						</section>
 
 						{/* Call to Action */}
-						<section className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+						{/* <section className="bg-blue-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
 							<div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl" />
 							<div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
 								<div>
@@ -261,7 +266,7 @@ export default function SpecialistDetail() {
 									Schedule Visit
 								</button>
 							</div>
-						</section>
+						</section> */}
 					</div>
 				</div>
 			</main>

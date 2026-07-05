@@ -136,7 +136,7 @@ export async function getDoctorById(id: string) {
     await dbConnect();
 
     const doctor = await Doctor.findById(id)
-      .populate("chamber", "name slug")
+      .populate("chamber", "name slug address")
       .lean();
 
     if (!doctor) {
