@@ -13,6 +13,7 @@ import { PCComponent } from "@/models";
 import { Shop } from "@/models";
 import { dbConnect } from "@/lib/db";
 import { Hospital } from "@/models";
+import { DOCTOR_DEPARTMENTS } from "@/lib/doctorDepartments";
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -96,6 +97,37 @@ async function classifyIntent(userMessage: string) {
   }
 }
 
+function normalizeDepartment(input: string): string | null {
+  if (!input) return null;
+  const normalized = input.toLowerCase().trim();
+  for (const dept of DOCTOR_DEPARTMENTS) {
+    const deptLower = dept.toLowerCase();
+    if (deptLower === normalized) return dept;
+    if (deptLower.includes(normalized) || normalized.includes(deptLower)) return dept;
+  }
+  // common aliases
+  const aliasMap: Record<string, string> = {
+    gyne: "Gynecology",
+    gyno: "Gynecology",
+    obs: "Obstetrics and Gynecology",
+    obgyn: "Obstetrics and Gynecology",
+    ent: "ENT",
+    neuro: "Neurology",
+    cardio: "Cardiology",
+    derma: "Dermatology",
+    ortho: "Orthopedics",
+    ped: "Pediatrics",
+    peds: "Pediatrics",
+    gen: "General Medicine",
+    "general medicine": "General Medicine",
+    med: "General Medicine",
+    surg: "General Surgery",
+    "general surgery": "General Surgery",
+  };
+  if (aliasMap[normalized]) return aliasMap[normalized];
+  return null;
+}
+
 async function queryHospitals(params: Record<string, string>) {
   const filter: Record<string, unknown> = { isActive: true };
   if (params.name) filter.$text = { $search: params.name };
@@ -114,98 +146,118 @@ async function queryHospitals(params: Record<string, string>) {
 async function queryDoctors(params: Record<string, string>) {
   const filter: Record<string, unknown> = { isActive: true };
   let doctorIds: mongoose.Types.ObjectId[] | null = null;
+  let matchedHospital: any = null;
 
-  if (params.area) {
-    const hospitals = await Hospital.find({
-      "address.area": new RegExp(params.area, "i"),
-      isActive: true,
-    }).select("_id").lean();
-    if (hospitals.length) {
-      const hospitalIds = hospitals.map(h => h._id);
-      const postings = await DoctorHospital.find({
-        hospital: { $in: hospitalIds },
-        isActive: true,
-      }).select("doctor").lean();
-      doctorIds = postings.map(p => p.doctor);
-      if (!doctorIds.length) return [];
-    } else {
-      return [];
+  // ---- Normalize department ----
+  let department = params.department;
+  if (department) {
+    const normalized = normalizeDepartment(department);
+    if (normalized) department = normalized;
+    else {
+      // still keep original, but we'll do a text search on departments as fallback
     }
   }
 
-  if (params.hospital) {
-    const hospitals = await Hospital.find({
-      name: new RegExp(params.hospital, "i"),
+  // ---- Find hospitals by area or hospital name ----
+  const hospitalFilters: Record<string, any> = { isActive: true };
+  if (params.area) hospitalFilters["address.area"] = new RegExp(params.area, "i");
+  if (params.hospital) hospitalFilters.name = new RegExp(params.hospital, "i");
+  // Also try to match hospital name from params.name if no doctor found later
+  let hospitalQuery: any = { isActive: true };
+  if (Object.keys(hospitalFilters).length > 1 || params.area || params.hospital) {
+    hospitalQuery = { $and: [] };
+    if (params.area) hospitalQuery.$and.push({ "address.area": new RegExp(params.area, "i") });
+    if (params.hospital) hospitalQuery.$and.push({ name: new RegExp(params.hospital, "i") });
+  }
+
+  const hospitals = await Hospital.find(hospitalQuery).select("_id name address contact").lean();
+  if (hospitals.length) {
+    matchedHospital = hospitals[0]; // pick first for fallback
+    const hospitalIds = hospitals.map(h => h._id);
+    const postings = await DoctorHospital.find({
+      hospital: { $in: hospitalIds },
       isActive: true,
-    }).select("_id").lean();
-    if (hospitals.length) {
-      const hospitalIds = hospitals.map(h => h._id);
+    }).select("doctor").lean();
+    const ids = postings.map(p => p.doctor);
+    if (ids.length) {
+      doctorIds = ids;
+    }
+  }
+
+  // ---- If no hospital was matched but params.hospital exists, try a more lenient search ----
+  if (!hospitals.length && params.hospital) {
+    const fuzzyHospitals = await Hospital.find({
+      name: { $regex: params.hospital, $options: "i" },
+      isActive: true,
+    }).select("_id name address contact").lean();
+    if (fuzzyHospitals.length) {
+      matchedHospital = fuzzyHospitals[0];
+      const hospitalIds = fuzzyHospitals.map(h => h._id);
       const postings = await DoctorHospital.find({
         hospital: { $in: hospitalIds },
         isActive: true,
       }).select("doctor").lean();
       const ids = postings.map(p => p.doctor);
-      if (doctorIds) {
-        doctorIds = doctorIds.filter(id => ids.some(did => did.equals(id)));
-      } else {
+      if (ids.length) {
         doctorIds = ids;
       }
-      if (!doctorIds || !doctorIds.length) return [];
-    } else {
-      return [];
     }
   }
 
-  if (params.name) {
-    const doctorsByName = await Doctor.find({
+  // ---- If still no hospital and params.name might be a hospital ----
+  if (!hospitals.length && params.name && !doctorIds) {
+    const hospitalByName = await Hospital.find({
       name: new RegExp(params.name, "i"),
       isActive: true,
-    }).select("_id").lean();
-    const doctorIdsByName = doctorsByName.map(d => d._id);
-    if (doctorIdsByName.length) {
-      if (doctorIds) {
-        doctorIds = doctorIds.filter(id => doctorIdsByName.some(did => did.equals(id)));
-      } else {
-        doctorIds = doctorIdsByName;
-      }
-    } else {
-      const hospitals = await Hospital.find({
-        name: new RegExp(params.name, "i"),
+    }).select("_id name address contact").lean();
+    if (hospitalByName.length) {
+      matchedHospital = hospitalByName[0];
+      const hospitalIds = hospitalByName.map(h => h._id);
+      const postings = await DoctorHospital.find({
+        hospital: { $in: hospitalIds },
         isActive: true,
-      }).select("_id").lean();
-      if (hospitals.length) {
-        const hospitalIds = hospitals.map(h => h._id);
-        const postings = await DoctorHospital.find({
-          hospital: { $in: hospitalIds },
-          isActive: true,
-        }).select("doctor").lean();
-        const ids = postings.map(p => p.doctor);
-        if (doctorIds) {
-          doctorIds = doctorIds.filter(id => ids.some(did => did.equals(id)));
-        } else {
-          doctorIds = ids;
-        }
-        if (!doctorIds || !doctorIds.length) return [];
-      } else {
-        return [];
+      }).select("doctor").lean();
+      const ids = postings.map(p => p.doctor);
+      if (ids.length) {
+        doctorIds = ids;
       }
     }
   }
 
-  if (params.department) {
-    filter.departments = { $in: [params.department] };
-  }
-
+  // ---- If we have doctorIds, apply department filter ----
   if (doctorIds && doctorIds.length) {
     filter._id = { $in: doctorIds };
   }
 
-  const doctors = await Doctor.find(filter)
+  if (department) {
+    // try exact match on department enum
+    filter.departments = { $in: [department] };
+  }
+
+  // ---- If no department match but we have a department string, use text search on doctor fields ----
+  if (department && !filter.departments) {
+    // fallback: search departments array with regex
+    filter.departments = { $elemMatch: { $regex: department, $options: "i" } };
+  }
+
+  // ---- Fetch doctors ----
+  let doctors = await Doctor.find(filter)
     .select("name departments designation qualifications speciality rating reviewCount gender profileImage")
     .sort({ rating: -1 })
     .limit(5)
     .lean();
 
+  // ---- If no doctors found but we have a hospital, return hospital info as a fallback ----
+  if (doctors.length === 0 && matchedHospital) {
+    // Return a special object that the LLM can use to suggest contacting the hospital
+    return {
+      __fallback: "hospital",
+      hospital: matchedHospital,
+      message: `No doctors found matching your criteria at ${matchedHospital.name}. You can contact the hospital directly.`,
+    };
+  }
+
+  // ---- Enrich with hospital postings ----
   if (doctors.length > 0) {
     const ids = doctors.map((d) => d._id);
     const postings = await DoctorHospital.find({
@@ -361,10 +413,17 @@ async function generateResponse(
   dbResults: unknown,
   conversationHistory: { role: "user" | "assistant"; content: string }[]
 ) {
-  const contextMsg =
-    dbResults && (Array.isArray(dbResults) ? (dbResults as unknown[]).length > 0 : true)
-      ? `Database results for intent "${intent}":\n${JSON.stringify(dbResults, null, 2)}`
-      : `No database results found for intent "${intent}". Let the user know and offer alternatives.`;
+  // Handle special fallback from queryDoctors
+  let contextMsg = "";
+  if (dbResults && typeof dbResults === "object" && "__fallback" in dbResults && dbResults.__fallback === "hospital") {
+    const hospital = (dbResults as any).hospital;
+    contextMsg = `No doctors found, but here is hospital info: ${JSON.stringify(hospital, null, 2)}. Suggest the user contact the hospital directly.`;
+  } else {
+    contextMsg =
+      dbResults && (Array.isArray(dbResults) ? (dbResults as unknown[]).length > 0 : true)
+        ? `Database results for intent "${intent}":\n${JSON.stringify(dbResults, null, 2)}`
+        : `No database results found for intent "${intent}". Let the user know and offer alternatives.`;
+  }
 
   const messages = [
     ...conversationHistory.slice(-6),
