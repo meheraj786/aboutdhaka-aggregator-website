@@ -11,6 +11,7 @@ export interface IPlace extends Document {
 	reviews?: number;
 	hours?: Record<string | number, string>;
 	closingDay?: string;
+	experience?: string[];
 	fee?: number;
 	contact?: string;
 	facilities?: string[];
@@ -29,6 +30,7 @@ const PlaceSchema: Schema<IPlace> = new Schema(
 		},
 		category: String,
 		detail: String,
+		experience: [String],
 		rating: { type: Number, default: 0, min: 0, max: 5 },
 		reviews: { type: Number, default: 0 },
 		hours: { type: Object, default: {} },
