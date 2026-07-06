@@ -8,7 +8,7 @@ import RestaurantsCard, {
 } from "@/components/appComponents/RestaurantsCard";
 import { useFetchRestaurants } from "@/hooks/useRestaurants";
 import { useFetchAreas } from "@/hooks/useAreas";
-import { Loader2, Utensils, Search } from "lucide-react";
+import { Search, Utensils } from "lucide-react";
 import ExploreInRestau from "@/components/appComponents/ExploreInRestau";
 
 const PAGE_SIZE = 6;
@@ -21,21 +21,19 @@ export default function DinePage() {
   const [search, setSearch] = useState("");
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedExperiences, setSelectedExperiences] = useState<string[]>([]);
 
   const { data: areasData, isLoading: areasLoading } = useFetchAreas();
-
-  const combinedSearch = [
-    search,
-    ...selectedAreas,
-    ...selectedCategories,
-  ].filter(Boolean).join(" ");
 
   const { data, isLoading, error } = useFetchRestaurants({
     page,
     pageSize: PAGE_SIZE,
     sortBy,
     sortOrder,
-    search: combinedSearch,
+    search: search || undefined,
+    areas: selectedAreas.length ? selectedAreas : undefined,
+    categories: selectedCategories.length ? selectedCategories : undefined,
+    experiences: selectedExperiences.length ? selectedExperiences : undefined,
   });
 
   const filterSections = useMemo(
@@ -69,12 +67,22 @@ export default function DinePage() {
   const handleClearAll = () => {
     setSelectedAreas([]);
     setSelectedCategories([]);
+    setSelectedExperiences([]);
     setSearch("");
     setPage(1);
   };
 
   const handleSearch = (value: string) => {
     setSearch(value);
+    setPage(1);
+  };
+
+  const handleExperienceToggle = (experience: string) => {
+    setSelectedExperiences((prev) =>
+      prev.includes(experience)
+        ? prev.filter((e) => e !== experience)
+        : [...prev, experience]
+    );
     setPage(1);
   };
 
@@ -87,7 +95,10 @@ export default function DinePage() {
     <div className="min-h-screen flex flex-col bg-slate-50/30">
       <main className="flex-grow py-12 px-6 md:px-12 lg:px-24">
         <div className="max-w-7xl mx-auto">
-          <ExploreInRestau />
+          <ExploreInRestau
+            selectedExperiences={selectedExperiences}
+            onToggle={handleExperienceToggle}
+          />
 
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div>

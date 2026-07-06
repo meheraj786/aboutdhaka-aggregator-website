@@ -1,3 +1,4 @@
+// src/app/places/page.tsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -21,8 +22,6 @@ const CATEGORIES = [
 ];
 
 export default function PlacesPage() {
-  // const {data: areas}= useFetchAreas();
-  // console.log(areas?.map((a: { name: string }) => ({ areaId: a._id, areaName: a.name })));
   const [params, setParams] = useState<GetPlacesParams>({
     page: 1,
     pageSize: PAGE_SIZE,
@@ -38,7 +37,6 @@ export default function PlacesPage() {
   const totalCount = data?.totalCount ?? 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  // --- Filter Logic ---
   const filterSections = useMemo(
     () => [
       {
@@ -81,11 +79,27 @@ export default function PlacesPage() {
     setParams((prev) => ({ ...prev, ...sortMap[value], page: 1 }));
   };
 
+  const handleExperienceToggle = (experience: string) => {
+    setParams((prev) => {
+      const current = prev.experiences || [];
+      const updated = current.includes(experience)
+        ? current.filter((e) => e !== experience)
+        : [...current, experience];
+      return { ...prev, experiences: updated.length ? updated : undefined, page: 1 };
+    });
+  };
+
+  const selectedExperiences = params.experiences || [];
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/30">
       <main className="flex-grow py-12 px-6 md:px-12">
         <div className="max-w-7xl mx-auto">
-          <ExploreByExp />
+          <ExploreByExp
+            selectedExperiences={selectedExperiences}
+            onToggle={handleExperienceToggle}
+          />
+
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div>
               <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight flex items-center gap-2">
@@ -126,6 +140,7 @@ export default function PlacesPage() {
                   areas: [],
                   categories: [],
                   search: "",
+                  experiences: undefined,
                   page: 1,
                 }))
               }
