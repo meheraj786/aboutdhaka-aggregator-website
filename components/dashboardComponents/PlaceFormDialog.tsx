@@ -525,7 +525,7 @@ export function PlaceFormDialog({
 
             {facilities.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
-                {facilities.map((item) => (
+                {facilities.map((item: string) => (
                   <Badge key={item} variant="secondary" className="gap-1 pr-1">
                     {item}
                     <X className="h-3 w-3 cursor-pointer" onClick={() => removeFacility(item)} />
