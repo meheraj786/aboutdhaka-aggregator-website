@@ -123,7 +123,7 @@ export function PlaceFormDialog({
     };
   }, [initialData]);
 
-  const form = useForm<CreatePlaceInput>({
+  const form = useForm({
     resolver: zodResolver(createPlaceSchema),
     defaultValues: normalizedValues,
   });
@@ -202,7 +202,7 @@ export function PlaceFormDialog({
   const removeFacility = (item: string) =>
     form.setValue("facilities", facilities.filter((f) => f !== item), { shouldDirty: true });
 
-  const toggleExperience = (exp: string) => {
+  const toggleExperience = (exp: typeof PLACE_EXPERIENCE[number]) => {
     const current = form.getValues("experience") || [];
     const updated = current.includes(exp)
       ? current.filter(e => e !== exp)
