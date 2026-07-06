@@ -203,9 +203,9 @@ export function PlaceFormDialog({
     form.setValue("facilities", facilities.filter((f: string) => f !== item), { shouldDirty: true });
 
   const toggleExperience = (exp: typeof PLACE_EXPERIENCE[number]) => {
-    const current = form.getValues("experience") || [];
+    const current = form.getValues("experience") as typeof PLACE_EXPERIENCE[number][] || [];
     const updated = current.includes(exp)
-      ? current.filter(e => e !== exp)
+      ? current.filter((e) => e !== exp)
       : [...current, exp];
     form.setValue("experience", updated, { shouldDirty: true });
   };
