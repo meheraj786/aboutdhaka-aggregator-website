@@ -1,6 +1,7 @@
 "use server";
 
 import Groq from "groq-sdk";
+import mongoose from "mongoose";
 import { Doctor } from "@/models";
 import { DoctorHospital } from "@/models";
 import { Restaurant } from "@/models";
@@ -21,8 +22,6 @@ export interface DhakaAIResult {
   resultsCount: number;
 }
 
-// ── RETRY HELPER ─────────────────────────────────────────────────────────────
-
 async function withRetry<T>(
   fn: () => Promise<T>,
   retries = 2,
@@ -35,7 +34,6 @@ async function withRetry<T>(
     } catch (err) {
       lastError = err;
       if (attempt === retries) break;
-      // Exponential backoff: 300ms, 600ms, 1200ms...
       const wait = delayMs * Math.pow(2, attempt);
       console.warn(`Retry ${attempt + 1}/${retries} after ${wait}ms`, err);
       await new Promise((resolve) => setTimeout(resolve, wait));
@@ -44,14 +42,12 @@ async function withRetry<T>(
   throw lastError;
 }
 
-// ── INTENT CLASSIFICATION ───────────────────────────────────────────────────
-
 const INTENT_SYSTEM = `You are an intent classifier for a Dhaka city information assistant.
 Given a user message, classify it into ONE of these intents and extract relevant parameters.
 
 Intents:
 - hospital: find hospitals, clinics, medical centers (params: type, area, name)
-- doctor: find doctors, specialists (params: department, name, area)
+- doctor: find doctors, specialists (params: department, name, area, hospital)
 - restaurant: find restaurants, food, cafes (params: category, area, name)
 - place: find parks, schools, mosques, attractions (params: category, area, name)
 - bus: find bus routes, bus stops, buses between areas (params: from, to, busName, area)
@@ -74,7 +70,8 @@ Respond ONLY with valid JSON in this exact format:
     "brand": "<optional>",
     "usage": "<optional>",
     "budget": "<optional>",
-    "location": "<optional>"
+    "location": "<optional>",
+    "hospital": "<optional>"
   },
   "userQuery": "<rephrased clean search query>"
 }`;
@@ -99,8 +96,6 @@ async function classifyIntent(userMessage: string) {
   }
 }
 
-// ── DB QUERY FUNCTIONS (unchanged) ─────────────────────────────────────────
-
 async function queryHospitals(params: Record<string, string>) {
   const filter: Record<string, unknown> = { isActive: true };
   if (params.name) filter.$text = { $search: params.name };
@@ -118,8 +113,92 @@ async function queryHospitals(params: Record<string, string>) {
 
 async function queryDoctors(params: Record<string, string>) {
   const filter: Record<string, unknown> = { isActive: true };
-  if (params.name) filter.$text = { $search: params.name };
-  if (params.department) filter.departments = { $in: [params.department] };
+  let doctorIds: mongoose.Types.ObjectId[] | null = null;
+
+  if (params.area) {
+    const hospitals = await Hospital.find({
+      "address.area": new RegExp(params.area, "i"),
+      isActive: true,
+    }).select("_id").lean();
+    if (hospitals.length) {
+      const hospitalIds = hospitals.map(h => h._id);
+      const postings = await DoctorHospital.find({
+        hospital: { $in: hospitalIds },
+        isActive: true,
+      }).select("doctor").lean();
+      doctorIds = postings.map(p => p.doctor);
+      if (!doctorIds.length) return [];
+    } else {
+      return [];
+    }
+  }
+
+  if (params.hospital) {
+    const hospitals = await Hospital.find({
+      name: new RegExp(params.hospital, "i"),
+      isActive: true,
+    }).select("_id").lean();
+    if (hospitals.length) {
+      const hospitalIds = hospitals.map(h => h._id);
+      const postings = await DoctorHospital.find({
+        hospital: { $in: hospitalIds },
+        isActive: true,
+      }).select("doctor").lean();
+      const ids = postings.map(p => p.doctor);
+      if (doctorIds) {
+        doctorIds = doctorIds.filter(id => ids.some(did => did.equals(id)));
+      } else {
+        doctorIds = ids;
+      }
+      if (!doctorIds || !doctorIds.length) return [];
+    } else {
+      return [];
+    }
+  }
+
+  if (params.name) {
+    const doctorsByName = await Doctor.find({
+      name: new RegExp(params.name, "i"),
+      isActive: true,
+    }).select("_id").lean();
+    const doctorIdsByName = doctorsByName.map(d => d._id);
+    if (doctorIdsByName.length) {
+      if (doctorIds) {
+        doctorIds = doctorIds.filter(id => doctorIdsByName.some(did => did.equals(id)));
+      } else {
+        doctorIds = doctorIdsByName;
+      }
+    } else {
+      const hospitals = await Hospital.find({
+        name: new RegExp(params.name, "i"),
+        isActive: true,
+      }).select("_id").lean();
+      if (hospitals.length) {
+        const hospitalIds = hospitals.map(h => h._id);
+        const postings = await DoctorHospital.find({
+          hospital: { $in: hospitalIds },
+          isActive: true,
+        }).select("doctor").lean();
+        const ids = postings.map(p => p.doctor);
+        if (doctorIds) {
+          doctorIds = doctorIds.filter(id => ids.some(did => did.equals(id)));
+        } else {
+          doctorIds = ids;
+        }
+        if (!doctorIds || !doctorIds.length) return [];
+      } else {
+        return [];
+      }
+    }
+  }
+
+  if (params.department) {
+    filter.departments = { $in: [params.department] };
+  }
+
+  if (doctorIds && doctorIds.length) {
+    filter._id = { $in: doctorIds };
+  }
 
   const doctors = await Doctor.find(filter)
     .select("name departments designation qualifications speciality rating reviewCount gender profileImage")
@@ -264,7 +343,6 @@ async function queryShops(params: Record<string, string>) {
   return shops;
 }
 
-
 const RESPONSE_SYSTEM = `You are Dhaka AI — a smart, friendly city guide for Dhaka, Bangladesh.
 You have access to a real database of hospitals, doctors, restaurants, places, bus routes, PC components, and shops in Dhaka.
 
@@ -306,7 +384,6 @@ async function generateResponse(
   return res.choices[0]?.message?.content ?? "I couldn't generate a response. Please try again.";
 }
 
-
 export async function askDhakaAI(
   message: string,
   history: { role: "user" | "assistant"; content: string }[] = []
@@ -317,7 +394,7 @@ export async function askDhakaAI(
 
   return withRetry(
     async () => {
-      await dbConnect(); 
+      await dbConnect();
 
       const { intent, params } = await classifyIntent(message);
 
@@ -356,8 +433,8 @@ export async function askDhakaAI(
         resultsCount: Array.isArray(dbResults) ? dbResults.length : dbResults ? 1 : 0,
       };
     },
-    2, 
-    300 
+    2,
+    300
   ).catch((err) => {
     console.error("Dhaka AI fatal error after retries:", err);
     return {
