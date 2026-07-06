@@ -170,8 +170,8 @@ export default function SmartPCSuggester() {
 		mainUsage: "Gaming",
 		browserTabs: 20,
 		software: ["Chrome / Edge"],
-		storageNeeds: "Medium",
-		budgetTier: "mid",
+		storageNeeds: "Light",
+		budgetTier: "budget",
 	});
 	const router = useRouter();
 

@@ -1,5 +1,4 @@
-// app/build-result/page.tsx  (Next.js App Router)
-// Route: /build-result?usage=Gaming&budget=mid&storage=Medium&tabs=20&software=Chrome+%2F+Edge,Discord
+
 
 import { Suspense } from "react";
 import BuildResultClient from "@/components/appComponents/BuildResultClient";
