@@ -105,7 +105,6 @@ function normalizeDepartment(input: string): string | null {
     if (deptLower === normalized) return dept;
     if (deptLower.includes(normalized) || normalized.includes(deptLower)) return dept;
   }
-  // common aliases
   const aliasMap: Record<string, string> = {
     gyne: "Gynecology",
     gyno: "Gynecology",
@@ -148,21 +147,15 @@ async function queryDoctors(params: Record<string, string>) {
   let doctorIds: mongoose.Types.ObjectId[] | null = null;
   let matchedHospital: any = null;
 
-  // ---- Normalize department ----
   let department = params.department;
   if (department) {
     const normalized = normalizeDepartment(department);
     if (normalized) department = normalized;
-    else {
-      // still keep original, but we'll do a text search on departments as fallback
-    }
   }
 
-  // ---- Find hospitals by area or hospital name ----
   const hospitalFilters: Record<string, any> = { isActive: true };
   if (params.area) hospitalFilters["address.area"] = new RegExp(params.area, "i");
   if (params.hospital) hospitalFilters.name = new RegExp(params.hospital, "i");
-  // Also try to match hospital name from params.name if no doctor found later
   let hospitalQuery: any = { isActive: true };
   if (Object.keys(hospitalFilters).length > 1 || params.area || params.hospital) {
     hospitalQuery = { $and: [] };
@@ -172,7 +165,7 @@ async function queryDoctors(params: Record<string, string>) {
 
   const hospitals = await Hospital.find(hospitalQuery).select("_id name address contact").lean();
   if (hospitals.length) {
-    matchedHospital = hospitals[0]; // pick first for fallback
+    matchedHospital = hospitals[0];
     const hospitalIds = hospitals.map(h => h._id);
     const postings = await DoctorHospital.find({
       hospital: { $in: hospitalIds },
@@ -184,7 +177,6 @@ async function queryDoctors(params: Record<string, string>) {
     }
   }
 
-  // ---- If no hospital was matched but params.hospital exists, try a more lenient search ----
   if (!hospitals.length && params.hospital) {
     const fuzzyHospitals = await Hospital.find({
       name: { $regex: params.hospital, $options: "i" },
@@ -204,7 +196,6 @@ async function queryDoctors(params: Record<string, string>) {
     }
   }
 
-  // ---- If still no hospital and params.name might be a hospital ----
   if (!hospitals.length && params.name && !doctorIds) {
     const hospitalByName = await Hospital.find({
       name: new RegExp(params.name, "i"),
@@ -224,32 +215,30 @@ async function queryDoctors(params: Record<string, string>) {
     }
   }
 
-  // ---- If we have doctorIds, apply department filter ----
   if (doctorIds && doctorIds.length) {
     filter._id = { $in: doctorIds };
   }
 
   if (department) {
-    // try exact match on department enum
     filter.departments = { $in: [department] };
   }
 
-  // ---- If no department match but we have a department string, use text search on doctor fields ----
   if (department && !filter.departments) {
-    // fallback: search departments array with regex
     filter.departments = { $elemMatch: { $regex: department, $options: "i" } };
   }
 
-  // ---- Fetch doctors ----
   let doctors = await Doctor.find(filter)
-    .select("name departments designation qualifications speciality rating reviewCount gender profileImage")
+    .populate({
+      path: "chamber",
+      select: "name address.area address.district contact phone",
+      match: { isActive: true }
+    })
+    .select("name departments designation qualifications speciality rating reviewCount gender profileImage chamber")
     .sort({ rating: -1 })
     .limit(5)
     .lean();
 
-  // ---- If no doctors found but we have a hospital, return hospital info as a fallback ----
   if (doctors.length === 0 && matchedHospital) {
-    // Return a special object that the LLM can use to suggest contacting the hospital
     return {
       __fallback: "hospital",
       hospital: matchedHospital,
@@ -257,7 +246,6 @@ async function queryDoctors(params: Record<string, string>) {
     };
   }
 
-  // ---- Enrich with hospital postings ----
   if (doctors.length > 0) {
     const ids = doctors.map((d) => d._id);
     const postings = await DoctorHospital.find({
@@ -268,12 +256,16 @@ async function queryDoctors(params: Record<string, string>) {
       .select("doctor hospital consultationFee schedule department roomOrChamber")
       .lean();
 
-    return doctors.map((doc) => ({
-      ...doc,
-      hospitalPostings: postings.filter(
-        (p) => p.doctor.toString() === doc._id.toString()
-      ),
-    }));
+    return doctors.map((doc) => {
+      const chambers = doc.chamber || [];
+      return {
+        ...doc,
+        chamber: chambers, // already populated
+        hospitalPostings: postings.filter(
+          (p) => p.doctor.toString() === doc._id.toString()
+        ),
+      };
+    });
   }
 
   return doctors;
@@ -413,7 +405,6 @@ async function generateResponse(
   dbResults: unknown,
   conversationHistory: { role: "user" | "assistant"; content: string }[]
 ) {
-  // Handle special fallback from queryDoctors
   let contextMsg = "";
   if (dbResults && typeof dbResults === "object" && "__fallback" in dbResults && dbResults.__fallback === "hospital") {
     const hospital = (dbResults as any).hospital;
