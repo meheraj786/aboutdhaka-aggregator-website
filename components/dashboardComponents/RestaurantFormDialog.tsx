@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -108,7 +107,7 @@ export function RestaurantFormDialog({
   const isEdit = !!restaurant;
   const isPending = isCreating || isUpdating;
 
-  const form = useForm<CreateRestaurantInput>({
+  const form = useForm({
     resolver: zodResolver(createRestaurantSchema),
     defaultValues: DEFAULT_VALUES,
   });
@@ -211,10 +210,10 @@ export function RestaurantFormDialog({
     }
   };
 
-  const toggleExperience = (exp: string) => {
-    const current = form.getValues("experience") || [];
+  const toggleExperience = (exp: typeof RESTAURANT_EXPERIENCES[number]) => {
+    const current = form.getValues("experience") as typeof RESTAURANT_EXPERIENCES[number][] || [];
     const updated = current.includes(exp)
-      ? current.filter(e => e !== exp)
+      ? current.filter((e) => e !== exp)
       : [...current, exp];
     form.setValue("experience", updated, { shouldDirty: true });
   };
