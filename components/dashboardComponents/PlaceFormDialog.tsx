@@ -188,7 +188,7 @@ export function PlaceFormDialog({
   };
 
   const removeGalleryUrl = (url: string) =>
-    form.setValue("gallery", gallery.filter((g) => g !== url), { shouldDirty: true });
+    form.setValue("gallery", gallery.filter((g: string) => g !== url), { shouldDirty: true });
 
   const facilities = form.watch("facilities") ?? [];
 
@@ -200,7 +200,7 @@ export function PlaceFormDialog({
   };
 
   const removeFacility = (item: string) =>
-    form.setValue("facilities", facilities.filter((f) => f !== item), { shouldDirty: true });
+    form.setValue("facilities", facilities.filter((f: string) => f !== item), { shouldDirty: true });
 
   const toggleExperience = (exp: typeof PLACE_EXPERIENCE[number]) => {
     const current = form.getValues("experience") || [];
@@ -350,7 +350,7 @@ export function PlaceFormDialog({
 
             {gallery.length > 0 ? (
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {gallery.map((url) => (
+                {gallery.map((url: string) => (
                   <div key={url} className="relative aspect-square group rounded-lg overflow-hidden border bg-muted">
                     <Image
                       src={url}
