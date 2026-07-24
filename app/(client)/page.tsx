@@ -15,23 +15,36 @@ import WeatherBadge from "@/components/appComponents/WeatherBadge";
 import AboutDhakaIntro from "@/components/appComponents/AboutDhakaIntro";
 
 export default function Home() {
-	return (
-		<>
-			<Hero />
-			<Categories />
-			<TravelPlaces />
-			<HospitalsAndRestaurants />
-			<Doctors />
-			{/* <FreelancersSection /> */}
-			{/* <ShoppingMallsSection /> */}
-			<PCBuilderSection />
-			<PetCareSection />
-			{/* <RentalsSection /> */}
-			{/* <TutorsSection /> */}
-			<CityNavigationSection />
-			<AboutDhakaIntro />
-			<BlogsSection />
-			<WeatherBadge />
-		</>
-	);
+  return (
+    <>
+      <Hero />
+      <Categories />
+      <TravelPlaces />
+      <HospitalsAndRestaurants />
+      <Doctors />
+      {/* <FreelancersSection /> */}
+      {/* <ShoppingMallsSection /> */}
+      <PCBuilderSection />
+      <PetCareSection />
+      {/* <RentalsSection /> */}
+      {/* <TutorsSection /> */}
+      <CityNavigationSection />
+      <AboutDhakaIntro />
+      <BlogsSection />
+      <WeatherBadge />
+    </>
+  );
+}
+// app/places/page.tsx
+import type { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Best Places to Visit in Dhaka",
+    description:
+      "Discover historical landmarks, parks, and attractions in Dhaka with reviews and guides.",
+    openGraph: {
+      /* specific image */
+    },
+  };
 }
