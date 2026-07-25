@@ -100,7 +100,7 @@ export default function PlacesPage() {
             onToggle={handleExperienceToggle}
           />
 
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-3 gap-6">
             <div>
               <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight flex items-center gap-2">
                 Explore Dhaka <Sparkles className="w-8 h-8 text-blue-600" />
@@ -131,7 +131,7 @@ export default function PlacesPage() {
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-10">
+          <div className="flex flex-col items-center lg:items-start lg:flex-row gap-10">
             <FilterSidebar
               sections={filterSections}
               onClearAll={() =>

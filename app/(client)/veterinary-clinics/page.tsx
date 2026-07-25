@@ -164,12 +164,12 @@ export default function VeterinaryPage() {
 					)}
 
 					<div className="flex gap-10">
-						{hasData && (
+						{/* {hasData && (
 							<FilterSidebar
 								sections={filterSections}
 								onClearAll={handleClearAll}
 							/>
-						)}
+						)} */}
 						<div className="grow">
 							{isLoading ? (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
