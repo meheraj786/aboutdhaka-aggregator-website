@@ -154,7 +154,6 @@ const FilterSidebar = ({ sections, onClearAll }: FilterSidebarProps = {}) => {
 
 	return (
 		<>
-			{/* Mobile Trigger Button */}
 			<div className="lg:hidden flex items-center mb-4">
 				<button
 					type="button"
@@ -171,13 +170,11 @@ const FilterSidebar = ({ sections, onClearAll }: FilterSidebarProps = {}) => {
 				</button>
 			</div>
 
-			{/* Mobile Sliding Drawer */}
 			<div
 				className={`fixed inset-0 z-50 lg:hidden transition-opacity duration-300 ${
 					isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
 				}`}
 			>
-				{/* Backdrop Overlay Button */}
 				<button
 					type="button"
 					aria-label="Close filters"
@@ -185,13 +182,11 @@ const FilterSidebar = ({ sections, onClearAll }: FilterSidebarProps = {}) => {
 					onClick={() => setIsOpen(false)}
 				/>
 
-				{/* Sliding Content Container */}
 				<div
 					className={`absolute inset-y-0 left-0 w-80 max-w-[calc(100vw-3rem)] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out ${
 						isOpen ? "translate-x-0" : "-translate-x-full"
 					}`}
 				>
-					{/* Header section inside the drawer */}
 					<div className="flex items-center justify-between border-b border-slate-100 p-4 shrink-0">
 						<div className="flex items-center gap-2">
 							<span className="font-bold text-slate-900">Filters</span>
@@ -210,14 +205,12 @@ const FilterSidebar = ({ sections, onClearAll }: FilterSidebarProps = {}) => {
 						</button>
 					</div>
 
-					{/* Body section of drawer */}
 					<div className="flex-1 overflow-y-auto p-6">
 						{renderFilterContent()}
 					</div>
 				</div>
 			</div>
 
-			{/* Desktop Layout */}
 			<aside className="hidden lg:block w-64 shrink-0">
 				<div className="bg-white border border-slate-100 rounded-2xl p-6 sticky top-20">
 					{renderFilterContent()}
