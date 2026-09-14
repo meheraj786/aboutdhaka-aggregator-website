@@ -26,7 +26,7 @@ export interface DhakaAIResult {
 async function withRetry<T>(
   fn: () => Promise<T>,
   retries = 2,
-  delayMs = 300
+  delayMs = 300,
 ): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -79,7 +79,7 @@ Respond ONLY with valid JSON in this exact format:
 
 async function classifyIntent(userMessage: string) {
   const res = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     messages: [
       { role: "system", content: INTENT_SYSTEM },
       { role: "user", content: userMessage },
@@ -103,7 +103,8 @@ function normalizeDepartment(input: string): string | null {
   for (const dept of DOCTOR_DEPARTMENTS) {
     const deptLower = dept.toLowerCase();
     if (deptLower === normalized) return dept;
-    if (deptLower.includes(normalized) || normalized.includes(deptLower)) return dept;
+    if (deptLower.includes(normalized) || normalized.includes(deptLower))
+      return dept;
   }
   const aliasMap: Record<string, string> = {
     gyne: "Gynecology",
@@ -134,7 +135,9 @@ async function queryHospitals(params: Record<string, string>) {
   if (params.area) filter["address.area"] = new RegExp(params.area, "i");
 
   const hospitals = await Hospital.find(filter)
-    .select("name types address contact rating isVerified services facilities totalBeds")
+    .select(
+      "name types address contact rating isVerified services facilities totalBeds",
+    )
     .sort({ rating: -1 })
     .limit(5)
     .lean();
@@ -154,24 +157,35 @@ async function queryDoctors(params: Record<string, string>) {
   }
 
   const hospitalFilters: Record<string, any> = { isActive: true };
-  if (params.area) hospitalFilters["address.area"] = new RegExp(params.area, "i");
+  if (params.area)
+    hospitalFilters["address.area"] = new RegExp(params.area, "i");
   if (params.hospital) hospitalFilters.name = new RegExp(params.hospital, "i");
   let hospitalQuery: any = { isActive: true };
-  if (Object.keys(hospitalFilters).length > 1 || params.area || params.hospital) {
+  if (
+    Object.keys(hospitalFilters).length > 1 ||
+    params.area ||
+    params.hospital
+  ) {
     hospitalQuery = { $and: [] };
-    if (params.area) hospitalQuery.$and.push({ "address.area": new RegExp(params.area, "i") });
-    if (params.hospital) hospitalQuery.$and.push({ name: new RegExp(params.hospital, "i") });
+    if (params.area)
+      hospitalQuery.$and.push({ "address.area": new RegExp(params.area, "i") });
+    if (params.hospital)
+      hospitalQuery.$and.push({ name: new RegExp(params.hospital, "i") });
   }
 
-  const hospitals = await Hospital.find(hospitalQuery).select("_id name address contact").lean();
+  const hospitals = await Hospital.find(hospitalQuery)
+    .select("_id name address contact")
+    .lean();
   if (hospitals.length) {
     matchedHospital = hospitals[0];
-    const hospitalIds = hospitals.map(h => h._id);
+    const hospitalIds = hospitals.map((h) => h._id);
     const postings = await DoctorHospital.find({
       hospital: { $in: hospitalIds },
       isActive: true,
-    }).select("doctor").lean();
-    const ids = postings.map(p => p.doctor);
+    })
+      .select("doctor")
+      .lean();
+    const ids = postings.map((p) => p.doctor);
     if (ids.length) {
       doctorIds = ids;
     }
@@ -181,15 +195,19 @@ async function queryDoctors(params: Record<string, string>) {
     const fuzzyHospitals = await Hospital.find({
       name: { $regex: params.hospital, $options: "i" },
       isActive: true,
-    }).select("_id name address contact").lean();
+    })
+      .select("_id name address contact")
+      .lean();
     if (fuzzyHospitals.length) {
       matchedHospital = fuzzyHospitals[0];
-      const hospitalIds = fuzzyHospitals.map(h => h._id);
+      const hospitalIds = fuzzyHospitals.map((h) => h._id);
       const postings = await DoctorHospital.find({
         hospital: { $in: hospitalIds },
         isActive: true,
-      }).select("doctor").lean();
-      const ids = postings.map(p => p.doctor);
+      })
+        .select("doctor")
+        .lean();
+      const ids = postings.map((p) => p.doctor);
       if (ids.length) {
         doctorIds = ids;
       }
@@ -200,15 +218,19 @@ async function queryDoctors(params: Record<string, string>) {
     const hospitalByName = await Hospital.find({
       name: new RegExp(params.name, "i"),
       isActive: true,
-    }).select("_id name address contact").lean();
+    })
+      .select("_id name address contact")
+      .lean();
     if (hospitalByName.length) {
       matchedHospital = hospitalByName[0];
-      const hospitalIds = hospitalByName.map(h => h._id);
+      const hospitalIds = hospitalByName.map((h) => h._id);
       const postings = await DoctorHospital.find({
         hospital: { $in: hospitalIds },
         isActive: true,
-      }).select("doctor").lean();
-      const ids = postings.map(p => p.doctor);
+      })
+        .select("doctor")
+        .lean();
+      const ids = postings.map((p) => p.doctor);
       if (ids.length) {
         doctorIds = ids;
       }
@@ -231,9 +253,11 @@ async function queryDoctors(params: Record<string, string>) {
     .populate({
       path: "chamber",
       select: "name address.area address.district contact phone",
-      match: { isActive: true }
+      match: { isActive: true },
     })
-    .select("name departments designation qualifications speciality rating reviewCount gender profileImage chamber")
+    .select(
+      "name departments designation qualifications speciality rating reviewCount gender profileImage chamber",
+    )
     .sort({ rating: -1 })
     .limit(5)
     .lean();
@@ -253,7 +277,9 @@ async function queryDoctors(params: Record<string, string>) {
       isActive: true,
     })
       .populate("hospital", "name address.area")
-      .select("doctor hospital consultationFee schedule department roomOrChamber")
+      .select(
+        "doctor hospital consultationFee schedule department roomOrChamber",
+      )
       .lean();
 
     return doctors.map((doc) => {
@@ -262,7 +288,7 @@ async function queryDoctors(params: Record<string, string>) {
         ...doc,
         chamber: chambers, // already populated
         hospitalPostings: postings.filter(
-          (p) => p.doctor.toString() === doc._id.toString()
+          (p) => p.doctor.toString() === doc._id.toString(),
         ),
       };
     });
@@ -307,7 +333,9 @@ async function queryPlaces(params: Record<string, string>) {
 
   const places = await Place.find(filter)
     .populate("area", "name")
-    .select("name category detail rating hours closingDay fee contact facilities location area")
+    .select(
+      "name category detail rating hours closingDay fee contact facilities location area",
+    )
     .sort({ rating: -1 })
     .limit(5)
     .lean();
@@ -318,15 +346,24 @@ async function queryPlaces(params: Record<string, string>) {
 async function queryBus(params: Record<string, string>) {
   if (params.from && params.to) {
     const [fromStop, toStop] = await Promise.all([
-      BusStop.find({ stopName: new RegExp(params.from, "i") }).select("_id stopName area").lean(),
-      BusStop.find({ stopName: new RegExp(params.to, "i") }).select("_id stopName area").lean(),
+      BusStop.find({ stopName: new RegExp(params.from, "i") })
+        .select("_id stopName area")
+        .lean(),
+      BusStop.find({ stopName: new RegExp(params.to, "i") })
+        .select("_id stopName area")
+        .lean(),
     ]);
 
     if (fromStop.length && toStop.length) {
       const fromIds = fromStop.map((s) => s._id);
       const toIds = toStop.map((s) => s._id);
       const buses = await Bus.find({
-        stops: { $all: [{ $elemMatch: { $in: fromIds } }, { $elemMatch: { $in: toIds } }] },
+        stops: {
+          $all: [
+            { $elemMatch: { $in: fromIds } },
+            { $elemMatch: { $in: toIds } },
+          ],
+        },
       })
         .select("busName stops")
         .limit(5)
@@ -365,7 +402,9 @@ async function queryPCComponents(params: Record<string, string>) {
 
   const components = await PCComponent.find(filter)
     .populate("shopListings.shop", "name location phone")
-    .select("name brand category specs shopListings usageTags minBudgetTier cores vramGb ramCapacityGb storageCapacityGb wattage imageUrl")
+    .select(
+      "name brand category specs shopListings usageTags minBudgetTier cores vramGb ramCapacityGb storageCapacityGb wattage imageUrl",
+    )
     .sort({ "shopListings.price": 1 })
     .limit(5)
     .lean();
@@ -403,15 +442,21 @@ async function generateResponse(
   userMessage: string,
   intent: string,
   dbResults: unknown,
-  conversationHistory: { role: "user" | "assistant"; content: string }[]
+  conversationHistory: { role: "user" | "assistant"; content: string }[],
 ) {
   let contextMsg = "";
-  if (dbResults && typeof dbResults === "object" && "__fallback" in dbResults && dbResults.__fallback === "hospital") {
+  if (
+    dbResults &&
+    typeof dbResults === "object" &&
+    "__fallback" in dbResults &&
+    dbResults.__fallback === "hospital"
+  ) {
     const hospital = (dbResults as any).hospital;
     contextMsg = `No doctors found, but here is hospital info: ${JSON.stringify(hospital, null, 2)}. Suggest the user contact the hospital directly.`;
   } else {
     contextMsg =
-      dbResults && (Array.isArray(dbResults) ? (dbResults as unknown[]).length > 0 : true)
+      dbResults &&
+      (Array.isArray(dbResults) ? (dbResults as unknown[]).length > 0 : true)
         ? `Database results for intent "${intent}":\n${JSON.stringify(dbResults, null, 2)}`
         : `No database results found for intent "${intent}". Let the user know and offer alternatives.`;
   }
@@ -425,21 +470,28 @@ async function generateResponse(
   ];
 
   const res = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: "openai/gpt-oss-20b",
     messages: [{ role: "system", content: RESPONSE_SYSTEM }, ...messages],
     max_tokens: 1024,
     temperature: 0.7,
   });
 
-  return res.choices[0]?.message?.content ?? "I couldn't generate a response. Please try again.";
+  return (
+    res.choices[0]?.message?.content ??
+    "I couldn't generate a response. Please try again."
+  );
 }
 
 export async function askDhakaAI(
   message: string,
-  history: { role: "user" | "assistant"; content: string }[] = []
+  history: { role: "user" | "assistant"; content: string }[] = [],
 ): Promise<DhakaAIResult> {
   if (!message?.trim()) {
-    return { reply: "Please type a message.", intent: "general", resultsCount: 0 };
+    return {
+      reply: "Please type a message.",
+      intent: "general",
+      resultsCount: 0,
+    };
   }
 
   return withRetry(
@@ -480,15 +532,20 @@ export async function askDhakaAI(
       return {
         reply,
         intent,
-        resultsCount: Array.isArray(dbResults) ? dbResults.length : dbResults ? 1 : 0,
+        resultsCount: Array.isArray(dbResults)
+          ? dbResults.length
+          : dbResults
+            ? 1
+            : 0,
       };
     },
     2,
-    300
+    300,
   ).catch((err) => {
     console.error("Dhaka AI fatal error after retries:", err);
     return {
-      reply: "I'm having trouble connecting to the city database right now. Please try again in a moment.",
+      reply:
+        "I'm having trouble connecting to the city database right now. Please try again in a moment.",
       intent: "general",
       resultsCount: 0,
     };
