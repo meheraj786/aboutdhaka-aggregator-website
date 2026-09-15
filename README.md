@@ -34,6 +34,7 @@ About Dhaka is a Next.js-based digital city platform with an intuitive front-end
 ## Features
 
 ### 1. City discovery and directory
+
 - Explore places and attractions across Dhaka
 - Discover restaurants and dining experiences
 - Browse hospitals, clinics, and medical facilities
@@ -43,39 +44,46 @@ About Dhaka is a Next.js-based digital city platform with an intuitive front-end
 - View city-related blog content and local stories
 
 ### 2. Smart public transport support
+
 - Bus route information and stop discovery
 - Nearest bus stop lookup
 - Route-aware city navigation assistance
 - Travel planning for residents and visitors
 
 ### 3. AI-powered city assistant
+
 - Ask Dhaka AI for local recommendations and city information
 - Natural language search for hospitals, doctors, restaurants, places, and transport
 - Smart intent detection for fast, contextual city queries
 - Built with AI tooling for better service discovery
 
 ### 4. PC builder and tech services
+
 - Personalized PC component suggestion experience
 - Support for build planning based on usage and requirements
 - Digital service discovery for local tech users and buyers
 
 ### 5. Admin dashboard and content management
+
 - Manage areas, hospitals, doctors, restaurants, shops, blogs, and bus-related data
 - Secure admin login flow
 - CRUD-based management for local listings and content
 - Dashboard for operational control of the platform
 
 ### 6. Local blog and information publishing
+
 - Create and publish city stories, guides, and updates
 - Browse category-based content
 - Support for editorial and local information sharing
 
 ### 7. Search, filtering, and browsing experience
+
 - Category-based navigation
 - Search and filter by area, service type, category, and more
 - Responsive design for mobile and desktop users
 
 ### 8. Modern web experience
+
 - Fast Next.js application architecture
 - Tailwind-based interface design
 - Query caching and modern client-side data fetching
@@ -232,4 +240,3 @@ This project is currently distributed under the project’s chosen repository li
 About Dhaka is more than a directory — it is a step toward building a smarter, more connected Dhaka. By combining local information, AI support, and modern web technology, the platform helps bring the city into the digital age.
 
 Together, we can make Dhaka more accessible, informed, and future-ready.
-
